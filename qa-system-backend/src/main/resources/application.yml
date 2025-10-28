@@ -1,0 +1,88 @@
+spring:
+  application:
+    name: qa-system-backend
+  
+  profiles:
+    active: dev
+  
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:qa_system_v2}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+  
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
+      enabled: true
+
+# MyBatis-Plus配置已移至MyBatisPlusConfig.java中手动配置
+# 避免Spring Boot 3自动配置冲突
+
+jwt:
+  secret: ${JWT_SECRET:qa-system-secret-key-2025-very-long-and-secure-key-for-jwt-token}
+  expiration: 604800000
+  refresh-expiration: 2592000000
+
+# LangChain4j AI配置
+langchain4j:
+  dashscope:
+    api-key: sk-d710b29d19da44178d68fce9b33db898
+    model-name: qwen-turbo  # 更快的模型
+    temperature: 0.7
+    timeout: 60s
+    max-tokens: 2000
+  chat-model:
+    language: zh_cn
+
+
+cos:
+  client:
+    host: https://buk-1-1365645108.cos.ap-beijing.myqcloud.com   # 可选，根据 SDK 需要填
+    secretId: AKIDCwXzXv64ygBSVBevzqTt560mMmyxkJfx
+    secretKey: FQYDl6YuGUyKUREpDNcfUIxZzCJDtLZb
+    region: ap-beijing
+    bucket: buk-1-1365645108
+    appId: 1365645108
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.qasystem: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{50} - %msg%n"
+
