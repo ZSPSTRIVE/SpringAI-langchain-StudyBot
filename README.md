@@ -1,13 +1,14 @@
-# 🎓 师生答疑系统 v2.0
 
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.1.5-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![Vue](https://img.shields.io/badge/Vue-3.4.15-4FC08D.svg)](https://vuejs.org/)
-[![MyBatis-Plus](https://img.shields.io/badge/MyBatis--Plus-3.5.7-blue.svg)](https://baomidou.com/)
-[![Redis](https://img.shields.io/badge/Redis-6.0+-DC382D.svg)](https://redis.io/)
-[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1.svg)](https://www.mysql.com/)
-[![LangChain4j](https://img.shields.io/badge/LangChain4j-0.35.0-orange.svg)](https://docs.langchain4j.dev/)
-[![Element Plus](https://img.shields.io/badge/Element%20Plus-2.5.4-409EFF.svg)](https://element-plus.org/)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+#  师生答疑系统 v2.0
+
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.1.5-brightgreen.svg)
+![Vue](https://img.shields.io/badge/Vue-3.4.15-4FC08D.svg)
+![MyBatis-Plus](https://img.shields.io/badge/MyBatis--Plus-3.5.7-blue.svg)
+![Redis](https://img.shields.io/badge/Redis-6.0+-DC382D.svg)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1.svg)
+![LangChain4j](https://img.shields.io/badge/LangChain4j-0.35.0-orange.svg)
+![Element Plus](https://img.shields.io/badge/Element%20Plus-2.5.4-409EFF.svg)
+>>>>>>> 2d5033182dba65811c49404a271ecc32a61a37d3
 
 一个现代化的师生互动答疑平台，集成AI智能助手，支持实时问答、交流论坛和学习资源推荐。
 
@@ -21,7 +22,10 @@
 - ⭐ **收藏关注** - 收藏问题、关注用户，个性化内容推荐
 - 👨‍💼 **后台管理** - 完善的管理端，用户、问题、科目统一管理
 
-### 🤖 AI助手 (v2.0新增)
+
+=======
+###  AI助手 (v2.0新增)
+>>>>>>> 2d5033182dba65811c49404a271ecc32a61a37d3
 - **智能对话** - 基于阿里通义千问qwen-turbo模型
 - **多轮对话** - 保持上下文，支持连续提问
 - **问题分类** - 自动识别技术、学科、课程等问题类型
@@ -117,87 +121,32 @@ qa-system/
 
 ## 🛠 技术栈
 
-### 后端技术栈
+=======
+### 后端技术
 | 技术 | 版本 | 说明 |
 |------|------|------|
-| **核心框架** |
-| Spring Boot | 3.1.5 | 应用框架 |
-| Spring Web MVC | 6.0.13 | Web框架 |
-| Spring Security | 6.1.5 | 安全认证框架 |
-| Spring Data Redis | 3.1.5 | Redis数据访问 |
-| **数据持久化** |
-| MyBatis-Plus | 3.5.7 | ORM增强框架 |
-| HikariCP | 5.0.1 | 数据库连接池 |
-| MySQL Connector | 8.0.33 | MySQL驱动 |
-| **认证授权** |
-| JWT (jjwt) | 0.12.3 | Token生成与验证 |
-| Spring Security JWT | - | JWT集成 |
-| **缓存中间件** |
-| Redis | 6.0+ | 缓存数据库 |
-| Lettuce | 6.2.6 | Redis客户端 |
-| **AI集成** |
-| LangChain4j Core | 0.35.0 | AI应用框架 |
-| LangChain4j DashScope | 0.35.0 | 阿里百练集成 |
-| 阿里百练 | - | 通义千问API服务 |
-| **工具库** |
-| Hutool | 5.8.25 | Java工具集 |
-| Lombok | 1.18.30 | 代码简化 |
-| Jackson | 2.15.3 | JSON处理 |
-| **监控运维** |
-| Spring Boot Actuator | 3.1.5 | 应用监控 |
-| Micrometer | 1.11.5 | 指标收集 |
-| Prometheus | - | 监控系统 |
-| **构建部署** |
-| Maven | 3.8+ | 项目构建 |
-| Docker | - | 容器化部署 |
+| Spring Boot | 3.1.5 | 基础框架 |
+| Spring Security | 6.1.5 | 安全认证 |
+| MyBatis-Plus | 3.5.7 | ORM框架 |
+| JWT | 0.12.3 | Token认证 |
+| Redis | - | 缓存中间件 |
+| MySQL | 8.0 | 数据库 |
+| LangChain4j | 0.35.0 | AI集成框架 |
+| 阿里百练 | - | AI模型服务 |
+| Hutool | 5.8.25 | 工具库 |
 
-### 前端技术栈
+### 前端技术
 | 技术 | 版本 | 说明 |
 |------|------|------|
-| **核心框架** |
-| Vue 3 | 3.4.15 | 渐进式JavaScript框架 |
-| Vue Router | 4.2.5 | 官方路由管理器 |
-| Pinia | 2.1.7 | 官方状态管理 |
-| Pinia Persist | 3.2.1 | 状态持久化插件 |
-| **UI组件** |
-| Element Plus | 2.5.4 | Vue 3 UI组件库 |
-| Element Icons | 2.3.1 | 图标库 |
-| **富文本编辑** |
-| wangEditor | 5.1.23 | 富文本编辑器 |
-| wangEditor for Vue | 5.1.12 | Vue集成 |
-| **HTTP通信** |
+| Vue | 3.4.15 | 渐进式框架 |
+| Vue Router | 4.2.5 | 路由管理 |
+| Pinia | 2.1.7 | 状态管理 |
+| Element Plus | 2.5.4 | UI组件库 |
 | Axios | 1.6.5 | HTTP客户端 |
-| **Markdown渲染** |
-| Marked | 11.1.1 | Markdown解析器 |
-| Highlight.js | 11.9.0 | 代码语法高亮 |
-| **工具库** |
-| Day.js | 1.11.10 | 日期时间处理 |
-| js-cookie | 3.0.5 | Cookie操作 |
-| **构建工具** |
-| Vite | 5.0.11 | 下一代前端构建工具 |
-| Vite Plugin Vue | 5.0.3 | Vue插件 |
-| **代码质量** |
-| ESLint | 8.56.0 | 代码检查 |
-| ESLint Plugin Vue | 9.20.1 | Vue规则 |
-| **CSS预处理** |
-| Sass | 1.70.0 | CSS预处理器 |
-| **自动导入** |
-| unplugin-auto-import | 0.17.3 | API自动导入 |
-| unplugin-vue-components | 0.26.0 | 组件自动导入 |
-
-### 数据库
-| 技术 | 版本 | 说明 |
-|------|------|------|
-| MySQL | 8.0+ | 关系型数据库 |
-| Redis | 6.0+ | 内存数据库 |
-
-### DevOps
-| 技术 | 版本 | 说明 |
-|------|------|------|
-| Docker | - | 容器化平台 |
-| Docker Compose | - | 容器编排 |
-| Nginx | - | Web服务器/反向代理 |
-| Git | - | 版本控制 |
+| Vite | 5.0.11 | 构建工具 |
+| Marked | 11.1.1 | Markdown渲染 |
+| Highlight.js | 11.9.0 | 代码高亮 |
+>>>>>>> 2d5033182dba65811c49404a271ecc32a61a37d3
 
 ## 📝 API文档
 
@@ -227,7 +176,10 @@ POST   /api/ai/bookmark/{id}       # 收藏对话
 
 完整API文档：[API Documentation](docs/API.md)
 
-## 🎨 功能演示
+
+=======
+## 功能演示
+>>>>>>> 2d5033182dba65811c49404a271ecc32a61a37d3
 
 ### 学生端
 - 浏览问题广场，按科目筛选
@@ -253,7 +205,9 @@ POST   /api/ai/bookmark/{id}       # 收藏对话
 - 学习资源推荐
 - 对话历史管理
 
-## 🔑 配置说明
+=======
+## 配置说明
+>>>>>>> 2d5033182dba65811c49404a271ecc32a61a37d3
 
 ### 后端配置 `application.yml`
 ```yaml
@@ -301,13 +255,17 @@ export default defineConfig({
 | **教师** | 回答问题、查看问题列表、使用AI助手 |
 | **管理员** | 全部权限，包括用户管理、内容审核 |
 
-## 🔐 默认账号
+
+##  默认账号
 
 ```
 管理员:  admin / admin123
 教师:    teacher / teacher123
 学生:    student / student123
 ```
+=======
+
+>>>>>>> 2d5033182dba65811c49404a271ecc32a61a37d3
 
 ## 📊 数据库设计
 
@@ -364,6 +322,7 @@ server {
 java -jar qa-system-backend/target/qa-system-backend-2.0.0.jar
 ```
 
+
 ## 🤝 贡献指南
 
 欢迎贡献代码！请遵循以下步骤：
@@ -373,6 +332,8 @@ java -jar qa-system-backend/target/qa-system-backend-2.0.0.jar
 3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 开启Pull Request
+=======
+>>>>>>> 2d5033182dba65811c49404a271ecc32a61a37d3
 
 ## 📄 开源协议
 

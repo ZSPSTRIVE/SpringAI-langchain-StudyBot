@@ -48,7 +48,10 @@ jwt:
 # LangChain4j AI配置
 langchain4j:
   dashscope:
-    api-key: sk-d710b29d19da44178d68fce9b33db898
+
+=======
+    api-key:  
+
     model-name: qwen-turbo  # 更快的模型
     temperature: 0.7
     timeout: 60s
@@ -59,12 +62,15 @@ langchain4j:
 
 cos:
   client:
-    host: https://buk-1-1365645108.cos.ap-beijing.myqcloud.com   # 可选，根据 SDK 需要填
-    secretId: AKIDCwXzXv64ygBSVBevzqTt560mMmyxkJfx
-    secretKey: FQYDl6YuGUyKUREpDNcfUIxZzCJDtLZb
-    region: ap-beijing
-    bucket: buk-1-1365645108
-    appId: 1365645108
+
+
+    host:   # 可选，根据 SDK 需要填
+    secretId: 
+    secretKey: 
+    region:  
+    bucket:  
+    appId:  
+
 management:
   endpoints:
     web:
