@@ -1,0 +1,292 @@
+// ==================== 主样式文件 ====================
+// 导入设计系统
+@import './variables.scss';
+@import './utils.scss';
+
+// ==================== 全局重置 ====================
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  font-family: $font-family;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  color: $text-primary;
+  background-color: $bg-secondary;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: $font-size-md;
+  line-height: $line-height-normal;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color $transition-fast;
+  
+  &:hover {
+    color: $primary-color;
+  }
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+// ==================== 全局动画 ====================
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ==================== Element Plus 覆盖 ====================
+// 禁用渐变色，使用纯色
+.el-button {
+  transition: all $transition-fast;
+  border-radius: $radius-md;
+  font-weight: $font-weight-medium;
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  
+  &--primary {
+    background-color: $primary-color;
+    border-color: $primary-color;
+    
+    &:hover {
+      background-color: $primary-hover;
+      border-color: $primary-hover;
+    }
+  }
+}
+
+.el-card {
+  border-radius: $radius-lg;
+  border: 1px solid $border-color;
+  box-shadow: $shadow-sm;
+  transition: all $transition-base;
+  
+  &:hover {
+    box-shadow: $shadow-lg;
+    transform: translateY(-2px);
+  }
+  
+  .el-card__header {
+    border-bottom: 1px solid $border-color;
+    padding: $spacing-lg;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+  }
+  
+  .el-card__body {
+    padding: $spacing-lg;
+  }
+}
+
+.el-input__wrapper {
+  border-radius: $radius-md;
+  box-shadow: none;
+  border: 1px solid $border-color;
+  transition: all $transition-fast;
+  
+  &:hover {
+    border-color: $primary-light;
+  }
+  
+  &.is-focus {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+  }
+}
+
+.el-table {
+  border-radius: $radius-lg;
+  overflow: hidden;
+  
+  th {
+    background-color: $bg-tertiary;
+    color: $text-primary;
+    font-weight: $font-weight-semibold;
+  }
+  
+  tr:hover > td {
+    background-color: $bg-hover;
+  }
+}
+
+.el-pagination {
+  .el-pager li {
+    border-radius: $radius-md;
+    
+    &.is-active {
+      background-color: $primary-color;
+    }
+  }
+}
+
+.el-dialog {
+  border-radius: $radius-xl;
+  box-shadow: $shadow-2xl;
+}
+
+.el-message {
+  border-radius: $radius-lg;
+  box-shadow: $shadow-xl;
+}
+
+.el-notification {
+  border-radius: $radius-lg;
+  box-shadow: $shadow-xl;
+}
+
+// ==================== 自定义滚动条 ====================
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: $bg-tertiary;
+  border-radius: $radius-md;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $border-dark;
+  border-radius: $radius-md;
+  transition: background $transition-fast;
+  
+  &:hover {
+    background: $text-secondary;
+  }
+}
+
+// ==================== 页面过渡 ====================
+.page-enter-active,
+.page-leave-active {
+  transition: all $transition-base;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+// ==================== 响应式 ====================
+@media (max-width: $breakpoint-md) {
+  body {
+    font-size: $font-size-sm;
+  }
+}
+
+// ==================== 辅助类 ====================
+.page-container {
+  min-height: calc(100vh - 60px);
+  padding: $spacing-xl;
+  animation: fadeIn 0.3s ease;
+}
+
+.section-title {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  margin-bottom: $spacing-lg;
+  padding-bottom: $spacing-md;
+  border-bottom: 2px solid $primary-color;
+}
+
+.empty-state {
+  text-align: center;
+  padding: $spacing-3xl;
+  color: $text-secondary;
+  
+  .empty-icon {
+    font-size: $font-size-5xl;
+    color: $text-disabled;
+    margin-bottom: $spacing-lg;
+  }
+  
+  .empty-text {
+    font-size: $font-size-lg;
+    color: $text-secondary;
+  }
+}
+
+
+
