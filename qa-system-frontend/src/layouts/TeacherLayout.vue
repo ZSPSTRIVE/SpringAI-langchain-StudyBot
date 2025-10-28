@@ -1,0 +1,467 @@
+<template>
+  <el-container class="layout-container">
+    <!-- 顶部导航 -->
+    <el-header class="layout-header">
+      <div class="header-content">
+        <!-- Logo 和标题 -->
+        <div class="logo-section" @click="router.push('/home')">
+          <el-icon class="logo-icon"><UserFilled /></el-icon>
+          <div class="logo-text">
+            <h2>教师工作台</h2>
+            <span class="logo-subtitle">Teacher Workspace</span>
+          </div>
+        </div>
+        
+        <!-- 导航菜单 -->
+        <el-menu
+          mode="horizontal"
+          :default-active="activeMenu"
+          router
+          class="header-menu"
+          :ellipsis="false"
+        >
+          <el-menu-item index="/teacher/answers">
+            <el-icon><ChatLineSquare /></el-icon>
+            <span>答疑中心</span>
+          </el-menu-item>
+          <el-menu-item index="/student/questions">
+            <el-icon><QuestionFilled /></el-icon>
+            <span>问题广场</span>
+          </el-menu-item>
+          <el-menu-item index="/teacher/ai-assistant">
+            <el-icon><Opportunity /></el-icon>
+            <span>AI助手</span>
+          </el-menu-item>
+          <el-menu-item index="/forum">
+            <el-icon><ChatDotSquare /></el-icon>
+            <span>交流区</span>
+          </el-menu-item>
+        </el-menu>
+        
+        <!-- 右侧操作区 -->
+        <div class="header-actions">
+          <!-- 返回首页按钮 -->
+          <el-tooltip content="返回首页" placement="bottom">
+            <el-button 
+              circle 
+              class="action-btn"
+              @click="router.push('/home')"
+            >
+              <el-icon><HomeFilled /></el-icon>
+            </el-button>
+          </el-tooltip>
+          
+          <!-- 用户下拉菜单 -->
+          <el-dropdown @command="handleCommand" trigger="click">
+            <div class="user-info">
+              <el-avatar 
+                :size="36" 
+                :src="userStore.userInfo?.avatar"
+                class="user-avatar"
+              >
+                {{ userStore.userInfo?.realName?.[0] || '教' }}
+              </el-avatar>
+              <span class="username">{{ userStore.userInfo?.realName || '教师' }}</span>
+              <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
+            </div>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">
+                  <el-icon><User /></el-icon>
+                  <span>个人中心</span>
+                </el-dropdown-item>
+                <el-dropdown-item command="home">
+                  <el-icon><HomeFilled /></el-icon>
+                  <span>返回首页</span>
+                </el-dropdown-item>
+                <el-dropdown-item divided command="logout">
+                  <el-icon><SwitchButton /></el-icon>
+                  <span>退出登录</span>
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+      </div>
+    </el-header>
+
+    <!-- 主内容区 -->
+    <el-main class="layout-main">
+      <div class="main-content">
+        <router-view v-slot="{ Component }">
+          <transition name="page" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
+      </div>
+    </el-main>
+    
+    <!-- 页脚 -->
+    <el-footer class="layout-footer">
+      <div class="footer-content">
+        <p>&copy; 2025 师生答疑系统 · 教师端</p>
+        <p class="footer-links">
+          <a href="#">帮助中心</a>
+          <span>·</span>
+          <a href="#">使用指南</a>
+          <span>·</span>
+          <a href="#">联系我们</a>
+        </p>
+      </div>
+    </el-footer>
+  </el-container>
+</template>
+
+<script setup>
+import { computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { 
+  UserFilled, QuestionFilled, ChatLineSquare, ChatDotSquare, 
+  HomeFilled, User, SwitchButton, ArrowDown
+} from '@element-plus/icons-vue'
+import { useUserStore } from '@/stores/user'
+import { logout as logoutApi } from '@/api/auth'
+
+const router = useRouter()
+const route = useRoute()
+const userStore = useUserStore()
+
+// 当前激活的菜单项
+const activeMenu = computed(() => route.path)
+
+// 处理用户下拉菜单命令
+const handleCommand = async (command) => {
+  if (command === 'logout') {
+    try {
+      await ElMessageBox.confirm(
+        '确定要退出登录吗？',
+        '退出确认',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+      
+      await logoutApi()
+      userStore.logout()
+      ElMessage.success('退出登录成功')
+      router.push('/login')
+    } catch (error) {
+      if (error !== 'cancel') {
+        console.error('退出失败:', error)
+        ElMessage.error('退出失败，请重试')
+      }
+    }
+  } else if (command === 'profile') {
+    router.push('/profile')
+  } else if (command === 'home') {
+    router.push('/home')
+  }
+}
+</script>
+
+<style scoped lang="scss">
+@import '@/assets/styles/variables.scss';
+
+// ==================== 整体布局 ====================
+.layout-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: $bg-secondary;
+}
+
+// ==================== 顶部导航栏 ====================
+.layout-header {
+  background: $bg-primary;
+  box-shadow: $shadow-md;
+  padding: 0;
+  z-index: $z-index-sticky;
+  position: sticky;
+  top: 0;
+  height: 64px;
+}
+
+.header-content {
+  max-width: 1600px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 $spacing-lg;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xl;
+}
+
+// Logo 区域 - 使用教师色
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  cursor: pointer;
+  transition: all $transition-fast;
+  padding: $spacing-sm;
+  border-radius: $radius-md;
+  
+  &:hover {
+    background: $bg-hover;
+    transform: translateX(2px);
+  }
+  
+  .logo-icon {
+    font-size: $font-size-3xl;
+    color: $teacher-color;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  
+  .logo-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    
+    h2 {
+      margin: 0;
+      font-size: $font-size-lg;
+      font-weight: $font-weight-bold;
+      color: $text-primary;
+      line-height: 1;
+    }
+    
+    .logo-subtitle {
+      font-size: $font-size-xs;
+      color: $text-secondary;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+// 导航菜单
+.header-menu {
+  flex: 1;
+  border: none;
+  background: transparent;
+  
+  :deep(.el-menu-item) {
+    height: 64px;
+    line-height: 64px;
+    border-radius: $radius-md;
+    margin: 0 $spacing-xs;
+    padding: 0 $spacing-md;
+    font-weight: $font-weight-medium;
+    transition: all $transition-fast;
+    
+    &:hover {
+      background: $bg-hover;
+      color: $teacher-color;
+    }
+    
+    &.is-active {
+      background: rgba($teacher-color, 0.1);
+      color: $teacher-color;
+      border-bottom: none;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60%;
+        height: 3px;
+        background: $teacher-color;
+        border-radius: $radius-full;
+      }
+    }
+    
+    .el-icon {
+      margin-right: $spacing-xs;
+    }
+  }
+}
+
+// 右侧操作区
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  
+  .action-btn {
+    background: $bg-hover;
+    border: none;
+    color: $text-primary;
+    transition: all $transition-fast;
+    
+    &:hover {
+      background: $teacher-color;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: $shadow-md;
+    }
+  }
+}
+
+// 用户信息下拉
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  cursor: pointer;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-lg;
+  transition: all $transition-fast;
+  
+  &:hover {
+    background: $bg-hover;
+  }
+  
+  .user-avatar {
+    background: $teacher-color;
+    font-weight: $font-weight-semibold;
+    border: 2px solid white;
+    box-shadow: $shadow-sm;
+  }
+  
+  .username {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $text-primary;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .dropdown-icon {
+    color: $text-secondary;
+    font-size: $font-size-sm;
+    transition: transform $transition-fast;
+  }
+  
+  &:hover .dropdown-icon {
+    transform: rotate(180deg);
+  }
+}
+
+// 下拉菜单项增强
+:deep(.el-dropdown-menu__item) {
+  padding: $spacing-md $spacing-lg;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  transition: all $transition-fast;
+  
+  .el-icon {
+    color: $text-secondary;
+  }
+  
+  &:hover {
+    background: $bg-hover;
+    color: $teacher-color;
+    
+    .el-icon {
+      color: $teacher-color;
+    }
+  }
+}
+
+// ==================== 主内容区 ====================
+.layout-main {
+  flex: 1;
+  background: $bg-secondary;
+  padding: 0;
+}
+
+.main-content {
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+  min-height: calc(100vh - 124px);
+}
+
+// 页面过渡动画
+.page-enter-active,
+.page-leave-active {
+  transition: all $transition-base;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+// ==================== 页脚 ====================
+.layout-footer {
+  background: $bg-primary;
+  border-top: 1px solid $border-color;
+  padding: $spacing-lg 0;
+  height: auto;
+}
+
+.footer-content {
+  max-width: 1600px;
+  margin: 0 auto;
+  text-align: center;
+  color: $text-secondary;
+  font-size: $font-size-sm;
+  
+  p {
+    margin: $spacing-xs 0;
+  }
+  
+  .footer-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-sm;
+    
+    a {
+      color: $text-secondary;
+      transition: color $transition-fast;
+      
+      &:hover {
+        color: $teacher-color;
+      }
+    }
+    
+    span {
+      color: $border-dark;
+    }
+  }
+}
+
+// ==================== 响应式设计 ====================
+@media (max-width: $breakpoint-lg) {
+  .header-content {
+    padding: 0 $spacing-md;
+  }
+  
+  .logo-text .logo-subtitle {
+    display: none;
+  }
+  
+  .header-menu {
+    :deep(.el-menu-item span) {
+      display: none;
+    }
+  }
+}
+
+@media (max-width: $breakpoint-md) {
+  .logo-section {
+    .logo-text {
+      display: none;
+    }
+  }
+  
+  .header-actions .action-btn {
+    display: none;
+  }
+}
+</style>
