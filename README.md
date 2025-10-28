@@ -8,7 +8,7 @@
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1.svg)
 ![LangChain4j](https://img.shields.io/badge/LangChain4j-0.35.0-orange.svg)
 ![Element Plus](https://img.shields.io/badge/Element%20Plus-2.5.4-409EFF.svg)
->>>>>>> 2d5033182dba65811c49404a271ecc32a61a37d3
+ 
 
 一个现代化的师生互动答疑平台，集成AI智能助手，支持实时问答、交流论坛和学习资源推荐。
 
@@ -22,10 +22,9 @@
 - ⭐ **收藏关注** - 收藏问题、关注用户，个性化内容推荐
 - 👨‍💼 **后台管理** - 完善的管理端，用户、问题、科目统一管理
 
-
-=======
+ 
 ###  AI助手 (v2.0新增)
->>>>>>> 2d5033182dba65811c49404a271ecc32a61a37d3
+ 
 - **智能对话** - 基于阿里通义千问qwen-turbo模型
 - **多轮对话** - 保持上下文，支持连续提问
 - **问题分类** - 自动识别技术、学科、课程等问题类型
