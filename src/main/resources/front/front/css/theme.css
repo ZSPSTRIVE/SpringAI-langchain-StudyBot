@@ -1,0 +1,106 @@
+/* 文字点击动态效果 */
+.layui-nav .layui-nav-item a {
+	transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.layui-nav .layui-nav-item a:hover,
+.layui-nav .layui-nav-item:active a {
+	color: #FFFFFF;
+	background-color: #ce0b07;
+	transform: scale(1.1); /* 放大效果 */
+}
+
+.layui-nav .layui-this:after {
+	background-color: #ce0b07;
+}
+
+/* 对标题增加点击动态效果 */
+.index-title {
+	color: #ce0b07;
+	transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.index-title:hover {
+	color: #a30706; /* 深红色 */
+	transform: scale(1.1); /* 放大效果 */
+}
+
+/* 新闻列表标题点击时效果 */
+.news-home-container .layui-colla-title:hover {
+	background: #ce0b07;
+	color: #FFFFFF;
+	transform: scale(1.05); /* 放大效果 */
+}
+
+/* 详情页标题点击时效果 */
+.data-detail .title:hover {
+	color: #ce0b07;
+	transform: scale(1.05); /* 放大效果 */
+}
+
+/* banner 点击效果 */
+.banner:hover {
+	transform: scale(1.05); /* 放大效果 */
+}
+
+/* 按钮点击效果 */
+.btn-submit, .btn-theme, .nav-bottom .layui-nav-item a, .news-container .bottom-container .btn {
+	transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-submit:hover, .btn-theme:hover, .nav-bottom .layui-nav-item a:hover, .news-container .bottom-container .btn:hover {
+	background: #a30706; /* 深红色 */
+	transform: scale(1.1); /* 放大效果 */
+}
+
+/* 分页按钮点击效果 */
+.layui-laypage .layui-laypage-curr .layui-laypage-em {
+	background-color: #ce0b07;
+	animation: pulse 0.5s infinite; /* 添加脉动效果 */
+}
+
+.layui-laypage a:hover {
+	color: #ce0b07;
+	transform: scale(1.1); /* 放大效果 */
+}
+
+/* 轮播图指示器点击效果 */
+.layui-carousel-ind li.layui-this {
+	background-color: #ce0b07;
+	animation: bounce 0.3s ease-out; /* 弹跳效果 */
+}
+
+/* 添加字体颜色过渡效果 */
+.layui-form-radio>i:hover, .layui-form-radioed>i {
+	color: #ce0b07;
+	transition: color 0.3s ease;
+}
+
+.layui-form-select dl dd.layui-this {
+	background-color: #ce0b07;
+	color: #fff;
+	transform: scale(1.1); /* 放大效果 */
+}
+
+/* 添加卡片点击时的动态效果 */
+.data-container .data-list .data-item:hover {
+	border: 1px solid #ce0b07;
+	transform: scale(1.05); /* 放大效果 */
+}
+
+.data-container .data-list .data-item .title:hover {
+	background: #ce0b07;
+	transform: scale(1.05); /* 放大效果 */
+}
+
+.data-container .data-list .data-item .price {
+	color: #ce0b07;
+	transition: color 0.3s ease;
+}
+
+/* tab标签点击效果 */
+.layui-tab-card>.layui-tab-title .layui-this {
+	background-color: #ce0b07;
+	color: #FFFFFF;
+	transform: scale(1.1); /* 放大效果 */
+}

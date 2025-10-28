@@ -1,0 +1,134 @@
+// ==================== 设计系统变量 ====================
+// 禁用渐变色，使用纯色+阴影打造高级感
+
+// ==================== 主色调 ====================
+// 使用专业的蓝色系作为主色，传达信任和专业
+$primary-color: #2563eb;      // 主色-专业蓝
+$primary-light: #3b82f6;      // 主色-浅
+$primary-dark: #1e40af;       // 主色-深
+$primary-hover: #1d4ed8;      // 主色-悬停
+
+// ==================== 功能色 ====================
+$success-color: #10b981;      // 成功-绿色
+$warning-color: #f59e0b;      // 警告-橙色
+$danger-color: #ef4444;       // 危险-红色
+$info-color: #3b82f6;         // 信息-蓝色
+
+// ==================== 中性色 ====================
+$text-primary: #1f2937;       // 主要文字
+$text-secondary: #6b7280;     // 次要文字
+$text-placeholder: #9ca3af;   // 占位文字
+$text-disabled: #d1d5db;      // 禁用文字
+
+// ==================== 背景色 ====================
+$bg-primary: #ffffff;         // 主背景-白色
+$bg-secondary: #f9fafb;       // 次背景-浅灰
+$bg-tertiary: #f3f4f6;        // 三级背景
+$bg-hover: #f3f4f6;           // 悬停背景
+$bg-active: #e5e7eb;          // 激活背景
+
+// ==================== 边框色 ====================
+$border-color: #e5e7eb;       // 边框颜色
+$border-light: #f3f4f6;       // 浅边框
+$border-dark: #d1d5db;        // 深边框
+
+// ==================== 阴影 ====================
+// 使用阴影替代渐变，打造层次感
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+$shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+// 特殊阴影 - 带颜色
+$shadow-primary: 0 10px 25px -5px rgba(37, 99, 235, 0.2);
+$shadow-success: 0 10px 25px -5px rgba(16, 185, 129, 0.2);
+$shadow-warning: 0 10px 25px -5px rgba(245, 158, 11, 0.2);
+$shadow-danger: 0 10px 25px -5px rgba(239, 68, 68, 0.2);
+
+// ==================== 圆角 ====================
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-xl: 16px;
+$radius-2xl: 20px;
+$radius-full: 9999px;
+
+// ==================== 间距 ====================
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-2xl: 48px;
+$spacing-3xl: 64px;
+
+// ==================== 字体 ====================
+$font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+  'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+  'Noto Color Emoji', 'Microsoft YaHei', '微软雅黑';
+
+$font-size-xs: 12px;
+$font-size-sm: 14px;
+$font-size-md: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+$font-size-2xl: 24px;
+$font-size-3xl: 30px;
+$font-size-4xl: 36px;
+$font-size-5xl: 48px;
+
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// ==================== 行高 ====================
+$line-height-tight: 1.25;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.75;
+
+// ==================== 层级 ====================
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+
+// ==================== 过渡 ====================
+$transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-slower: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+
+// ==================== 断点 ====================
+$breakpoint-xs: 480px;
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1536px;
+
+// ==================== 特殊颜色 ====================
+// 角色颜色（无渐变）
+$student-color: #8b5cf6;     // 学生-紫色
+$teacher-color: #14b8a6;     // 教师-青色
+$admin-color: #f97316;       // 管理员-橙色
+
+// 状态颜色
+$status-pending: #f59e0b;    // 待处理
+$status-resolved: #10b981;   // 已解决
+$status-closed: #6b7280;     // 已关闭
+$status-active: #3b82f6;     // 活跃
+
+// ==================== 覆盖 Element Plus 变量 ====================
+:export {
+  primaryColor: $primary-color;
+  successColor: $success-color;
+  warningColor: $warning-color;
+  dangerColor: $danger-color;
+  infoColor: $info-color;
+}
+

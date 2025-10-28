@@ -1,0 +1,164 @@
+/**
+ * 工具类css - 增强版
+ */
+
+/* 嵌套文字装饰线 */
+.line-container {
+    position: relative;
+    width: 100%;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* 左右装饰线 */
+.line-container::before,
+.line-container::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 45%;
+    height: 2px;
+    background: linear-gradient(90deg,
+    rgba(153, 51, 255, 0.1),
+    rgba(153, 51, 255, 0.5) 50%,
+    rgba(153, 51, 255, 0.1)
+    );
+}
+
+.line-container::before {
+    left: 0;
+    transform: translateX(-10px);
+}
+
+.line-container::after {
+    right: 0;
+    transform: translateX(10px);
+}
+
+/* 文字样式 */
+.line {
+    position: relative;
+    display: inline-block;
+    padding: 0 20px;
+    font-family: 'Poppins', 'Arial', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: #9933ff;
+    background: linear-gradient(120deg, #f0f0f0, #ffffff);
+    border-radius: 30px;
+    box-shadow: 0 2px 10px rgba(153, 51, 255, 0.1);
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+/* 悬停效果 */
+.line:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(153, 51, 255, 0.2);
+    color: #8022cc;
+}
+
+/* 文字装饰效果 */
+.line::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(120deg,
+    rgba(153, 51, 255, 0.1),
+    rgba(153, 51, 255, 0.05)
+    );
+    border-radius: 30px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.line:hover::before {
+    opacity: 1;
+}
+
+/* 动画效果 */
+@keyframes lineShine {
+    0% {
+        background-position: -100% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .line-container::before,
+    .line-container::after {
+        width: 35%;
+    }
+
+    .line {
+        font-size: 18px;
+        padding: 0 15px;
+    }
+}
+
+/* 变体样式 */
+/* 主要样式 */
+.line-primary {
+    color: #4a90e2;
+    background: linear-gradient(120deg, #f0f4ff, #ffffff);
+    box-shadow: 0 2px 10px rgba(74, 144, 226, 0.1);
+}
+
+/* 成功样式 */
+.line-success {
+    color: #2ecc71;
+    background: linear-gradient(120deg, #f0fff4, #ffffff);
+    box-shadow: 0 2px 10px rgba(46, 204, 113, 0.1);
+}
+
+/* 警告样式 */
+.line-warning {
+    color: #f1c40f;
+    background: linear-gradient(120deg, #fffdf0, #ffffff);
+    box-shadow: 0 2px 10px rgba(241, 196, 15, 0.1);
+}
+
+/* 危险样式 */
+.line-danger {
+    color: #e74c3c;
+    background: linear-gradient(120deg, #fff0f0, #ffffff);
+    box-shadow: 0 2px 10px rgba(231, 76, 60, 0.1);
+}
+
+/* 暗色样式 */
+.line-dark {
+    color: #2c3e50;
+    background: linear-gradient(120deg, #f5f6fa, #ffffff);
+    box-shadow: 0 2px 10px rgba(44, 62, 80, 0.1);
+}
+
+/* 亮色样式 */
+.line-light {
+    color: #95a5a6;
+    background: linear-gradient(120deg, #ffffff, #f8f9fa);
+    box-shadow: 0 2px 10px rgba(149, 165, 166, 0.1);
+}
+
+/* 特殊效果 */
+.line-gradient {
+    background: linear-gradient(45deg, #9933ff, #da22ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-size: 200% auto;
+    animation: textShine 2s linear infinite;
+}
+
+@keyframes textShine {
+    to {
+        background-position: 200% center;
+    }
+}

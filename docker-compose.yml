@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  # MySQL数据库
+  mysql:
+    image: mysql:8.0
+    container_name: qa-system-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_DATABASE: qa_system_v2
+      MYSQL_USER: qa_user
+      MYSQL_PASSWORD: qa_pass123
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./qa-system-backend/src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - qa-network
+
+  # Redis缓存
+  redis:
+    image: redis:7-alpine
+    container_name: qa-system-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - qa-network
+
+  # 后端应用
+  backend:
+    build:
+      context: ./qa-system-backend
+      dockerfile: Dockerfile
+    container_name: qa-system-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: qa_system_v2
+      DB_USERNAME: qa_user
+      DB_PASSWORD: qa_pass123
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: qa-system-jwt-secret-key-2025-production-very-secure
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - qa-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Nginx反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: qa-system-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./qa-system-frontend/dist:/usr/share/nginx/html
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - backend
+    networks:
+      - qa-network
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  qa-network:
+    driver: bridge
+

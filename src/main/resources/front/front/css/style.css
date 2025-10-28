@@ -1,0 +1,207 @@
+/* 全局样式优化 */
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: 'Poppins', "Segoe UI", sans-serif;
+	transition: all 0.3s ease;
+}
+
+body {
+	background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ed 100%);
+	color: #333;
+	line-height: 1.6;
+}
+
+/* 导航栏样式增强 */
+.navs {
+	background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+	padding: 15px 0;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+	position: sticky;
+	top: 0;
+	z-index: 1000;
+}
+
+.nav-list li a {
+	position: relative;
+	overflow: hidden;
+	background: rgba(255, 255, 255, 0.1);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.nav-list li a:hover {
+	background: rgba(255, 255, 255, 0.2);
+	transform: translateY(-3px);
+	letter-spacing: 1px;
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* 推荐列表样式增强 */
+.recommend-container {
+	margin-top: 50px;
+	padding: 20px;
+}
+
+.index-title {
+	position: relative;
+	padding-bottom: 15px;
+	margin-bottom: 50px;
+}
+
+.index-title:after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 100px;
+	height: 3px;
+	background: linear-gradient(to right, #4b6cb7, #182848);
+}
+
+.recommend-item li {
+	background: rgba(255, 255, 255, 0.95);
+	border-radius: 12px;
+	padding: 25px;
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	backdrop-filter: blur(10px);
+}
+
+.recommend-item li:hover {
+	transform: translateY(-8px);
+	box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+	background: #fff;
+}
+
+.recommend-item li a.wor {
+	font-weight: 500;
+	position: relative;
+}
+
+.recommend-item li a.wor:after {
+	content: '';
+	position: absolute;
+	bottom: -5px;
+	left: 0;
+	width: 0;
+	height: 2px;
+	background: #4b6cb7;
+	transition: width 0.3s ease;
+}
+
+.recommend-item li:hover a.wor:after {
+	width: 100%;
+}
+
+/* 消息列表样式增强 */
+.message-container .message-list .message-item {
+	background: #fff;
+	border-radius: 12px;
+	padding: 20px;
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+	border: 1px solid rgba(0, 0, 0, 0.05);
+	transition: all 0.3s ease;
+}
+
+.message-container .message-list .message-item:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* 论坛项样式增强 */
+.forum-container .forum-list .forum-item {
+	background: #fff;
+	border-radius: 12px;
+	padding: 25px;
+	margin-bottom: 25px;
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+	border: none;
+	transition: all 0.3s ease;
+}
+
+.forum-container .forum-list .forum-item:hover {
+	transform: translateX(10px);
+	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* 登录容器样式增强 */
+.login-container {
+	background: rgba(255, 255, 255, 0.95);
+	backdrop-filter: blur(10px);
+	border-radius: 20px;
+	padding: 40px;
+	box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.login-container .bottom-container a {
+	background: rgba(75, 108, 183, 0.1);
+	border: none;
+	padding: 12px 20px;
+	border-radius: 8px;
+	font-weight: 500;
+	transition: all 0.3s ease;
+}
+
+.login-container .bottom-container a:hover {
+	background: rgba(75, 108, 183, 0.2);
+	transform: translateY(-3px);
+}
+
+/* 详情页样式增强 */
+.data-container .data-list .data-item {
+	background: #fff;
+	border-radius: 15px;
+	padding: 25px;
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+	transition: all 0.3s ease;
+}
+
+.data-container .data-list .data-item:hover {
+	transform: translateY(-8px);
+	box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.data-container .data-list .data-item .cover {
+	transition: all 0.3s ease;
+}
+
+.data-container .data-list .data-item:hover .cover {
+	transform: scale(1.03);
+}
+
+/* 添加滚动条样式 */
+::-webkit-scrollbar {
+	width: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #4b6cb7;
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #182848;
+}
+
+/* 按钮样式统一优化 */
+.btn-container button,
+.layui-btn {
+	background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+	border: none;
+	padding: 12px 25px;
+	border-radius: 8px;
+	font-weight: 500;
+	transition: all 0.3s ease;
+}
+
+.btn-container button:hover,
+.layui-btn:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 5px 15px rgba(75, 108, 183, 0.3);
+}

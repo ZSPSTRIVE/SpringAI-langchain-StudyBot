@@ -1,0 +1,292 @@
+@charset "utf-8";
+
+/* Banner区域 */
+.banner {
+	position: relative;
+	/* 根据实际需求，可能需要调整或启用宽高等 */
+}
+.banner .bd li {
+	width: 100%;
+	text-align: center;
+}
+.banner .hd {
+	position: absolute;
+	bottom: 46px;
+	width: 100%;
+	text-align: center;
+	z-index: 10000;
+}
+.banner .hd ul {
+	width: 100%;
+	text-align: center;
+}
+.banner .hd li {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	background: #1e0f00;
+	border-radius: 50%;
+	margin: 0 3px;
+	transition: background 0.3s;
+}
+.banner .hd li.on {
+	background: #fff;
+}
+
+/* 统一配色 */
+:root {
+	--primary-color: #e75f6a;
+	--hover-color: #d42e3b;
+	--text-color-light: #fff;
+	--text-color-dark: #333;
+	--background-light: #f8f8f8;
+	--border-color: #ddd;
+	--button-radius: 6px;
+}
+
+/* Section部分 */
+.section {
+	width: 1014px;
+	margin: 0 auto;
+	overflow: hidden;
+	margin-bottom: 57px;
+}
+.section .title {
+	text-align: center;
+	margin-bottom: 26px;
+	font-size: 24px;
+	font-weight: 700;
+	color: var(--text-color-dark);
+}
+.section li {
+	float: left;
+	width: 312px;
+	margin: 0 13px;
+	text-align: center;
+	transition: transform 0.3s ease;
+}
+.section li .photo {
+	display: block;
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	overflow: hidden;
+	transition: transform 0.3s ease;
+}
+.section li .photo:hover {
+	transform: scale(1.1);
+}
+.section li .tit {
+	display: block;
+	height: 44px;
+	color: #037066;
+	font-size: 16px;
+	line-height: 44px;
+}
+
+/* 新闻部分 */
+.news {
+	width: 100%;
+	margin: 0 auto;
+	padding-top: 72px;
+}
+.news .title {
+	text-align: center;
+	margin-bottom: 62px;
+	font-size: 26px;
+	color: #333;
+}
+.news .n_left {
+	width: 100%;
+	max-width: 305px;
+	height: 271px;
+	padding: 7px 7px 0;
+	background: var(--primary-color);
+	position: relative;
+	border-radius: 8px;
+	transition: background-color 0.3s ease;
+}
+.news .n_left:hover {
+	background: var(--hover-color);
+}
+#ifocus_pic {
+	position: relative;
+	width: 100%;
+	height: 271px;
+	overflow: hidden;
+}
+#ifocus #ifocus_pic {
+	width: 100%;
+	height: 271px;
+}
+#ifocus_tx {
+	width: 293px;
+	height: 34px;
+	line-height: 34px;
+	text-align: right;
+	padding-right: 12px;
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	color: var(--text-color-light);
+}
+#ifocus_btn {
+	position: absolute;
+	width: 100%;
+	bottom: 40px;
+	z-index: 1000000;
+}
+#ifocus_btn ul {
+	width: 100%;
+	text-align: right;
+}
+#ifocus_btn ul li {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	margin: 0 2px;
+	background: #fff;
+	border-radius: 50%;
+	transition: background 0.3s;
+}
+#ifocus_btn ul li.on {
+	background: var(--primary-color);
+}
+
+/* 学生部分 */
+.student {
+	width: 100%;
+	margin: 0 auto;
+	background: url(../img/index_35.gif) #fffefa 145px bottom no-repeat;
+	height: 572px;
+	overflow: hidden;
+	border-radius: 8px;
+}
+.student .title {
+	text-align: center;
+	margin-bottom: 28px;
+	font-size: 26px;
+	color: #333;
+}
+.student .list {
+	width: 100%;
+	text-align: center;
+	height: 25px;
+	margin-bottom: 48px;
+}
+.student .list a {
+	display: inline-block;
+	width: 84px;
+	height: 25px;
+	line-height: 25px;
+	text-align: center;
+	background: #f7eedc;
+	color: var(--primary-color);
+	font-size: 14px;
+	border-radius: var(--button-radius);
+	transition: background-color 0.3s ease, color 0.3s ease;
+}
+.student .list a:hover {
+	background: var(--hover-color);
+	color: var(--text-color-light);
+}
+.student li {
+	float: left;
+	width: 166px;
+	height: 211px;
+	padding: 5px 5px 0;
+	border: 1px solid #fcf9f3;
+	margin: 0 8px;
+	background: #fff;
+	transition: background 0.3s ease, border-color 0.3s ease;
+	border-radius: 8px;
+}
+.student li:hover {
+	background: var(--hover-color);
+	border-color: var(--hover-color);
+}
+.student li:hover a {
+	color: var(--text-color-light);
+}
+
+/* 分页按钮 */
+.pagelink {
+	height: 26px;
+	width: 350px;
+	line-height: 26px;
+	text-align: center;
+	margin-top: 20px;
+	float: left;
+}
+.pagelink li {
+	float: left;
+	margin-right: 3px;
+	list-style-type: none;
+	border: solid 1px var(--border-color);
+	border-radius: 4px;
+	transition: background 0.3s ease, border-color 0.3s ease;
+}
+.pagelink a, .pagelink span {
+	padding: 0 6px;
+	display: inline-block;
+	line-height: 26px;
+	color: #333;
+}
+.pagelink .thisclass {
+	color: #F00;
+	border: solid 1px #FF0000;
+}
+.pagelink .thisclass a {
+	color: #F00;
+}
+.pagelink a.on, .pagelink a:hover {
+	color: #F9003B;
+	background: #F9003B;
+	border-color: #F9003B;
+}
+
+/* 优化响应式设计 */
+@media screen and (max-width: 768px) {
+	/* Section部分 */
+	.section {
+		width: 100%;
+		padding: 0 10px;
+	}
+	.section li {
+		width: 100%;
+		margin-bottom: 15px;
+	}
+
+	/* 学生部分 */
+	.student li, .section li {
+		width: 100%;
+		margin-bottom: 15px;
+	}
+
+	/* 字体调整 */
+	.student .title, .news .title {
+		font-size: 22px;
+	}
+
+	.news {
+		width: 100%;
+		padding: 0 10px;
+	}
+
+	.news .n_left {
+		width: 100%;
+		height: auto;
+	}
+
+	/* Pagination部分 */
+	.pagelink {
+		width: 100%;
+	}
+
+	/* 优化Banner部分图片和内容显示 */
+	.banner .bd li img {
+		width: 100%;
+		height: auto;
+	}
+}
+
