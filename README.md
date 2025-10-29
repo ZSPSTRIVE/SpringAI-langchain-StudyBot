@@ -145,7 +145,6 @@ qa-system/
 | Vite | 5.0.11 | 构建工具 |
 | Marked | 11.1.1 | Markdown渲染 |
 | Highlight.js | 11.9.0 | 代码高亮 |
->>>>>>> 2d5033182dba65811c49404a271ecc32a61a37d3
 
 ## 📝 API文档
 
@@ -178,7 +177,6 @@ POST   /api/ai/bookmark/{id}       # 收藏对话
 
 =======
 ## 功能演示
->>>>>>> 2d5033182dba65811c49404a271ecc32a61a37d3
 
 ### 学生端
 - 浏览问题广场，按科目筛选
@@ -206,7 +204,6 @@ POST   /api/ai/bookmark/{id}       # 收藏对话
 
 =======
 ## 配置说明
->>>>>>> 2d5033182dba65811c49404a271ecc32a61a37d3
 
 ### 后端配置 `application.yml`
 ```yaml
@@ -263,8 +260,6 @@ export default defineConfig({
 学生:    student / student123
 ```
 =======
-
->>>>>>> 2d5033182dba65811c49404a271ecc32a61a37d3
 
 ## 📊 数据库设计
 
@@ -332,7 +327,6 @@ java -jar qa-system-backend/target/qa-system-backend-2.0.0.jar
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 开启Pull Request
 =======
->>>>>>> 2d5033182dba65811c49404a271ecc32a61a37d3
 
 ## 📄 开源协议
 
