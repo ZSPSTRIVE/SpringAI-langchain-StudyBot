@@ -334,9 +334,8 @@ java -jar qa-system-backend/target/qa-system-backend-2.0.0.jar
 
 ## 📮 联系方式
 
-- 作者：Your Name
-- 邮箱：your.email@example.com
-- 项目地址：[GitHub](https://github.com/yourusername/qa-system)
+- 作者：ZSPSTRIVE
+ 
 
 ## 🙏 致谢
 
