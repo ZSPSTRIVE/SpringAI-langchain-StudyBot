@@ -44,6 +44,9 @@
             搜索
           </el-button>
           <el-button :icon="Refresh" @click="handleReset">重置</el-button>
+          <el-button type="success" :icon="Plus" @click="handleAddTeacher">
+            新增教师
+          </el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -173,6 +176,104 @@
       </div>
     </el-card>
 
+    <!-- 新增教师对话框 -->
+    <el-dialog
+      v-model="addDialogVisible"
+      title="新增教师账号"
+      width="650px"
+      :close-on-click-modal="false"
+    >
+      <el-form
+        ref="addFormRef"
+        :model="addForm"
+        :rules="addFormRules"
+        label-width="100px"
+        class="add-teacher-form"
+      >
+        <el-divider content-position="left">基本信息</el-divider>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="用户名" prop="username">
+              <el-input v-model="addForm.username" placeholder="请输入登录用户名" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="密码" prop="password">
+              <el-input v-model="addForm.password" type="password" show-password placeholder="请输入初始密码" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="姓名" prop="realName">
+              <el-input v-model="addForm.realName" placeholder="请输入真实姓名" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="性别" prop="gender">
+              <el-select v-model="addForm.gender" placeholder="请选择性别" style="width: 100%">
+                <el-option label="男" value="M" />
+                <el-option label="女" value="F" />
+                <el-option label="保密" value="U" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="邮箱" prop="email">
+              <el-input v-model="addForm.email" placeholder="请输入邮箱" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="手机号" prop="phone">
+              <el-input v-model="addForm.phone" placeholder="请输入手机号" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-divider content-position="left">教师信息</el-divider>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="工号" prop="teacherNo">
+              <el-input v-model="addForm.teacherNo" placeholder="请输入工号" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="职称" prop="title">
+              <el-select v-model="addForm.title" placeholder="请选择职称" style="width: 100%" allow-create filterable>
+                <el-option label="助教" value="助教" />
+                <el-option label="讲师" value="讲师" />
+                <el-option label="副教授" value="副教授" />
+                <el-option label="教授" value="教授" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20">
+          <el-col :span="12">
+            <el-form-item label="学院" prop="college">
+              <el-input v-model="addForm.college" placeholder="请输入所属学院" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="办公室" prop="office">
+              <el-input v-model="addForm.office" placeholder="请输入办公室位置" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="研究方向" prop="research">
+          <el-input v-model="addForm.research" type="textarea" :rows="2" placeholder="请输入研究方向" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="addDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="addLoading" @click="handleSubmitAdd">
+          确认创建
+        </el-button>
+      </template>
+    </el-dialog>
+
     <!-- 教师详情对话框 -->
     <el-dialog
       v-model="detailDialogVisible"
@@ -231,16 +332,52 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh } from '@element-plus/icons-vue'
+import { Search, Refresh, Plus } from '@element-plus/icons-vue'
 import dayjs from 'dayjs'
 import PageHeader from '@/components/common/PageHeader.vue'
-import { getTeacherPage, updateUserStatus, deleteUser, resetUserPassword } from '@/api/admin'
+import { getTeacherPage, updateUserStatus, deleteUser, resetUserPassword, createTeacher } from '@/api/admin'
 
 const loading = ref(false)
 const tableData = ref([])
 const selectedRows = ref([])
 const detailDialogVisible = ref(false)
 const currentTeacher = ref(null)
+
+// 新增教师相关
+const addDialogVisible = ref(false)
+const addLoading = ref(false)
+const addFormRef = ref(null)
+
+const addForm = reactive({
+  username: '',
+  password: '',
+  realName: '',
+  gender: 'U',
+  email: '',
+  phone: '',
+  teacherNo: '',
+  title: '',
+  college: '',
+  office: '',
+  research: ''
+})
+
+const addFormRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '用户名长度为3-20个字符', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 20, message: '密码长度为6-20个字符', trigger: 'blur' }
+  ],
+  realName: [
+    { required: true, message: '请输入真实姓名', trigger: 'blur' }
+  ],
+  email: [
+    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
+  ]
+}
 
 const searchForm = reactive({
   keyword: '',
@@ -399,6 +536,47 @@ const formatDate = (date) => {
   return date ? dayjs(date).format('YYYY-MM-DD HH:mm:ss') : '-'
 }
 
+// 打开新增教师对话框
+const handleAddTeacher = () => {
+  // 重置表单
+  Object.assign(addForm, {
+    username: '',
+    password: '',
+    realName: '',
+    gender: 'U',
+    email: '',
+    phone: '',
+    teacherNo: '',
+    title: '',
+    college: '',
+    office: '',
+    research: ''
+  })
+  addDialogVisible.value = true
+}
+
+// 提交新增教师
+const handleSubmitAdd = async () => {
+  if (!addFormRef.value) return
+  
+  try {
+    await addFormRef.value.validate()
+    addLoading.value = true
+    
+    await createTeacher(addForm)
+    ElMessage.success('教师账号创建成功')
+    addDialogVisible.value = false
+    loadData()  // 刷新列表
+  } catch (error) {
+    if (error !== 'cancel' && error !== false) {
+      console.error('创建教师失败:', error)
+      ElMessage.error(error.response?.data?.message || '创建失败，请重试')
+    }
+  } finally {
+    addLoading.value = false
+  }
+}
+
 onMounted(() => {
   loadData()
 })
@@ -447,6 +625,13 @@ onMounted(() => {
 .teacher-detail {
   :deep(.el-descriptions__label) {
     font-weight: $font-weight-semibold;
+  }
+}
+
+.add-teacher-form {
+  :deep(.el-divider__text) {
+    font-weight: $font-weight-semibold;
+    color: $text-secondary;
   }
 }
 
