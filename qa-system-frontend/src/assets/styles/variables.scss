@@ -1,0 +1,229 @@
+// ==================== NEO-BRUTALISM 设计系统 ====================
+// 超大胆设计：粗边框、硬阴影、高饱和色、波点背景、弹跳动效
+
+// ==================== 核心色板 - 高饱和糖果色 ====================
+$neo-black: #000000;           // 纯黑 - 边框主色
+$neo-white: #ffffff;           // 纯白
+$neo-cream: #fffef0;           // 奶油白背景
+$neo-paper: #fef9e7;           // 纸张色
+
+// 主打色 - 柠檬黄
+$neo-yellow: #ffde00;          // 柠檬黄
+$neo-yellow-light: #fff176;    // 浅柠檬黄
+$neo-yellow-dark: #ffc107;     // 深柠檬黄
+
+// 克莱因蓝
+$neo-blue: #0057ff;            // 克莱因蓝
+$neo-blue-light: #4d8bff;      // 浅克莱因蓝
+$neo-blue-dark: #0041c2;       // 深克莱因蓝
+
+// 糖果红
+$neo-red: #ff3366;             // 糖果红
+$neo-red-light: #ff6b8a;       // 浅糖果红
+$neo-red-dark: #e60040;        // 深糖果红
+
+// 薄荷绿
+$neo-green: #00ff88;           // 薄荷绿
+$neo-green-light: #5fffab;     // 浅薄荷绿
+$neo-green-dark: #00cc6a;      // 深薄荷绿
+
+// 活力橙
+$neo-orange: #ff6f00;          // 活力橙
+$neo-orange-light: #ff9e40;    // 浅活力橙
+$neo-orange-dark: #e65100;     // 深活力橙
+
+// 葡萄紫
+$neo-purple: #9d4edd;          // 葡萄紫
+$neo-purple-light: #c77dff;    // 浅葡萄紫
+$neo-purple-dark: #7b2cbf;     // 深葡萄紫
+
+// 霓虹粉
+$neo-pink: #ff00ff;            // 霓虹粉
+$neo-pink-light: #ff66ff;      // 浅霓虹粉
+$neo-pink-dark: #cc00cc;       // 深霓虹粉
+
+// 青柠色
+$neo-lime: #c8ff00;            // 青柠色
+$neo-cyan: #00ffff;            // 青色
+
+// ==================== 语义色映射 ====================
+$primary-color: $neo-blue;
+$primary-light: $neo-blue-light;
+$primary-dark: $neo-blue-dark;
+$primary-hover: $neo-blue-dark;
+
+$success-color: $neo-green;
+$warning-color: $neo-orange;
+$danger-color: $neo-red;
+$info-color: $neo-blue;
+
+// ==================== 文字颜色 ====================
+$text-primary: $neo-black;
+$text-secondary: #333333;
+$text-placeholder: #666666;
+$text-disabled: #999999;
+
+// ==================== 背景色 ====================
+$bg-primary: $neo-white;
+$bg-secondary: $neo-cream;
+$bg-tertiary: $neo-paper;
+$bg-hover: $neo-yellow-light;
+$bg-active: $neo-yellow;
+
+// ==================== NEO-BRUTALISM 边框 ====================
+$border-width: 3px;
+$border-width-thick: 4px;
+$border-width-mega: 6px;
+$border-color: $neo-black;
+$border-light: $neo-black;
+$border-dark: $neo-black;
+
+// ==================== 硬阴影 - Neo-Brutalism 核心 ====================
+$shadow-neo-sm: 4px 4px 0 0 $neo-black;
+$shadow-neo-md: 6px 6px 0 0 $neo-black;
+$shadow-neo-lg: 8px 8px 0 0 $neo-black;
+$shadow-neo-xl: 10px 10px 0 0 $neo-black;
+$shadow-neo-2xl: 12px 12px 0 0 $neo-black;
+
+// 彩色硬阴影
+$shadow-yellow: 6px 6px 0 0 $neo-yellow;
+$shadow-blue: 6px 6px 0 0 $neo-blue;
+$shadow-red: 6px 6px 0 0 $neo-red;
+$shadow-green: 6px 6px 0 0 $neo-green;
+$shadow-purple: 6px 6px 0 0 $neo-purple;
+$shadow-pink: 6px 6px 0 0 $neo-pink;
+$shadow-orange: 6px 6px 0 0 $neo-orange;
+
+// 悬停阴影（更大偏移）
+$shadow-neo-hover: 8px 8px 0 0 $neo-black;
+$shadow-neo-active: 2px 2px 0 0 $neo-black;
+
+// 兼容旧变量
+$shadow-sm: $shadow-neo-sm;
+$shadow-md: $shadow-neo-md;
+$shadow-lg: $shadow-neo-lg;
+$shadow-xl: $shadow-neo-xl;
+$shadow-2xl: $shadow-neo-2xl;
+$shadow-primary: $shadow-blue;
+$shadow-success: $shadow-green;
+$shadow-warning: $shadow-orange;
+$shadow-danger: $shadow-red;
+
+// ==================== 圆角 - Neo-Brutalism 偏硬 ====================
+$radius-none: 0;
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-xl: 16px;
+$radius-2xl: 20px;
+$radius-full: 9999px;
+
+// ==================== 间距 ====================
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-2xl: 48px;
+$spacing-3xl: 64px;
+$spacing-4xl: 96px;
+
+// ==================== 字体 ====================
+$font-family: 'Space Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+  'Microsoft YaHei', '微软雅黑', sans-serif;
+
+$font-family-display: 'Space Grotesk', 'Inter', sans-serif;
+$font-family-mono: 'Space Mono', 'JetBrains Mono', monospace;
+
+$font-size-xs: 12px;
+$font-size-sm: 14px;
+$font-size-md: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+$font-size-2xl: 24px;
+$font-size-3xl: 32px;
+$font-size-4xl: 40px;
+$font-size-5xl: 56px;
+$font-size-6xl: 72px;
+$font-size-7xl: 96px;
+
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-black: 900;
+
+// ==================== 行高 ====================
+$line-height-tight: 1.1;
+$line-height-snug: 1.25;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.75;
+
+// ==================== 层级 ====================
+$z-index-bg: -1;
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+$z-index-max: 9999;
+
+// ==================== 弹跳过渡 - Neo-Brutalism 核心动效 ====================
+$bounce-curve: cubic-bezier(0.34, 1.56, 0.64, 1);
+$elastic-curve: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+$smooth-curve: cubic-bezier(0.4, 0, 0.2, 1);
+
+$transition-fast: 150ms $bounce-curve;
+$transition-base: 250ms $bounce-curve;
+$transition-slow: 400ms $bounce-curve;
+$transition-slower: 600ms $bounce-curve;
+
+// 快速响应
+$transition-snap: 100ms $smooth-curve;
+$transition-bounce: 300ms $elastic-curve;
+
+// ==================== 断点 ====================
+$breakpoint-xs: 480px;
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1536px;
+
+// ==================== 角色颜色 - 更大胆 ====================
+$student-color: $neo-purple;
+$student-bg: #f3e8ff;
+$teacher-color: $neo-green-dark;
+$teacher-bg: #d1fae5;
+$admin-color: $neo-orange;
+$admin-bg: #ffedd5;
+
+// ==================== 状态颜色 ====================
+$status-pending: $neo-yellow;
+$status-resolved: $neo-green;
+$status-closed: #888888;
+$status-active: $neo-blue;
+
+// ==================== 波点背景尺寸 ====================
+$dot-size: 2px;
+$dot-spacing: 24px;
+$dot-color: rgba($neo-black, 0.1);
+
+// ==================== 导出变量 ====================
+:export {
+  primaryColor: $primary-color;
+  successColor: $success-color;
+  warningColor: $warning-color;
+  dangerColor: $danger-color;
+  infoColor: $info-color;
+  neoBlack: $neo-black;
+  neoYellow: $neo-yellow;
+  neoBlue: $neo-blue;
+  neoRed: $neo-red;
+  neoGreen: $neo-green;
+  neoPurple: $neo-purple;
+  neoPink: $neo-pink;
+}
+

@@ -1,0 +1,27 @@
+# Java
+*.class
+*.jar
+*.war
+*.ear
+target/
+
+# IDE
+*.iml
+.idea/
+
+# Node
+node_modules/
+dist/
+.vite/
+.cache/
+*.log
+logs/
+.DS_Store
+Thumbs.db
+upload/
+!upload/.gitkeep
+
+# Environment
+.env
+.env.local
+.env.production

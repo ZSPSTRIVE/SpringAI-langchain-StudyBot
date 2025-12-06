@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qasystem.mapper.QuestionMapper">
+    
+    <resultMap id="QuestionResultMap" type="com.qasystem.entity.Question">
+        <id column="id" property="id"/>
+        <result column="subject_id" property="subjectId"/>
+        <result column="student_id" property="studentId"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="images" property="images"/>
+        <result column="status" property="status"/>
+        <result column="view_count" property="viewCount"/>
+        <result column="is_top" property="isTop"/>
+        <result column="is_featured" property="isFeatured"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <select id="selectQuestionPage" resultMap="QuestionResultMap">
+        SELECT q.*
+        FROM question q
+        WHERE q.deleted = 0
+        <if test="subjectId != null">
+            AND q.subject_id = #{subjectId}
+        </if>
+        <if test="status != null and status != ''">
+            AND q.status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (q.title LIKE CONCAT('%', #{keyword}, '%') 
+                 OR q.content LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY q.is_top DESC, q.is_featured DESC, q.create_time DESC
+    </select>
+
+</mapper>
+

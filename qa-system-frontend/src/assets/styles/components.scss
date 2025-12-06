@@ -1,0 +1,626 @@
+// ==================== NEO-BRUTALISM 组件样式库 ====================
+// 超大胆设计：粗边框、硬阴影、高饱和色
+
+@import './variables.scss';
+
+// ==================== NEO 卡片组件 ====================
+.modern-card {
+  background: $neo-white;
+  border-radius: $radius-lg;
+  border: $border-width solid $neo-black;
+  box-shadow: $shadow-neo-md;
+  padding: $spacing-lg;
+  transition: all 200ms $bounce-curve;
+  position: relative;
+  overflow: visible;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: $neo-yellow;
+    border-bottom: $border-width solid $neo-black;
+    border-radius: $radius-lg $radius-lg 0 0;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 200ms $bounce-curve;
+  }
+  
+  &:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: $shadow-neo-lg;
+    
+    &::before {
+      transform: scaleX(1);
+    }
+  }
+  
+  &.clickable {
+    cursor: pointer;
+    
+    &:active {
+      transform: translate(2px, 2px);
+      box-shadow: $shadow-neo-active;
+    }
+  }
+}
+
+// NEO 玻璃卡片（带波点）
+.glass-card {
+  background: $neo-white;
+  border: $border-width solid $neo-black;
+  border-radius: $radius-xl;
+  box-shadow: $shadow-neo-lg;
+  padding: $spacing-xl;
+  transition: all 200ms $bounce-curve;
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: radial-gradient(circle, rgba($neo-black, 0.04) 2px, transparent 2px);
+    background-size: 20px 20px;
+    pointer-events: none;
+  }
+  
+  &:hover {
+    transform: translate(-6px, -6px);
+    box-shadow: $shadow-neo-xl;
+  }
+}
+
+// ==================== NEO 按钮组件 ====================
+.modern-button {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-md $spacing-xl;
+  border-radius: $radius-md;
+  border: $border-width solid $neo-black;
+  font-weight: $font-weight-black;
+  font-size: $font-size-md;
+  font-family: $font-family;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 150ms $bounce-curve;
+  position: relative;
+  box-shadow: $shadow-neo-md;
+  
+  &:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: $shadow-neo-lg;
+  }
+  
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: $shadow-neo-active;
+  }
+  
+  &.btn-primary {
+    background: $neo-blue;
+    color: $neo-white;
+    
+    &:hover {
+      background: $neo-blue-dark;
+    }
+  }
+  
+  &.btn-success {
+    background: $neo-green;
+    color: $neo-black;
+    
+    &:hover {
+      background: $neo-green-dark;
+    }
+  }
+  
+  &.btn-warning {
+    background: $neo-yellow;
+    color: $neo-black;
+    
+    &:hover {
+      background: $neo-yellow-dark;
+    }
+  }
+  
+  &.btn-danger {
+    background: $neo-red;
+    color: $neo-white;
+    
+    &:hover {
+      background: $neo-red-dark;
+    }
+  }
+  
+  &.btn-outline {
+    background: $neo-white;
+    color: $neo-black;
+    
+    &:hover {
+      background: $neo-yellow;
+    }
+  }
+}
+
+// ==================== NEO 标签组件 ====================
+.modern-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $radius-sm;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 2px solid $neo-black;
+  box-shadow: 2px 2px 0 0 $neo-black;
+  transition: all 150ms $bounce-curve;
+  
+  &:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 0 $neo-black;
+  }
+  
+  &.tag-primary {
+    background: $neo-blue;
+    color: $neo-white;
+  }
+  
+  &.tag-success {
+    background: $neo-green;
+    color: $neo-black;
+  }
+  
+  &.tag-warning {
+    background: $neo-yellow;
+    color: $neo-black;
+  }
+  
+  &.tag-danger {
+    background: $neo-red;
+    color: $neo-white;
+  }
+  
+  &.tag-purple {
+    background: $neo-purple;
+    color: $neo-white;
+  }
+  
+  &.tag-pink {
+    background: $neo-pink;
+    color: $neo-white;
+  }
+  
+  &.tag-orange {
+    background: $neo-orange;
+    color: $neo-white;
+  }
+}
+
+// ==================== NEO 输入框组件 ====================
+.modern-input {
+  width: 100%;
+  padding: $spacing-md $spacing-lg;
+  border: $border-width solid $neo-black;
+  border-radius: $radius-md;
+  font-size: $font-size-md;
+  font-family: $font-family;
+  font-weight: $font-weight-medium;
+  transition: all 150ms $bounce-curve;
+  background: $neo-white;
+  box-shadow: $shadow-neo-sm;
+  
+  &:focus {
+    outline: none;
+    border-color: $neo-blue;
+    box-shadow: 4px 4px 0 0 $neo-blue;
+    transform: translate(-2px, -2px);
+  }
+  
+  &:hover:not(:focus) {
+    transform: translate(-1px, -1px);
+    box-shadow: $shadow-neo-md;
+  }
+  
+  &::placeholder {
+    color: $text-placeholder;
+  }
+}
+
+// ==================== NEO 问题卡片 ====================
+.question-card-modern {
+  background: $neo-white;
+  border-radius: $radius-lg;
+  border: $border-width solid $neo-black;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  cursor: pointer;
+  position: relative;
+  transition: all 200ms $bounce-curve;
+  box-shadow: $shadow-neo-md;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    background: $neo-yellow;
+    border-right: $border-width solid $neo-black;
+    border-radius: $radius-lg 0 0 $radius-lg;
+    transition: all 150ms $bounce-curve;
+  }
+  
+  &:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: $shadow-neo-lg;
+    
+    &::before {
+      width: 12px;
+      background: $neo-blue;
+    }
+  }
+  
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: $shadow-neo-active;
+  }
+}
+
+// ==================== NEO 头像组件 ====================
+.modern-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: $neo-yellow;
+  color: $neo-black;
+  font-weight: $font-weight-black;
+  border: $border-width solid $neo-black;
+  box-shadow: $shadow-neo-sm;
+  transition: all 150ms $bounce-curve;
+  
+  &:hover {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: $shadow-neo-md;
+  }
+  
+  &--blue { background: $neo-blue; color: $neo-white; }
+  &--green { background: $neo-green; color: $neo-black; }
+  &--purple { background: $neo-purple; color: $neo-white; }
+  &--pink { background: $neo-pink; color: $neo-white; }
+}
+
+// ==================== NEO 徽章组件 ====================
+.modern-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  background: $neo-red;
+  color: $neo-white;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-black;
+  border: 2px solid $neo-black;
+  box-shadow: 2px 2px 0 0 $neo-black;
+  animation: scalePop 2s ease-in-out infinite;
+}
+
+// ==================== 分割线 ====================
+.modern-divider {
+  height: 1px;
+  background: $border-color;
+  margin: $spacing-lg 0;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 3px;
+    background: $primary-color;
+    border-radius: $radius-sm;
+  }
+}
+
+// ==================== 加载状态 ====================
+.modern-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: $spacing-3xl;
+  
+  .spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid $border-color;
+    border-top-color: $primary-color;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+// ==================== 空状态 ====================
+.modern-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-3xl;
+  color: $text-secondary;
+  
+  .empty-icon {
+    font-size: 64px;
+    color: $text-disabled;
+    margin-bottom: $spacing-lg;
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .empty-text {
+    font-size: $font-size-lg;
+    margin-bottom: $spacing-md;
+  }
+  
+  .empty-description {
+    font-size: $font-size-sm;
+    color: $text-placeholder;
+  }
+}
+
+// ==================== 悬浮操作按钮 ====================
+.fab {
+  position: fixed;
+  bottom: $spacing-2xl;
+  right: $spacing-2xl;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: $primary-color;
+  color: white;
+  border: none;
+  box-shadow: $shadow-xl;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-2xl;
+  transition: all $transition-base;
+  z-index: $z-index-fixed;
+  
+  &:hover {
+    transform: scale(1.1) rotate(90deg);
+    box-shadow: $shadow-primary;
+  }
+  
+  &:active {
+    transform: scale(1.05) rotate(90deg);
+  }
+}
+
+// ==================== 统计卡片 ====================
+.stat-card {
+  background: $bg-primary;
+  border-radius: $radius-xl;
+  border: 1px solid $border-color;
+  padding: $spacing-xl;
+  text-align: center;
+  transition: all $transition-base;
+  
+  .stat-icon {
+    font-size: 48px;
+    margin-bottom: $spacing-md;
+    display: inline-block;
+    transition: all $transition-base;
+  }
+  
+  .stat-value {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: $primary-color;
+    margin-bottom: $spacing-sm;
+  }
+  
+  .stat-label {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+  }
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-xl;
+    border-color: $primary-light;
+    
+    .stat-icon {
+      transform: scale(1.2) rotate(10deg);
+    }
+  }
+}
+
+// ==================== 提示框 ====================
+.modern-tooltip {
+  position: relative;
+  
+  &::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    padding: $spacing-sm $spacing-md;
+    background: rgba($text-primary, 0.9);
+    color: white;
+    border-radius: $radius-md;
+    font-size: $font-size-sm;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all $transition-fast;
+    z-index: $z-index-tooltip;
+  }
+  
+  &:hover::before {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
+  }
+}
+
+// ==================== 进度条 ====================
+.modern-progress {
+  width: 100%;
+  height: 8px;
+  background: $bg-tertiary;
+  border-radius: $radius-full;
+  overflow: hidden;
+  position: relative;
+  
+  .progress-bar {
+    height: 100%;
+    background: $primary-color;
+    border-radius: $radius-full;
+    transition: width $transition-slow;
+    position: relative;
+    overflow: hidden;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+      );
+      animation: shimmer 1.5s infinite;
+    }
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+// ==================== 面包屑 ====================
+.modern-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-size: $font-size-sm;
+  
+  .breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    color: $text-secondary;
+    transition: color $transition-fast;
+    
+    &:hover {
+      color: $primary-color;
+    }
+    
+    &.active {
+      color: $text-primary;
+      font-weight: $font-weight-medium;
+    }
+    
+    &:not(:last-child)::after {
+      content: '/';
+      margin-left: $spacing-sm;
+      color: $text-placeholder;
+    }
+  }
+}
+
+// ==================== 选项卡 ====================
+.modern-tabs {
+  display: flex;
+  gap: $spacing-sm;
+  border-bottom: 2px solid $border-color;
+  
+  .tab-item {
+    padding: $spacing-md $spacing-lg;
+    cursor: pointer;
+    color: $text-secondary;
+    font-weight: $font-weight-medium;
+    transition: all $transition-fast;
+    position: relative;
+    border-radius: $radius-md $radius-md 0 0;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: $primary-color;
+      transform: scaleX(0);
+      transition: transform $transition-base;
+    }
+    
+    &:hover {
+      color: $primary-color;
+      background: $bg-hover;
+    }
+    
+    &.active {
+      color: $primary-color;
+      
+      &::after {
+        transform: scaleX(1);
+      }
+    }
+  }
+}
+
+// ==================== 通知点 ====================
+.notification-dot {
+  width: 8px;
+  height: 8px;
+  background: $danger-color;
+  border-radius: 50%;
+  border: 2px solid $bg-primary;
+  position: absolute;
+  top: 0;
+  right: 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+// ==================== 图片悬停效果 ====================
+.image-hover {
+  overflow: hidden;
+  border-radius: $radius-lg;
+  
+  img {
+    transition: transform $transition-slow;
+  }
+  
+  &:hover img {
+    transform: scale(1.1) rotate(2deg);
+  }
+}

@@ -1,0 +1,756 @@
+// ==================== NEO-BRUTALISM 主样式文件 ====================
+// 超大胆设计：粗边框、硬阴影、高饱和色、波点背景、弹跳动效
+
+@import './variables.scss';
+@import './utils.scss';
+@import './animations.scss';
+@import './components.scss';
+
+// ==================== 导入 Google Fonts ====================
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+// ==================== 全局重置 ====================
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  font-family: $font-family;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  color: $text-primary;
+  background-color: $neo-cream;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: $font-size-md;
+  line-height: $line-height-normal;
+  font-weight: $font-weight-medium;
+}
+
+// ==================== 波点背景 Mixin ====================
+@mixin dots-background($color: $neo-black, $opacity: 0.08, $size: 2px, $spacing: 24px) {
+  background-image: radial-gradient(circle, rgba($color, $opacity) $size, transparent $size);
+  background-size: $spacing $spacing;
+}
+
+@mixin stripes-background($color: $neo-black, $opacity: 0.05, $size: 10px) {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent $size,
+    rgba($color, $opacity) $size,
+    rgba($color, $opacity) #{$size * 2}
+  );
+}
+
+@mixin grid-background($color: $neo-black, $opacity: 0.06, $size: 40px) {
+  background-image: 
+    linear-gradient(rgba($color, $opacity) 1px, transparent 1px),
+    linear-gradient(90deg, rgba($color, $opacity) 1px, transparent 1px);
+  background-size: $size $size;
+}
+
+// ==================== 链接样式 ====================
+a {
+  text-decoration: none;
+  color: $neo-blue;
+  font-weight: $font-weight-semibold;
+  transition: all $transition-fast;
+  position: relative;
+  
+  &:hover {
+    color: $neo-blue-dark;
+  }
+  
+  &.neo-link {
+    border-bottom: 3px solid $neo-yellow;
+    
+    &:hover {
+      background: $neo-yellow;
+      color: $neo-black;
+    }
+  }
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+// ==================== 选中文本样式 ====================
+::selection {
+  background: $neo-yellow;
+  color: $neo-black;
+}
+
+// ==================== Element Plus NEO-BRUTALISM 覆盖 ====================
+
+// 按钮
+.el-button {
+  border: $border-width solid $neo-black !important;
+  border-radius: $radius-md !important;
+  font-weight: $font-weight-bold !important;
+  font-family: $font-family !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 150ms $bounce-curve !important;
+  box-shadow: $shadow-neo-sm !important;
+  position: relative;
+  
+  &:hover:not(:disabled) {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: $shadow-neo-md !important;
+  }
+  
+  &:active:not(:disabled) {
+    transform: translate(2px, 2px) !important;
+    box-shadow: $shadow-neo-active !important;
+  }
+  
+  &--primary {
+    background-color: $neo-blue !important;
+    border-color: $neo-black !important;
+    color: $neo-white !important;
+    
+    &:hover {
+      background-color: $neo-blue-dark !important;
+    }
+  }
+  
+  &--success {
+    background-color: $neo-green !important;
+    border-color: $neo-black !important;
+    color: $neo-black !important;
+  }
+  
+  &--warning {
+    background-color: $neo-yellow !important;
+    border-color: $neo-black !important;
+    color: $neo-black !important;
+  }
+  
+  &--danger {
+    background-color: $neo-red !important;
+    border-color: $neo-black !important;
+    color: $neo-white !important;
+  }
+  
+  &--info {
+    background-color: $neo-purple !important;
+    border-color: $neo-black !important;
+    color: $neo-white !important;
+  }
+  
+  &.is-plain {
+    background-color: $neo-white !important;
+    
+    &:hover {
+      background-color: $neo-yellow-light !important;
+    }
+  }
+}
+
+// 卡片
+.el-card {
+  border: $border-width solid $neo-black !important;
+  border-radius: $radius-lg !important;
+  box-shadow: $shadow-neo-md !important;
+  background: $neo-white !important;
+  transition: all 200ms $bounce-curve !important;
+  overflow: visible !important;
+  
+  &:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: $shadow-neo-lg !important;
+  }
+  
+  .el-card__header {
+    border-bottom: $border-width solid $neo-black !important;
+    padding: $spacing-lg !important;
+    font-weight: $font-weight-bold !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: $neo-yellow-light;
+  }
+  
+  .el-card__body {
+    padding: $spacing-lg !important;
+  }
+}
+
+// 输入框
+.el-input__wrapper {
+  border: $border-width solid $neo-black !important;
+  border-radius: $radius-md !important;
+  box-shadow: $shadow-neo-sm !important;
+  background: $neo-white !important;
+  transition: all 150ms $bounce-curve !important;
+  
+  &:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: $shadow-neo-md !important;
+  }
+  
+  &.is-focus {
+    border-color: $neo-blue !important;
+    box-shadow: 4px 4px 0 0 $neo-blue !important;
+    transform: translate(-2px, -2px);
+  }
+}
+
+.el-textarea__inner {
+  border: $border-width solid $neo-black !important;
+  border-radius: $radius-md !important;
+  box-shadow: $shadow-neo-sm !important;
+  transition: all 150ms $bounce-curve !important;
+  
+  &:focus {
+    border-color: $neo-blue !important;
+    box-shadow: 4px 4px 0 0 $neo-blue !important;
+  }
+}
+
+// 选择器
+.el-select {
+  .el-input__wrapper {
+    border: $border-width solid $neo-black !important;
+    box-shadow: $shadow-neo-sm !important;
+  }
+}
+
+.el-select-dropdown {
+  border: $border-width solid $neo-black !important;
+  border-radius: $radius-md !important;
+  box-shadow: $shadow-neo-md !important;
+}
+
+// 表格
+.el-table {
+  border: $border-width solid $neo-black !important;
+  border-radius: $radius-lg !important;
+  overflow: hidden !important;
+  
+  th {
+    background-color: $neo-yellow !important;
+    color: $neo-black !important;
+    font-weight: $font-weight-bold !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: $border-width solid $neo-black !important;
+  }
+  
+  td {
+    border-bottom: 2px solid rgba($neo-black, 0.1) !important;
+  }
+  
+  tr:hover > td {
+    background-color: $neo-yellow-light !important;
+  }
+  
+  &--border {
+    &::after {
+      display: none;
+    }
+  }
+}
+
+// 分页
+.el-pagination {
+  .el-pager li {
+    border: $border-width solid $neo-black !important;
+    border-radius: $radius-md !important;
+    font-weight: $font-weight-bold !important;
+    margin: 0 4px !important;
+    box-shadow: $shadow-neo-sm !important;
+    transition: all 150ms $bounce-curve !important;
+    
+    &:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: $shadow-neo-md !important;
+      background: $neo-yellow-light !important;
+    }
+    
+    &.is-active {
+      background-color: $neo-blue !important;
+      color: $neo-white !important;
+    }
+  }
+  
+  .btn-prev, .btn-next {
+    border: $border-width solid $neo-black !important;
+    border-radius: $radius-md !important;
+    box-shadow: $shadow-neo-sm !important;
+  }
+}
+
+// 对话框
+.el-dialog {
+  border: $border-width-thick solid $neo-black !important;
+  border-radius: $radius-xl !important;
+  box-shadow: $shadow-neo-xl !important;
+  overflow: visible !important;
+  
+  .el-dialog__header {
+    border-bottom: $border-width solid $neo-black;
+    background: $neo-yellow;
+    padding: $spacing-lg !important;
+    border-radius: $radius-lg $radius-lg 0 0;
+  }
+  
+  .el-dialog__title {
+    font-weight: $font-weight-black !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  
+  .el-dialog__body {
+    padding: $spacing-xl !important;
+  }
+}
+
+// 消息提示
+.el-message {
+  border: $border-width solid $neo-black !important;
+  border-radius: $radius-lg !important;
+  box-shadow: $shadow-neo-lg !important;
+  font-weight: $font-weight-bold !important;
+  
+  &--success {
+    background: $neo-green !important;
+    .el-message__content {
+      color: $neo-black !important;
+    }
+  }
+  
+  &--warning {
+    background: $neo-yellow !important;
+    .el-message__content {
+      color: $neo-black !important;
+    }
+  }
+  
+  &--error {
+    background: $neo-red !important;
+    .el-message__content {
+      color: $neo-white !important;
+    }
+  }
+  
+  &--info {
+    background: $neo-blue !important;
+    .el-message__content {
+      color: $neo-white !important;
+    }
+  }
+}
+
+// 通知
+.el-notification {
+  border: $border-width solid $neo-black !important;
+  border-radius: $radius-lg !important;
+  box-shadow: $shadow-neo-xl !important;
+}
+
+// 标签
+.el-tag {
+  border: 2px solid $neo-black !important;
+  border-radius: $radius-md !important;
+  font-weight: $font-weight-bold !important;
+  box-shadow: 2px 2px 0 0 $neo-black !important;
+  
+  &--primary {
+    background: $neo-blue !important;
+    color: $neo-white !important;
+  }
+  
+  &--success {
+    background: $neo-green !important;
+    color: $neo-black !important;
+  }
+  
+  &--warning {
+    background: $neo-yellow !important;
+    color: $neo-black !important;
+  }
+  
+  &--danger {
+    background: $neo-red !important;
+    color: $neo-white !important;
+  }
+  
+  &--info {
+    background: $neo-purple !important;
+    color: $neo-white !important;
+  }
+}
+
+// 头像
+.el-avatar {
+  border: $border-width solid $neo-black !important;
+  box-shadow: $shadow-neo-sm !important;
+}
+
+// 下拉菜单
+.el-dropdown-menu {
+  border: $border-width solid $neo-black !important;
+  border-radius: $radius-md !important;
+  box-shadow: $shadow-neo-md !important;
+  padding: $spacing-sm !important;
+  
+  .el-dropdown-menu__item {
+    border-radius: $radius-sm !important;
+    font-weight: $font-weight-medium !important;
+    transition: all 150ms $bounce-curve !important;
+    
+    &:hover {
+      background: $neo-yellow !important;
+      color: $neo-black !important;
+    }
+  }
+}
+
+// 菜单
+.el-menu {
+  border: none !important;
+  
+  &--horizontal {
+    .el-menu-item {
+      border: none !important;
+      font-weight: $font-weight-bold !important;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 150ms $bounce-curve !important;
+      
+      &:hover {
+        background: $neo-yellow-light !important;
+      }
+      
+      &.is-active {
+        background: $neo-yellow !important;
+        color: $neo-black !important;
+        border-bottom: 4px solid $neo-black !important;
+      }
+    }
+  }
+}
+
+// 表单项
+.el-form-item__label {
+  font-weight: $font-weight-bold !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: $font-size-sm !important;
+}
+
+// 单选和复选
+.el-radio, .el-checkbox {
+  .el-radio__input, .el-checkbox__input {
+    .el-radio__inner, .el-checkbox__inner {
+      border: 2px solid $neo-black !important;
+      
+      &:hover {
+        border-color: $neo-blue !important;
+      }
+    }
+    
+    &.is-checked {
+      .el-radio__inner, .el-checkbox__inner {
+        background: $neo-blue !important;
+        border-color: $neo-black !important;
+      }
+    }
+  }
+}
+
+// ==================== 自定义滚动条 ====================
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: $neo-cream;
+  border-left: 2px solid $neo-black;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $neo-yellow;
+  border: 2px solid $neo-black;
+  
+  &:hover {
+    background: $neo-orange;
+  }
+}
+
+// ==================== 页面过渡 ====================
+.page-enter-active,
+.page-leave-active {
+  transition: all 300ms $bounce-curve;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateX(30px) rotate(2deg);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateX(-30px) rotate(-2deg);
+}
+
+// ==================== 响应式 ====================
+@media (max-width: $breakpoint-md) {
+  body {
+    font-size: $font-size-sm;
+  }
+}
+
+// ==================== NEO-BRUTALISM 辅助类 ====================
+
+// 页面容器
+.page-container {
+  min-height: calc(100vh - 60px);
+  padding: $spacing-xl;
+  background: $neo-cream;
+  @include dots-background($neo-black, 0.06);
+  animation: fadeIn 0.4s $bounce-curve;
+}
+
+// 标题样式
+.section-title {
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-black;
+  color: $neo-black;
+  margin-bottom: $spacing-lg;
+  padding-bottom: $spacing-md;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+  display: inline-block;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: $neo-yellow;
+    border: 2px solid $neo-black;
+  }
+}
+
+// 空状态
+.empty-state {
+  text-align: center;
+  padding: $spacing-3xl;
+  
+  .empty-icon {
+    font-size: 80px;
+    color: $neo-black;
+    margin-bottom: $spacing-lg;
+    animation: wobble 2s ease-in-out infinite;
+  }
+  
+  .empty-text {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $neo-black;
+    text-transform: uppercase;
+  }
+}
+
+// NEO卡片样式
+.neo-card {
+  background: $neo-white;
+  border: $border-width solid $neo-black;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-neo-md;
+  padding: $spacing-lg;
+  transition: all 200ms $bounce-curve;
+  
+  &:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: $shadow-neo-lg;
+  }
+  
+  &--yellow {
+    background: $neo-yellow;
+  }
+  
+  &--blue {
+    background: $neo-blue;
+    color: $neo-white;
+  }
+  
+  &--green {
+    background: $neo-green;
+  }
+  
+  &--pink {
+    background: $neo-pink;
+    color: $neo-white;
+  }
+  
+  &--purple {
+    background: $neo-purple;
+    color: $neo-white;
+  }
+}
+
+// NEO按钮样式
+.neo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  padding: $spacing-md $spacing-xl;
+  font-size: $font-size-md;
+  font-weight: $font-weight-black;
+  font-family: $font-family;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: $border-width solid $neo-black;
+  border-radius: $radius-md;
+  cursor: pointer;
+  transition: all 150ms $bounce-curve;
+  box-shadow: $shadow-neo-md;
+  
+  &:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: $shadow-neo-lg;
+  }
+  
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: $shadow-neo-active;
+  }
+  
+  &--primary {
+    background: $neo-blue;
+    color: $neo-white;
+  }
+  
+  &--secondary {
+    background: $neo-yellow;
+    color: $neo-black;
+  }
+  
+  &--success {
+    background: $neo-green;
+    color: $neo-black;
+  }
+  
+  &--danger {
+    background: $neo-red;
+    color: $neo-white;
+  }
+  
+  &--ghost {
+    background: transparent;
+    color: $neo-black;
+    
+    &:hover {
+      background: $neo-yellow-light;
+    }
+  }
+}
+
+// NEO输入框
+.neo-input {
+  width: 100%;
+  padding: $spacing-md $spacing-lg;
+  font-size: $font-size-md;
+  font-family: $font-family;
+  font-weight: $font-weight-medium;
+  border: $border-width solid $neo-black;
+  border-radius: $radius-md;
+  background: $neo-white;
+  box-shadow: $shadow-neo-sm;
+  transition: all 150ms $bounce-curve;
+  
+  &:focus {
+    outline: none;
+    border-color: $neo-blue;
+    box-shadow: 4px 4px 0 0 $neo-blue;
+    transform: translate(-2px, -2px);
+  }
+  
+  &::placeholder {
+    color: $text-placeholder;
+  }
+}
+
+// NEO标签
+.neo-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-xs $spacing-md;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
+  text-transform: uppercase;
+  border: 2px solid $neo-black;
+  border-radius: $radius-sm;
+  box-shadow: 2px 2px 0 0 $neo-black;
+  
+  &--yellow { background: $neo-yellow; }
+  &--blue { background: $neo-blue; color: $neo-white; }
+  &--green { background: $neo-green; }
+  &--red { background: $neo-red; color: $neo-white; }
+  &--purple { background: $neo-purple; color: $neo-white; }
+  &--pink { background: $neo-pink; color: $neo-white; }
+  &--orange { background: $neo-orange; color: $neo-white; }
+}
+
+// 动态背景容器
+.neo-bg-dots {
+  @include dots-background();
+}
+
+.neo-bg-stripes {
+  @include stripes-background();
+}
+
+.neo-bg-grid {
+  @include grid-background();
+}
+
+// 动画背景
+.neo-bg-animated {
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    @include dots-background($neo-black, 0.08);
+    animation: dotsMove 20s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+// 彩虹边框动画
+.neo-rainbow-border {
+  animation: neoRainbowShadow 3s linear infinite;
+}
+
+
+
