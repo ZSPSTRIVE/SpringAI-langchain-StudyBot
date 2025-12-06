@@ -72,8 +72,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/forum/delete").authenticated()
                         .requestMatchers("/forum/**").permitAll()
                         
-                        // 文档降重 WebSocket 通道（用于前端实时改写）
+                        // WebSocket 通道（文档降重、聊天）
                         .requestMatchers("/ws/**").permitAll()
+                        
+                        // 聊天接口（需要认证）
+                        .requestMatchers("/api/v1/chat/**").authenticated()
                         
                         // SSE 流式接口（异步请求需要特殊处理）
                         .requestMatchers("/api/ai/chat/stream").authenticated()

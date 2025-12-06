@@ -70,6 +70,11 @@ const router = createRouter({
           path: 'doc-studio',
           name: 'StudentDocStudio',
           component: () => import('@/views/common/DocStudio.vue')
+        },
+        {
+          path: 'chat',
+          name: 'StudentChat',
+          component: () => import('@/views/common/ChatRoom.vue')
         }
       ]
     },
@@ -107,6 +112,11 @@ const router = createRouter({
           path: 'doc-studio',
           name: 'TeacherDocStudio',
           component: () => import('@/views/common/DocStudio.vue')
+        },
+        {
+          path: 'chat',
+          name: 'TeacherChat',
+          component: () => import('@/views/common/ChatRoom.vue')
         }
       ]
     },

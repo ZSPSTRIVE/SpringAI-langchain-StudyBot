@@ -36,6 +36,10 @@
             <el-icon><Document /></el-icon>
             <span>文档工作台</span>
           </el-menu-item>
+          <el-menu-item index="/teacher/chat">
+            <el-icon><ChatLineRound /></el-icon>
+            <span>消息</span>
+          </el-menu-item>
           <el-menu-item index="/forum">
             <el-icon><ChatDotSquare /></el-icon>
             <span>交流区</span>
@@ -121,7 +125,7 @@ import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
-  UserFilled, QuestionFilled, ChatLineSquare, ChatDotSquare, 
+  UserFilled, QuestionFilled, ChatLineSquare, ChatDotSquare, ChatLineRound,
   HomeFilled, User, SwitchButton, ArrowDown, Document, Opportunity
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
