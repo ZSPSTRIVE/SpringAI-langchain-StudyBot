@@ -20,6 +20,15 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import com.qasystem.entity.Question;
+import com.qasystem.entity.Answer;
+import com.qasystem.entity.Subject;
+import com.qasystem.mapper.QuestionMapper;
+import com.qasystem.mapper.AnswerMapper;
+import com.qasystem.mapper.SubjectMapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -81,6 +90,11 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
     
     // AI对话数据访问层，用于持久化对话记录
     private final AiConversationMapper conversationMapper;
+    
+    // RAG检索所需的Mapper
+    private final QuestionMapper questionMapper;
+    private final AnswerMapper answerMapper;
+    private final SubjectMapper subjectMapper;
     
     // 缓存键前缀，用于在Redis中存储会话历史
     // 格式：ai:conversation:{userId}:{sessionId}
@@ -368,20 +382,15 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
     private List<ChatMessage> buildConversationHistory(Long userId, String sessionId, String currentMessage) {
         List<ChatMessage> messages = new ArrayList<>();
         
-        // 系统提示词
-        // 定义AI助手的角色、职责和行为准则
-        String systemPrompt = """
-                你是一个专业的教育助手，专门帮助学生解决学习问题。
-                你的职责是：
-                1. 回答学生的学习问题，提供清晰、准确的解释
-                2. 推荐相关的学习资源和材料
-                3. 帮助学生理解复杂的概念
-                4. 鼓励学生独立思考，不直接给出完整答案
-                5. 使用友好、耐心的语气
-                
-                请用中文回答，保持专业但不失亲和力。
-                """;
+        // 🎓 大学课程答疑助手 - 专业系统提示词
+        String systemPrompt = buildSystemPrompt();
         messages.add(new SystemMessage(systemPrompt));
+        
+        // 📚 RAG检索：查找相关问答作为参考知识
+        String ragContext = retrieveRelevantKnowledge(currentMessage);
+        if (ragContext != null && !ragContext.isEmpty()) {
+            messages.add(new SystemMessage("【参考知识库】以下是系统中与用户问题相关的历史问答，供你参考：\n" + ragContext));
+        }
         
         // 尝试从缓存获取历史记录
         // 使用用户ID和会话ID构建缓存键
@@ -437,25 +446,201 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
      */
     private String categorizeQuestion(String message) {
         // 转换为小写，便于匹配
-        message = message.toLowerCase();
+        String lowerMsg = message.toLowerCase();
         
-        // 技术问题关键词匹配
-        if (message.contains("java") || message.contains("python") || message.contains("编程") || 
-            message.contains("代码") || message.contains("算法")) {
-            return "技术问题";
-        } 
-        // 学科问题关键词匹配
-        else if (message.contains("数学") || message.contains("物理") || message.contains("化学")) {
-            return "学科问题";
-        } 
-        // 课程问题关键词匹配
-        else if (message.contains("课程") || message.contains("学分") || message.contains("考试")) {
-            return "课程问题";
-        } 
+        // 编程与计算机科学
+        if (lowerMsg.contains("java") || lowerMsg.contains("python") || lowerMsg.contains("c++") ||
+            lowerMsg.contains("编程") || lowerMsg.contains("代码") || lowerMsg.contains("算法") ||
+            lowerMsg.contains("数据结构") || lowerMsg.contains("程序") || lowerMsg.contains("函数") ||
+            lowerMsg.contains("类") || lowerMsg.contains("对象") || lowerMsg.contains("继承") ||
+            lowerMsg.contains("sql") || lowerMsg.contains("数据库") || lowerMsg.contains("网络")) {
+            return "计算机科学";
+        }
+        // 高等数学
+        else if (lowerMsg.contains("微积分") || lowerMsg.contains("导数") || lowerMsg.contains("积分") ||
+                 lowerMsg.contains("极限") || lowerMsg.contains("级数") || lowerMsg.contains("微分方程")) {
+            return "高等数学";
+        }
+        // 线性代数
+        else if (lowerMsg.contains("矩阵") || lowerMsg.contains("行列式") || lowerMsg.contains("向量") ||
+                 lowerMsg.contains("线性") || lowerMsg.contains("特征值") || lowerMsg.contains("特征向量")) {
+            return "线性代数";
+        }
+        // 概率统计
+        else if (lowerMsg.contains("概率") || lowerMsg.contains("统计") || lowerMsg.contains("随机") ||
+                 lowerMsg.contains("分布") || lowerMsg.contains("期望") || lowerMsg.contains("方差")) {
+            return "概率统计";
+        }
+        // 物理学
+        else if (lowerMsg.contains("物理") || lowerMsg.contains("力学") || lowerMsg.contains("电磁") ||
+                 lowerMsg.contains("热学") || lowerMsg.contains("光学") || lowerMsg.contains("量子")) {
+            return "大学物理";
+        }
+        // 英语
+        else if (lowerMsg.contains("英语") || lowerMsg.contains("english") || lowerMsg.contains("语法") ||
+                 lowerMsg.contains("翻译") || lowerMsg.contains("四级") || lowerMsg.contains("六级")) {
+            return "大学英语";
+        }
+        // 课程与学业相关
+        else if (lowerMsg.contains("课程") || lowerMsg.contains("学分") || lowerMsg.contains("考试") ||
+                 lowerMsg.contains("选课") || lowerMsg.contains("成绩") || lowerMsg.contains("挂科")) {
+            return "学业咨询";
+        }
         // 默认分类
         else {
             return "一般咨询";
         }
+    }
+    
+    /**
+     * 🎓 构建大学课程答疑助手的系统提示词
+     * 
+     * 定义AI助手的身份、专业领域和回答规范
+     */
+    private String buildSystemPrompt() {
+        // 获取系统支持的科目列表
+        List<Subject> subjects = subjectMapper.findAllActive();
+        String subjectList = subjects.stream()
+                .map(Subject::getName)
+                .collect(Collectors.joining("、"));
+        
+        return """
+                # 角色定义
+                你是「智学助手」，一位专业的大学课程答疑AI助教，服务于高校师生答疑系统。
+                
+                # 专业领域
+                你精通以下大学课程领域：%s
+                重点擅长：高等数学、线性代数、概率论与数理统计、大学物理、程序设计、数据结构与算法、计算机网络、操作系统、数据库原理等核心课程。
+                
+                # 回答原则
+                1. **准确性优先**：确保知识点准确无误，涉及公式、定理时要严谨
+                2. **循序渐进**：从基础概念讲起，逐步深入，帮助学生建立知识体系
+                3. **启发思考**：引导学生独立思考，不直接给出完整作业答案，而是提供思路和方法
+                4. **举例说明**：用具体例子、类比来解释抽象概念，便于理解
+                5. **知识拓展**：适当关联相关知识点，帮助学生融会贯通
+                
+                # 回答格式规范
+                - 使用清晰的Markdown格式组织回答
+                - 数学公式使用LaTeX格式（如 $E=mc^2$）
+                - 代码示例使用代码块并标注语言
+                - 复杂问题分步骤解答，使用编号列表
+                - 重点内容使用**加粗**强调
+                
+                # 特殊情况处理
+                - 如果问题超出你的知识范围，诚实告知并建议咨询专业教师
+                - 如果问题表述不清，先澄清问题再作答
+                - 如果涉及考试作弊等违规行为，委婉拒绝并引导正确的学习方式
+                - 如果学生情绪低落，给予适当鼓励和学习建议
+                
+                # 语言风格
+                使用专业但亲切的语气，像一位耐心的学长/学姐在辅导学弟学妹。
+                回答使用中文，专业术语可附带英文。
+                """.formatted(subjectList.isEmpty() ? "计算机科学、数学、物理、英语等" : subjectList);
+    }
+    
+    /**
+     * 📚 RAG检索：从知识库中检索相关问答
+     * 
+     * 基于关键词匹配，从系统历史问答中检索相关内容作为参考
+     * 
+     * @param userQuestion 用户问题
+     * @return 检索到的相关知识上下文
+     */
+    private String retrieveRelevantKnowledge(String userQuestion) {
+        try {
+            StringBuilder context = new StringBuilder();
+            
+            // 从问题中提取关键词进行检索
+            List<String> keywords = extractSearchKeywords(userQuestion);
+            if (keywords.isEmpty()) {
+                return "";
+            }
+            
+            // 搜索相关问题（最多3条）
+            for (String keyword : keywords) {
+                if (keyword.length() < 2) continue;  // 跳过太短的关键词
+                
+                Page<Question> page = new Page<>(1, 3);
+                var questions = questionMapper.selectQuestionPage(page, null, null, keyword);
+                
+                if (questions != null && !questions.getRecords().isEmpty()) {
+                    for (Question q : questions.getRecords()) {
+                        // 获取该问题的最佳答案
+                        List<Answer> answers = answerMapper.findByQuestionId(q.getId());
+                        Answer bestAnswer = answers.stream()
+                                .filter(a -> Boolean.TRUE.equals(a.getIsAccepted()) || a.getLikeCount() > 0)
+                                .findFirst()
+                                .orElse(answers.isEmpty() ? null : answers.get(0));
+                        
+                        if (bestAnswer != null && bestAnswer.getContent() != null) {
+                            context.append("---\n");
+                            context.append("**相关问题**：").append(q.getTitle()).append("\n");
+                            context.append("**参考解答**：").append(truncateText(bestAnswer.getContent(), 500)).append("\n");
+                        }
+                    }
+                    break;  // 找到相关问题后停止搜索
+                }
+            }
+            
+            // 限制上下文总长度
+            String result = context.toString();
+            if (result.length() > 1500) {
+                result = result.substring(0, 1500) + "...\n";
+            }
+            
+            return result;
+        } catch (Exception e) {
+            log.warn("RAG检索失败: {}", e.getMessage());
+            return "";
+        }
+    }
+    
+    /**
+     * 🔑 从用户问题中提取搜索关键词
+     */
+    private List<String> extractSearchKeywords(String question) {
+        List<String> keywords = new ArrayList<>();
+        
+        // 学科关键词
+        String[] subjectKeywords = {
+            "java", "python", "c++", "javascript", "sql",
+            "数据结构", "算法", "编程", "程序", "函数", "类", "对象",
+            "微积分", "导数", "积分", "极限", "级数", "微分方程",
+            "矩阵", "行列式", "向量", "线性", "特征值",
+            "概率", "统计", "分布", "期望", "方差",
+            "物理", "力学", "电磁", "热学",
+            "数据库", "网络", "操作系统"
+        };
+        
+        String lowerQuestion = question.toLowerCase();
+        for (String kw : subjectKeywords) {
+            if (lowerQuestion.contains(kw.toLowerCase())) {
+                keywords.add(kw);
+            }
+        }
+        
+        // 如果没有匹配到预定义关键词，尝试提取问题中较长的词
+        if (keywords.isEmpty() && question.length() > 4) {
+            // 简单分词：按空格和标点分割
+            String[] words = question.split("[\\s，。？！、；：""''（）\\[\\]【】]");
+            for (String word : words) {
+                if (word.length() >= 2 && word.length() <= 10) {
+                    keywords.add(word);
+                    if (keywords.size() >= 3) break;
+                }
+            }
+        }
+        
+        return keywords;
+    }
+    
+    /**
+     * ✂️ 截断文本到指定长度
+     */
+    private String truncateText(String text, int maxLength) {
+        if (text == null) return "";
+        if (text.length() <= maxLength) return text;
+        return text.substring(0, maxLength) + "...";
     }
     
     /**
