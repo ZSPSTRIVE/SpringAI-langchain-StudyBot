@@ -114,41 +114,60 @@ public class ChatServiceImpl implements ChatService {
     }
 
     /**
-     * 安全插入好友关系（忽略重复键错误）
+     * 安全插入或更新好友关系
      */
     private void safeInsertFriend(Long userId, Long friendId) {
         try {
-            // 先检查是否存在
-            Long count = friendMapper.selectCount(new LambdaQueryWrapper<Friend>()
+            // 使用原生SQL查询，包括已删除的记录
+            Friend existing = friendMapper.selectOne(new LambdaQueryWrapper<Friend>()
                     .eq(Friend::getUserId, userId)
-                    .eq(Friend::getFriendId, friendId));
+                    .eq(Friend::getFriendId, friendId)
+                    .last("OR (user_id = " + userId + " AND friend_id = " + friendId + " AND deleted = 1)"));
             
-            if (count == 0) {
+            if (existing == null) {
+                // 完全不存在，插入新记录
                 Friend friend = new Friend();
                 friend.setUserId(userId);
                 friend.setFriendId(friendId);
                 friend.setStatus("ACCEPTED");
+                friend.setDeleted(0);  // 明确设置为未删除
                 friendMapper.insert(friend);
-                log.info("添加好友关系: {} -> {}", userId, friendId);
+                log.info("添加好友关系成功: {} -> {}", userId, friendId);
             } else {
-                log.info("好友关系已存在，跳过: {} -> {}", userId, friendId);
+                // 存在记录，更新状态和deleted标志
+                existing.setStatus("ACCEPTED");
+                existing.setDeleted(0);  // 恢复未删除状态
+                friendMapper.updateById(existing);
+                log.info("更新好友关系: {} -> {}, status=ACCEPTED, deleted=0", userId, friendId);
             }
         } catch (Exception e) {
-            // 忽略重复键错误，可能是并发导致
-            if (e.getMessage() != null && e.getMessage().contains("Duplicate")) {
-                log.warn("好友关系重复插入（已忽略）: {} -> {}", userId, friendId);
-            } else {
-                throw e;
+            log.error("插入好友关系失败: {} -> {}, error: {}", userId, friendId, e.getMessage());
+            // 尝试直接用SQL插入
+            try {
+                Friend friend = new Friend();
+                friend.setUserId(userId);
+                friend.setFriendId(friendId);
+                friend.setStatus("ACCEPTED");
+                friend.setDeleted(0);
+                friendMapper.insert(friend);
+                log.info("重试插入好友关系成功: {} -> {}", userId, friendId);
+            } catch (Exception ex) {
+                log.warn("好友关系可能已存在: {} -> {}", userId, friendId);
             }
         }
     }
 
     @Override
     public List<Map<String, Object>> getFriendList(Long userId) {
+        log.info("获取用户{}的好友列表", userId);
         List<Friend> friends = friendMapper.findFriendsByUserId(userId);
+        log.info("查询到{}条好友记录", friends.size());
+        
         List<Map<String, Object>> result = new ArrayList<>();
 
         for (Friend friend : friends) {
+            log.info("处理好友关系: userId={}, friendId={}, status={}", 
+                    friend.getUserId(), friend.getFriendId(), friend.getStatus());
             User user = userMapper.selectById(friend.getFriendId());
             if (user != null) {
                 Map<String, Object> item = new HashMap<>();
@@ -164,6 +183,7 @@ public class ChatServiceImpl implements ChatService {
             }
         }
 
+        log.info("返回{}个好友", result.size());
         return result;
     }
 

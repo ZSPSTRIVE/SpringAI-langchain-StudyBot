@@ -12,6 +12,13 @@
           class="search-input"
         />
         <div class="header-actions">
+          <!-- 连接状态指示器 -->
+          <el-tooltip :content="wsConnected ? '已连接' : '未连接，点击重连'" placement="bottom">
+            <span 
+              :class="['ws-status', { connected: wsConnected }]" 
+              @click="!wsConnected && connectWebSocket()"
+            >●</span>
+          </el-tooltip>
           <el-dropdown trigger="click" @command="handleAction">
             <el-button circle class="action-btn">
               <el-icon><Plus /></el-icon>
@@ -97,7 +104,12 @@
           <span>群聊</span>
         </div>
 
-        <el-divider>好友列表</el-divider>
+        <el-divider>好友列表 ({{ friendList.length }})</el-divider>
+
+        <!-- 好友列表为空 -->
+        <el-empty v-if="friendList.length === 0" description="暂无好友" :image-size="60">
+          <el-button type="primary" size="small" @click="showAddFriend = true">添加好友</el-button>
+        </el-empty>
 
         <!-- 好友列表 -->
         <div
@@ -613,11 +625,14 @@ const filteredConversations = computed(() => {
   })
 })
 
+// 获取会话的唯一key（在computed之前定义）
+const getConvKey = (conv) => conv.id ? String(conv.id) : `${conv.type}_${conv.targetId}`
+
 // 排序后的会话（置顶优先，隐藏的不显示）
 const sortedConversations = computed(() => {
   // 过滤隐藏的会话
   const visible = filteredConversations.value.filter(conv => {
-    const key = conv.id ? String(conv.id) : `${conv.type}_${conv.targetId}`
+    const key = getConvKey(conv)
     return !hiddenConversations.value.has(key)
   })
   
@@ -659,7 +674,10 @@ const loadConversations = async () => {
 const loadFriendList = async () => {
   try {
     const res = await chatApi.getFriendList()
-    friendList.value = res.data || []
+    console.log('好友列表API响应:', res)
+    // 兼容不同的响应结构
+    friendList.value = res.data || res || []
+    console.log('好友列表数据:', friendList.value)
   } catch (error) {
     console.error('加载好友列表失败:', error)
   }
@@ -900,9 +918,11 @@ const startChat = (friend) => {
   }
   
   // 如果会话被隐藏，恢复显示
-  const key = conv.id || `PRIVATE_${friend.userId}`
+  const key = getConvKey(conv)
   if (hiddenConversations.value.has(key)) {
-    hiddenConversations.value.delete(key)
+    const newSet = new Set(hiddenConversations.value)
+    newSet.delete(key)
+    hiddenConversations.value = newSet
     localStorage.setItem('hiddenConversations', JSON.stringify([...hiddenConversations.value]))
   }
   
@@ -910,21 +930,19 @@ const startChat = (friend) => {
   selectConversation(conv)
 }
 
-const handleAction = (command) => {
+const handleAction = async (command) => {
   if (command === 'addFriend') {
     showAddFriend.value = true
     searchUserKeyword.value = ''
     searchResults.value = []
   } else if (command === 'createGroup') {
-    showCreateGroup.value = true
     // 重置表单
     groupForm.name = ''
     groupForm.avatar = ''
     groupForm.memberIds = []
-    // 确保好友列表已加载
-    if (friendList.value.length === 0) {
-      loadFriendList()
-    }
+    // 先加载好友列表，再打开对话框
+    await loadFriendList()
+    showCreateGroup.value = true
   }
 }
 
@@ -1327,11 +1345,19 @@ const hideConversation = () => {
   const conv = conversationMenu.conv
   if (!conv) return
   
-  const key = conv.id || `${conv.type}_${conv.targetId}`
-  hiddenConversations.value.add(key)
+  const key = getConvKey(conv)
+  const newSet = new Set(hiddenConversations.value)
+  newSet.add(key)
+  hiddenConversations.value = newSet
   
   // 保存到本地存储
   localStorage.setItem('hiddenConversations', JSON.stringify([...hiddenConversations.value]))
+  
+  // 如果当前正在查看这个会话，清空当前会话
+  if (currentConversation.value && getConvKey(currentConversation.value) === key) {
+    currentConversation.value = null
+    messages.value = []
+  }
   
   ElMessage.success('会话已隐藏，点击好友可恢复')
   closeConversationMenu()
@@ -1385,11 +1411,19 @@ const handleScroll = (e) => {
   // TODO: 实现上拉加载更多
 }
 
+// WebSocket 连接状态
+const wsConnected = ref(false)
+
 // WebSocket 连接
 const connectWebSocket = () => {
   if (!currentUserId.value) {
     console.error('无法连接WebSocket: 用户ID未定义')
     return
+  }
+  
+  // 关闭旧连接
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.close()
   }
   
   // 开发环境直接连接后端，生产环境使用当前host
@@ -1398,15 +1432,22 @@ const connectWebSocket = () => {
   const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
   const wsUrl = `${wsProtocol}//${wsHost}/ws/chat?userId=${currentUserId.value}`
   
-  console.log('WebSocket 连接URL:', wsUrl)
-  ws = new WebSocket(wsUrl)
+  console.log('正在连接WebSocket:', wsUrl)
+  
+  try {
+    ws = new WebSocket(wsUrl)
+  } catch (e) {
+    console.error('WebSocket 创建失败:', e)
+    return
+  }
   
   ws.onopen = () => {
-    console.log('WebSocket 连接成功, 用户ID:', currentUserId.value)
+    console.log('✅ WebSocket 连接成功, 用户ID:', currentUserId.value)
+    wsConnected.value = true
   }
   
   ws.onmessage = (event) => {
-    console.log('WebSocket 收到消息:', event.data)
+    console.log('📩 WebSocket 收到消息:', event.data)
     try {
       const data = JSON.parse(event.data)
       handleWebSocketMessage(data)
@@ -1416,15 +1457,18 @@ const connectWebSocket = () => {
   }
   
   ws.onclose = (event) => {
-    console.log('WebSocket 连接关闭, code:', event.code, 'reason:', event.reason)
+    console.log('❌ WebSocket 连接关闭, code:', event.code)
+    wsConnected.value = false
     // 非正常关闭才重连
-    if (event.code !== 1000) {
+    if (event.code !== 1000 && event.code !== 1005) {
+      console.log('3秒后重连...')
       setTimeout(connectWebSocket, 3000)
     }
   }
   
   ws.onerror = (error) => {
-    console.error('WebSocket 错误:', error)
+    console.error('⚠️ WebSocket 错误:', error)
+    wsConnected.value = false
   }
 }
 
@@ -1496,6 +1540,18 @@ const handleNewPrivateMessage = (msg) => {
     c.type === 'PRIVATE' && c.targetId === msg.senderId
   )
   
+  // 如果会话被隐藏，收到新消息时自动恢复显示
+  if (conv) {
+    const key = getConvKey(conv)
+    if (hiddenConversations.value.has(key)) {
+      const newSet = new Set(hiddenConversations.value)
+      newSet.delete(key)
+      hiddenConversations.value = newSet
+      localStorage.setItem('hiddenConversations', JSON.stringify([...hiddenConversations.value]))
+      console.log('会话已恢复显示:', key)
+    }
+  }
+  
   if (conv) {
     // 更新现有会话
     conv.lastMessage = getMessagePreview(msg)
@@ -1522,6 +1578,17 @@ const handleNewPrivateMessage = (msg) => {
       unreadCount: 1,
       isTop: false
     }
+    
+    // 如果这个会话之前被隐藏，恢复显示
+    const key = getConvKey(newConv)
+    if (hiddenConversations.value.has(key)) {
+      const newSet = new Set(hiddenConversations.value)
+      newSet.delete(key)
+      hiddenConversations.value = newSet
+      localStorage.setItem('hiddenConversations', JSON.stringify([...hiddenConversations.value]))
+      console.log('新会话恢复显示:', key)
+    }
+    
     conversations.value.unshift(newConv)
     console.log('创建新会话:', newConv.targetUser.realName)
     ElMessage.info(`收到 ${newConv.targetUser.realName} 的新消息`)
@@ -1554,6 +1621,19 @@ const handleNewGroupMessage = (groupId, msg) => {
       currentConversation.value?.targetId === groupId) {
     messages.value.push(msg)
     nextTick(() => scrollToBottom())
+  }
+  
+  // 查找群会话，如果被隐藏则恢复
+  const conv = conversations.value.find(c => c.type === 'GROUP' && c.targetId === groupId)
+  if (conv) {
+    const key = getConvKey(conv)
+    if (hiddenConversations.value.has(key)) {
+      const newSet = new Set(hiddenConversations.value)
+      newSet.delete(key)
+      hiddenConversations.value = newSet
+      localStorage.setItem('hiddenConversations', JSON.stringify([...hiddenConversations.value]))
+      console.log('群会话恢复显示:', key)
+    }
   }
   
   loadConversations()
@@ -1682,6 +1762,18 @@ watch(showFriendRequests, (val) => {
     &:hover {
       transform: translate(-1px, -1px);
       box-shadow: 3px 3px 0 0 $neo-black;
+    }
+  }
+  
+  .ws-status {
+    font-size: 12px;
+    color: #f56c6c;
+    cursor: pointer;
+    margin-right: 8px;
+    
+    &.connected {
+      color: #67c23a;
+      cursor: default;
     }
   }
 }

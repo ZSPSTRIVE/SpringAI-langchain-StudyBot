@@ -37,7 +37,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         Long userId = getUserIdFromSession(session);
         if (userId != null) {
             userSessions.put(userId, session);
-            log.info("用户 {} WebSocket连接建立", userId);
+            log.info("用户 {} WebSocket连接建立, 当前在线: {}", userId, userSessions.keySet());
             
             // 发送连接成功消息
             sendMessage(session, Map.of(
@@ -45,6 +45,9 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 "message", "连接成功",
                 "userId", userId
             ));
+            
+            // 广播用户上线状态给所有在线用户
+            broadcastOnlineStatus(userId, true);
         }
     }
 
@@ -55,6 +58,34 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             userSessions.remove(userId);
             userGroups.remove(userId);
             log.info("用户 {} WebSocket连接关闭", userId);
+            
+            // 广播用户离线状态给所有在线用户
+            broadcastOnlineStatus(userId, false);
+        }
+    }
+    
+    /**
+     * 广播用户在线状态变化
+     */
+    private void broadcastOnlineStatus(Long userId, boolean online) {
+        Map<String, Object> statusMsg = Map.of(
+            "type", "ONLINE_STATUS",
+            "userId", userId,
+            "online", online
+        );
+        
+        for (Map.Entry<Long, WebSocketSession> entry : userSessions.entrySet()) {
+            // 不发送给自己
+            if (entry.getKey().equals(userId)) continue;
+            
+            WebSocketSession session = entry.getValue();
+            if (session != null && session.isOpen()) {
+                try {
+                    sendMessage(session, statusMsg);
+                } catch (Exception e) {
+                    log.error("广播在线状态失败: {}", e.getMessage());
+                }
+            }
         }
     }
 
@@ -89,6 +120,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
      * 发送私聊消息给接收方
      */
     public void sendPrivateMessage(Long receiverId, ChatMessage message) {
+        log.info("尝试推送消息给用户 {}, 当前在线用户: {}", receiverId, userSessions.keySet());
         WebSocketSession session = userSessions.get(receiverId);
         if (session != null && session.isOpen()) {
             try {
@@ -96,9 +128,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                     "type", "PRIVATE_MESSAGE",
                     "data", message
                 ));
+                log.info("成功推送消息给用户 {}", receiverId);
             } catch (Exception e) {
                 log.error("发送私聊消息失败", e);
             }
+        } else {
+            log.warn("用户 {} 不在线或会话已关闭, session={}", receiverId, session);
         }
     }
 
