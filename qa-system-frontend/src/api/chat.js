@@ -117,6 +117,17 @@ export function blockFriend(friendId) {
   })
 }
 
+/**
+ * 会话置顶/取消置顶
+ */
+export function toggleConversationTop(conversationId, isTop) {
+  return request({
+    url: `/v1/chat/conversations/${conversationId}/top`,
+    method: 'put',
+    data: { isTop }
+  })
+}
+
 // ==================== 会话相关 ====================
 
 /**

@@ -76,6 +76,11 @@ public interface ChatService {
     List<ChatConversation> getConversationList(Long userId);
 
     /**
+     * 会话置顶/取消置顶
+     */
+    void toggleConversationTop(Long userId, Long conversationId, Boolean isTop);
+
+    /**
      * 发送私聊消息
      */
     ChatMessage sendPrivateMessage(Long senderId, Long receiverId, String content, String type, 

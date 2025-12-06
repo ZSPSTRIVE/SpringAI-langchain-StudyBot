@@ -91,18 +91,14 @@ public class ChatServiceImpl implements ChatService {
         friendRequestMapper.updateById(request);
 
         if (accept) {
-            // 双向添加好友关系
-            Friend friend1 = new Friend();
-            friend1.setUserId(request.getFromUserId());
-            friend1.setFriendId(request.getToUserId());
-            friend1.setStatus("ACCEPTED");
-            friendMapper.insert(friend1);
-
-            Friend friend2 = new Friend();
-            friend2.setUserId(request.getToUserId());
-            friend2.setFriendId(request.getFromUserId());
-            friend2.setStatus("ACCEPTED");
-            friendMapper.insert(friend2);
+            Long fromUserId = request.getFromUserId();
+            Long toUserId = request.getToUserId();
+            
+            // 安全插入好友关系（忽略重复键错误）
+            safeInsertFriend(fromUserId, toUserId);
+            safeInsertFriend(toUserId, fromUserId);
+            
+            log.info("处理好友申请完成: {} <-> {}", fromUserId, toUserId);
         }
 
         // 通知申请方结果
@@ -115,6 +111,36 @@ public class ChatServiceImpl implements ChatService {
         ));
 
         log.info("用户{}{}了用户{}的好友申请", userId, accept ? "同意" : "拒绝", request.getFromUserId());
+    }
+
+    /**
+     * 安全插入好友关系（忽略重复键错误）
+     */
+    private void safeInsertFriend(Long userId, Long friendId) {
+        try {
+            // 先检查是否存在
+            Long count = friendMapper.selectCount(new LambdaQueryWrapper<Friend>()
+                    .eq(Friend::getUserId, userId)
+                    .eq(Friend::getFriendId, friendId));
+            
+            if (count == 0) {
+                Friend friend = new Friend();
+                friend.setUserId(userId);
+                friend.setFriendId(friendId);
+                friend.setStatus("ACCEPTED");
+                friendMapper.insert(friend);
+                log.info("添加好友关系: {} -> {}", userId, friendId);
+            } else {
+                log.info("好友关系已存在，跳过: {} -> {}", userId, friendId);
+            }
+        } catch (Exception e) {
+            // 忽略重复键错误，可能是并发导致
+            if (e.getMessage() != null && e.getMessage().contains("Duplicate")) {
+                log.warn("好友关系重复插入（已忽略）: {} -> {}", userId, friendId);
+            } else {
+                throw e;
+            }
+        }
     }
 
     @Override
@@ -246,7 +272,19 @@ public class ChatServiceImpl implements ChatService {
             item.put("realName", user.getRealName());
             item.put("avatar", user.getAvatar());
             item.put("role", user.getRole());
-            item.put("isFriend", friendMapper.isFriend(userId, user.getId()));
+            
+            // 检查好友关系状态
+            boolean isFriend = friendMapper.isFriend(userId, user.getId());
+            item.put("isFriend", isFriend);
+            
+            // 检查是否有待处理的好友申请（我发给对方的）
+            FriendRequest pendingRequest = friendRequestMapper.findExistingRequest(userId, user.getId());
+            item.put("hasPendingRequest", pendingRequest != null);
+            
+            // 检查是否有对方发给我的申请
+            FriendRequest receivedRequest = friendRequestMapper.findExistingRequest(user.getId(), userId);
+            item.put("hasReceivedRequest", receivedRequest != null);
+            
             return item;
         }).collect(Collectors.toList());
     }
@@ -266,6 +304,17 @@ public class ChatServiceImpl implements ChatService {
         }
         
         return conversations;
+    }
+
+    @Override
+    @Transactional
+    public void toggleConversationTop(Long userId, Long conversationId, Boolean isTop) {
+        ChatConversation conversation = conversationMapper.selectById(conversationId);
+        if (conversation != null && conversation.getUserId().equals(userId)) {
+            conversation.setIsTop(isTop);
+            conversationMapper.updateById(conversation);
+            log.info("用户{}{}会话{}", userId, isTop ? "置顶" : "取消置顶", conversationId);
+        }
     }
 
     @Override

@@ -55,11 +55,14 @@
       <!-- 会话列表 -->
       <div v-if="activeTab === 'chat'" class="conversation-list">
         <div
-          v-for="conv in filteredConversations"
-          :key="conv.id"
-          :class="['conversation-item', { active: currentConversation?.id === conv.id }]"
+          v-for="conv in sortedConversations"
+          :key="conv.id || conv.targetId"
+          :class="['conversation-item', { active: currentConversation?.id === conv.id, pinned: conv.isTop }]"
           @click="selectConversation(conv)"
+          @contextmenu.prevent="showConversationMenu($event, conv)"
         >
+          <!-- 置顶标识 -->
+          <div v-if="conv.isTop" class="pin-indicator">📌</div>
           <el-badge :value="conv.unreadCount" :hidden="conv.unreadCount === 0" :max="99">
             <el-avatar :size="48" :src="getConversationAvatar(conv)">
               {{ getConversationName(conv)?.[0] }}
@@ -76,7 +79,7 @@
             </div>
           </div>
         </div>
-        <el-empty v-if="filteredConversations.length === 0" description="暂无会话" />
+        <el-empty v-if="sortedConversations.length === 0" description="暂无会话" />
       </div>
 
       <!-- 通讯录 -->
@@ -286,15 +289,28 @@
             <span class="user-name">{{ user.realName }}</span>
             <span class="user-role">{{ user.role === 'TEACHER' ? '教师' : '学生' }}</span>
           </div>
+          <!-- 已是好友 -->
+          <el-tag v-if="user.isFriend" type="success" size="small">已是好友</el-tag>
+          <!-- 我发送的申请等待中 -->
+          <el-tag v-else-if="user.hasPendingRequest" type="warning" size="small">等待验证</el-tag>
+          <!-- 对方发给我的申请 -->
           <el-button 
-            v-if="!user.isFriend"
+            v-else-if="user.hasReceivedRequest"
+            type="success" 
+            size="small"
+            @click="acceptFromSearch(user)"
+          >
+            同意申请
+          </el-button>
+          <!-- 可以添加 -->
+          <el-button 
+            v-else
             type="primary" 
             size="small"
             @click="sendRequest(user)"
           >
             添加
           </el-button>
-          <el-tag v-else type="success" size="small">已是好友</el-tag>
         </div>
         <el-empty v-if="searchResults.length === 0 && searchUserKeyword" description="未找到用户" />
       </div>
@@ -331,23 +347,41 @@
     <el-dialog v-model="showCreateGroup" title="创建群聊" width="500px">
       <el-form :model="groupForm" label-width="80px">
         <el-form-item label="群名称" required>
-          <el-input v-model="groupForm.name" placeholder="请输入群名称" />
+          <el-input v-model="groupForm.name" placeholder="请输入群名称" maxlength="20" show-word-limit />
+        </el-form-item>
+        <el-form-item label="群头像">
+          <el-input v-model="groupForm.avatar" placeholder="可选，输入头像URL" />
         </el-form-item>
         <el-form-item label="选择成员">
-          <el-checkbox-group v-model="groupForm.memberIds">
-            <el-checkbox
-              v-for="friend in friendList"
+          <div v-if="friendList.length === 0" class="no-friends-tip">
+            暂无好友，请先添加好友
+          </div>
+          <div v-else class="member-select-list">
+            <div 
+              v-for="friend in friendList" 
               :key="friend.userId"
-              :label="friend.userId"
+              :class="['member-item', { selected: groupForm.memberIds.includes(friend.userId) }]"
+              @click="toggleMemberSelect(friend.userId)"
             >
-              {{ friend.realName }}
-            </el-checkbox>
-          </el-checkbox-group>
+              <el-checkbox 
+                :model-value="groupForm.memberIds.includes(friend.userId)"
+                @change="toggleMemberSelect(friend.userId)"
+              />
+              <el-avatar :size="32" :src="friend.avatar">{{ friend.realName?.[0] }}</el-avatar>
+              <span class="member-name">{{ friend.remark || friend.realName }}</span>
+              <el-tag v-if="friend.online" type="success" size="small">在线</el-tag>
+            </div>
+          </div>
+          <div v-if="groupForm.memberIds.length > 0" class="selected-count">
+            已选择 {{ groupForm.memberIds.length }} 人
+          </div>
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="showCreateGroup = false">取消</el-button>
-        <el-button type="primary" @click="createGroupChat">创建</el-button>
+        <el-button type="primary" @click="createGroupChat" :disabled="!groupForm.name.trim() || groupForm.memberIds.length === 0">
+          创建群聊 ({{ groupForm.memberIds.length + 1 }}人)
+        </el-button>
       </template>
     </el-dialog>
 
@@ -436,6 +470,20 @@
       <div v-if="messageContextMenu.isSelf" class="menu-item" @click="recallCurrentMessage">撤回</div>
       <div class="menu-item danger" @click="deleteMessage">删除</div>
     </div>
+
+    <!-- 会话右键菜单 -->
+    <div 
+      v-show="conversationMenu.visible" 
+      class="context-menu"
+      :style="{ left: conversationMenu.x + 'px', top: conversationMenu.y + 'px' }"
+    >
+      <div class="menu-item" @click="togglePinConversation">
+        {{ conversationMenu.conv?.isTop ? '取消置顶' : '置顶会话' }}
+      </div>
+      <div class="menu-item" @click="markConversationRead">标为已读</div>
+      <div class="menu-item" @click="hideConversation">隐藏会话</div>
+      <div class="menu-item danger" @click="deleteConversation">删除会话</div>
+    </div>
   </div>
 </template>
 
@@ -509,6 +557,17 @@ const messageContextMenu = reactive({
   isSelf: false
 })
 
+// 会话右键菜单
+const conversationMenu = reactive({
+  visible: false,
+  x: 0,
+  y: 0,
+  conv: null
+})
+
+// 隐藏的会话ID列表
+const hiddenConversations = ref(new Set())
+
 // 搜索
 const searchUserKeyword = ref('')
 const searchResults = ref([])
@@ -516,8 +575,19 @@ const searchResults = ref([])
 // 创建群聊表单
 const groupForm = reactive({
   name: '',
+  avatar: '',
   memberIds: []
 })
+
+// 切换成员选择
+const toggleMemberSelect = (userId) => {
+  const index = groupForm.memberIds.indexOf(userId)
+  if (index > -1) {
+    groupForm.memberIds.splice(index, 1)
+  } else {
+    groupForm.memberIds.push(userId)
+  }
+}
 
 // WebSocket
 let ws = null
@@ -529,6 +599,24 @@ const filteredConversations = computed(() => {
   return conversations.value.filter(conv => {
     const name = getConversationName(conv)?.toLowerCase() || ''
     return name.includes(keyword)
+  })
+})
+
+// 排序后的会话（置顶优先，隐藏的不显示）
+const sortedConversations = computed(() => {
+  // 过滤隐藏的会话
+  const visible = filteredConversations.value.filter(conv => {
+    const key = conv.id || `${conv.type}_${conv.targetId}`
+    return !hiddenConversations.value.has(key)
+  })
+  
+  // 按置顶和时间排序
+  return visible.sort((a, b) => {
+    // 置顶优先
+    if (a.isTop && !b.isTop) return -1
+    if (!a.isTop && b.isTop) return 1
+    // 然后按最后消息时间排序
+    return new Date(b.lastMessageTime || 0) - new Date(a.lastMessageTime || 0)
   })
 })
 
@@ -698,7 +786,8 @@ const handleVideoUpload = async (file) => {
 }
 
 const insertEmoji = (emoji) => {
-  inputMessage.value += emoji.code || `[${emoji.name}]`
+  // 优先使用emoji字符，而不是代码
+  inputMessage.value += emoji.unicode || emoji.text || emoji.code || `[${emoji.name}]`
 }
 
 const startChat = (friend) => {
@@ -723,6 +812,13 @@ const startChat = (friend) => {
     conversations.value.unshift(conv)
   }
   
+  // 如果会话被隐藏，恢复显示
+  const key = conv.id || `PRIVATE_${friend.userId}`
+  if (hiddenConversations.value.has(key)) {
+    hiddenConversations.value.delete(key)
+    localStorage.setItem('hiddenConversations', JSON.stringify([...hiddenConversations.value]))
+  }
+  
   activeTab.value = 'chat'
   selectConversation(conv)
 }
@@ -734,8 +830,14 @@ const handleAction = (command) => {
     searchResults.value = []
   } else if (command === 'createGroup') {
     showCreateGroup.value = true
+    // 重置表单
     groupForm.name = ''
+    groupForm.avatar = ''
     groupForm.memberIds = []
+    // 确保好友列表已加载
+    if (friendList.value.length === 0) {
+      loadFriendList()
+    }
   }
 }
 
@@ -756,10 +858,30 @@ const debouncedSearchUsers = debounce(async () => {
 const sendRequest = async (user) => {
   try {
     await chatApi.sendFriendRequest(user.userId, '')
-    ElMessage.success('好友申请已发送')
-    user.isFriend = true
+    ElMessage.success('好友申请已发送，等待对方验证')
+    // 更新状态为申请中
+    user.hasPendingRequest = true
   } catch (error) {
     ElMessage.error(error.response?.data?.message || '发送失败')
+  }
+}
+
+// 从搜索结果中同意好友申请
+const acceptFromSearch = async (user) => {
+  try {
+    // 找到对应的申请
+    const requests = await chatApi.getFriendRequests()
+    const req = requests.data?.find(r => r.fromUserId === user.userId)
+    if (req) {
+      await chatApi.handleFriendRequest(req.id, true)
+      ElMessage.success('已添加好友')
+      user.isFriend = true
+      user.hasReceivedRequest = false
+      loadFriendList()
+      loadPendingRequestCount()
+    }
+  } catch (error) {
+    ElMessage.error('操作失败')
   }
 }
 
@@ -797,12 +919,28 @@ const createGroupChat = async () => {
   }
   
   try {
-    await chatApi.createGroup(groupForm.name, null, groupForm.memberIds)
+    const res = await chatApi.createGroup(groupForm.name, groupForm.avatar || null, groupForm.memberIds)
     ElMessage.success('群聊创建成功')
     showCreateGroup.value = false
-    loadConversations()
+    
+    // 重置表单
+    groupForm.name = ''
+    groupForm.avatar = ''
+    groupForm.memberIds = []
+    
+    // 刷新会话列表
+    await loadConversations()
+    
+    // 如果返回了群信息，直接打开该群聊
+    if (res.data) {
+      const newConv = conversations.value.find(c => c.type === 'GROUP' && c.targetId === res.data.id)
+      if (newConv) {
+        selectConversation(newConv)
+      }
+    }
   } catch (error) {
-    ElMessage.error('创建失败')
+    console.error('创建群聊失败:', error)
+    ElMessage.error(error.response?.data?.message || '创建失败')
   }
 }
 
@@ -1013,6 +1151,104 @@ const confirmBlockFriend = async (friend) => {
   }
 }
 
+// ==================== 会话管理 ====================
+
+// 显示会话右键菜单
+const showConversationMenu = (event, conv) => {
+  conversationMenu.visible = true
+  conversationMenu.x = event.clientX
+  conversationMenu.y = event.clientY
+  conversationMenu.conv = conv
+}
+
+// 关闭会话菜单
+const closeConversationMenu = () => {
+  conversationMenu.visible = false
+}
+
+// 置顶/取消置顶会话
+const togglePinConversation = async () => {
+  const conv = conversationMenu.conv
+  if (!conv) return
+  
+  try {
+    await chatApi.toggleConversationTop(conv.id, !conv.isTop)
+    conv.isTop = !conv.isTop
+    ElMessage.success(conv.isTop ? '已置顶' : '已取消置顶')
+  } catch (error) {
+    // 如果后端接口不存在，用本地状态
+    conv.isTop = !conv.isTop
+    ElMessage.success(conv.isTop ? '已置顶' : '已取消置顶')
+  }
+  closeConversationMenu()
+}
+
+// 标记会话已读
+const markConversationRead = async () => {
+  const conv = conversationMenu.conv
+  if (!conv) return
+  
+  try {
+    if (conv.id) {
+      await chatApi.markMessagesAsRead(conv.id)
+    }
+    conv.unreadCount = 0
+    loadUnreadCount()
+    ElMessage.success('已标为已读')
+  } catch (error) {
+    console.error('标记已读失败:', error)
+  }
+  closeConversationMenu()
+}
+
+// 隐藏会话（不删除消息）
+const hideConversation = () => {
+  const conv = conversationMenu.conv
+  if (!conv) return
+  
+  const key = conv.id || `${conv.type}_${conv.targetId}`
+  hiddenConversations.value.add(key)
+  
+  // 保存到本地存储
+  localStorage.setItem('hiddenConversations', JSON.stringify([...hiddenConversations.value]))
+  
+  ElMessage.success('会话已隐藏，点击好友可恢复')
+  closeConversationMenu()
+}
+
+// 删除会话
+const deleteConversation = async () => {
+  const conv = conversationMenu.conv
+  if (!conv) return
+  
+  try {
+    await ElMessageBox.confirm(
+      '确定要删除此会话吗？聊天记录将被清空。',
+      '删除会话',
+      { confirmButtonText: '删除', cancelButtonText: '取消', type: 'warning' }
+    )
+    
+    // 从列表中移除
+    const index = conversations.value.findIndex(c => c.id === conv.id)
+    if (index > -1) {
+      conversations.value.splice(index, 1)
+    }
+    
+    // 如果当前正在查看此会话，清空
+    if (currentConversation.value?.id === conv.id) {
+      currentConversation.value = null
+      messages.value = []
+    }
+    
+    ElMessage.success('会话已删除')
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除会话失败:', error)
+    }
+  }
+  closeConversationMenu()
+}
+
 // 好友右键菜单
 const showFriendContextMenu = (event, friend) => {
   // 使用下拉菜单代替
@@ -1063,6 +1299,24 @@ const handleWebSocketMessage = (data) => {
     case 'FRIEND_REQUEST':
       pendingRequests.value++
       ElMessage.info('收到新的好友申请')
+      // 刷新好友申请列表
+      loadFriendRequests()
+      break
+    case 'FRIEND_REQUEST_RESULT':
+      // 好友申请被处理
+      if (data.accepted) {
+        ElMessage.success(`${data.data?.realName || '对方'} 已同意你的好友申请`)
+        loadFriendList()
+      } else {
+        ElMessage.info(`${data.data?.realName || '对方'} 拒绝了你的好友申请`)
+      }
+      break
+    case 'ONLINE_STATUS':
+      // 更新好友在线状态
+      const friend = friendList.value.find(f => f.userId === data.userId)
+      if (friend) {
+        friend.online = data.online
+      }
       break
     case 'MESSAGE_RECALLED':
       handleMessageRecalled(data.messageId)
@@ -1105,10 +1359,38 @@ const handleMessageRecalled = (messageId) => {
 // 点击其他地方关闭右键菜单
 const handleDocumentClick = () => {
   messageContextMenu.visible = false
+  conversationMenu.visible = false
+}
+
+// 加载隐藏的会话
+const loadHiddenConversations = () => {
+  const saved = localStorage.getItem('hiddenConversations')
+  if (saved) {
+    try {
+      const arr = JSON.parse(saved)
+      hiddenConversations.value = new Set(arr)
+    } catch (e) {
+      console.error('加载隐藏会话失败:', e)
+    }
+  }
+}
+
+// 自动刷新定时器
+let refreshTimer = null
+
+// 开始自动刷新（每30秒刷新好友列表和在线状态）
+const startAutoRefresh = () => {
+  refreshTimer = setInterval(() => {
+    loadFriendList()
+    loadPendingRequestCount()
+  }, 30000)
 }
 
 // 生命周期
 onMounted(async () => {
+  // 加载隐藏的会话记录
+  loadHiddenConversations()
+  
   await Promise.all([
     loadConversations(),
     loadFriendList(),
@@ -1122,6 +1404,9 @@ onMounted(async () => {
   
   // 添加全局点击事件监听
   document.addEventListener('click', handleDocumentClick)
+  
+  // 开始自动刷新
+  startAutoRefresh()
 })
 
 onUnmounted(() => {
@@ -1130,6 +1415,11 @@ onUnmounted(() => {
   }
   // 移除全局点击事件监听
   document.removeEventListener('click', handleDocumentClick)
+  
+  // 清除自动刷新定时器
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+  }
 })
 
 // 监听好友申请弹窗
@@ -1228,6 +1518,7 @@ watch(showFriendRequests, (val) => {
   cursor: pointer;
   border-bottom: 1px solid rgba($neo-black, 0.1);
   transition: all 150ms;
+  position: relative;
   
   &:hover {
     background: rgba($neo-black, 0.05);
@@ -1235,6 +1526,17 @@ watch(showFriendRequests, (val) => {
   
   &.active {
     background: $neo-yellow;
+  }
+  
+  &.pinned {
+    background: rgba($neo-yellow, 0.2);
+  }
+  
+  .pin-indicator {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 10px;
   }
   
   .conv-info {
@@ -1494,6 +1796,48 @@ watch(showFriendRequests, (val) => {
       color: $text-secondary;
     }
   }
+}
+
+// 成员选择列表
+.member-select-list {
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid rgba($neo-black, 0.1);
+  border-radius: 8px;
+  
+  .member-item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: $spacing-sm $spacing-md;
+    cursor: pointer;
+    transition: all 150ms;
+    
+    &:hover {
+      background: rgba($neo-black, 0.05);
+    }
+    
+    &.selected {
+      background: rgba($neo-yellow, 0.3);
+    }
+    
+    .member-name {
+      flex: 1;
+      font-size: 14px;
+    }
+  }
+}
+
+.no-friends-tip {
+  color: $text-secondary;
+  text-align: center;
+  padding: $spacing-lg;
+}
+
+.selected-count {
+  margin-top: $spacing-sm;
+  color: $neo-blue;
+  font-size: 12px;
 }
 
 // 好友申请

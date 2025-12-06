@@ -171,6 +171,20 @@ public class ChatController {
         return Result.success(chatService.getTotalUnreadCount(userId));
     }
 
+    /**
+     * 会话置顶/取消置顶
+     */
+    @PutMapping("/conversations/{conversationId}/top")
+    public Result<Void> toggleConversationTop(
+            Authentication authentication,
+            @PathVariable Long conversationId,
+            @RequestBody Map<String, Boolean> request) {
+        Long userId = getUserId(authentication);
+        Boolean isTop = request.get("isTop");
+        chatService.toggleConversationTop(userId, conversationId, isTop);
+        return Result.success(isTop ? "已置顶" : "已取消置顶", null);
+    }
+
     // ==================== 私聊相关 ====================
 
     /**

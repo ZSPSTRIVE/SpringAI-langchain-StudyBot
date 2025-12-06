@@ -360,4 +360,110 @@ public class UploadController {
         // 生成UUID并移除连字符，然后添加扩展名
         return UUID.randomUUID().toString().replace("-", "") + extension;
     }
+
+    /**
+     * 📤 通用文件上传
+     * 
+     * 支持图片、视频等文件的上传
+     * 
+     * @param file 上传的文件
+     * @param type 文件类型：image, video, chat, avatar
+     * @return 上传结果
+     */
+    @PostMapping("/file")
+    public ApiResponse<Map<String, String>> uploadFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "type", defaultValue = "chat") String type) {
+        
+        log.info("📤 接收到文件上传请求: {}, 类型: {}", file.getOriginalFilename(), type);
+        
+        try {
+            // 验证文件是否为空
+            if (file.isEmpty()) {
+                return ApiResponse.error("请选择要上传的文件");
+            }
+
+            // 根据类型设置最大文件大小
+            long maxSize = "video".equals(type) ? 50 * 1024 * 1024 : maxFileSize; // 视频50MB，其他5MB
+            if (file.getSize() > maxSize) {
+                return ApiResponse.error("文件大小超过限制");
+            }
+
+            // 获取文件信息
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename == null) {
+                return ApiResponse.error("文件名不能为空");
+            }
+            
+            // 提取文件扩展名
+            String fileExtension = "";
+            int lastDot = originalFilename.lastIndexOf(".");
+            if (lastDot > 0) {
+                fileExtension = originalFilename.substring(lastDot);
+            }
+            
+            // 根据类型验证文件格式
+            String contentType = file.getContentType();
+            String subDir = "files";
+            
+            if ("image".equals(type) || "avatar".equals(type)) {
+                if (contentType == null || !contentType.startsWith("image/")) {
+                    return ApiResponse.error("只能上传图片文件");
+                }
+                subDir = "images";
+            } else if ("video".equals(type)) {
+                if (contentType == null || !contentType.startsWith("video/")) {
+                    return ApiResponse.error("只能上传视频文件");
+                }
+                subDir = "videos";
+            } else if ("chat".equals(type)) {
+                // 聊天文件支持图片和视频
+                if (contentType != null) {
+                    if (contentType.startsWith("image/")) {
+                        subDir = "chat/images";
+                    } else if (contentType.startsWith("video/")) {
+                        subDir = "chat/videos";
+                    } else {
+                        subDir = "chat/files";
+                    }
+                }
+            }
+
+            // 生成新的文件名
+            String newFileName = generateFileName(fileExtension);
+            
+            // 创建上传目录（按日期分组）
+            String datePath = new SimpleDateFormat("yyyy/MM/dd").format(new Date());
+            Path uploadDir = getAbsoluteUploadPath().resolve(subDir).resolve(datePath);
+            
+            // 确保目录存在
+            if (!Files.exists(uploadDir)) {
+                Files.createDirectories(uploadDir);
+                log.info("📁 创建上传目录: {}", uploadDir.toAbsolutePath());
+            }
+
+            // 保存文件
+            Path filePath = uploadDir.resolve(newFileName);
+            file.transferTo(filePath.toFile());
+
+            // 生成访问URL
+            String fileUrl = "/uploads/" + subDir + "/" + datePath + "/" + newFileName;
+            
+            // 构建返回数据
+            Map<String, String> data = new HashMap<>();
+            data.put("url", fileUrl);
+            data.put("name", newFileName);
+            data.put("originalName", originalFilename);
+            data.put("size", String.valueOf(file.getSize()));
+            data.put("type", contentType);
+            
+            // 记录上传成功日志
+            log.info("✅ 文件上传成功: {}", fileUrl);
+            return ApiResponse.success(data, "上传成功");
+            
+        } catch (IOException e) {
+            log.error("❌ 文件上传失败:", e);
+            return ApiResponse.error("上传失败: " + e.getMessage());
+        }
+    }
 }

@@ -206,8 +206,6 @@ INSERT INTO `emoji` (`pack_id`, `name`, `url`, `type`, `code`, `sort_order`) VAL
 (2, '大笑', '/emojis/classic/laugh.png', 'STATIC', '[大笑]', 2),
 (2, '哭泣', '/emojis/classic/cry.png', 'STATIC', '[哭泣]', 3),
 (2, '愤怒', '/emojis/classic/angry.png', 'STATIC', '[愤怒]', 4),
-(2, '惊讶', '/emojis/classic/surprise.png', 'STATIC', '[惊讶]', 5),
-(2, '害羞', '/emojis/classic/shy.png', 'STATIC', '[害羞]', 6),
 (2, '思考', '/emojis/classic/think.png', 'STATIC', '[思考]', 7),
 (2, '点赞', '/emojis/classic/like.png', 'STATIC', '[点赞]', 8),
 (2, '比心', '/emojis/classic/heart.png', 'STATIC', '[比心]', 9),
