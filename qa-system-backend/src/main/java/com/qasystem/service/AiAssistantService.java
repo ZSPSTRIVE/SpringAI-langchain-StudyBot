@@ -621,8 +621,8 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
         
         // 如果没有匹配到预定义关键词，尝试提取问题中较长的词
         if (keywords.isEmpty() && question.length() > 4) {
-            // 简单分词：按空格和标点分割
-            String[] words = question.split("[\\s，。？！、；：""''（）\\[\\]【】]");
+            // 简单分词：按空格和常见标点分割
+            String[] words = question.split("[\\s\\p{Punct},\\.\\?!;:\\[\\]()]+");
             for (String word : words) {
                 if (word.length() >= 2 && word.length() <= 10) {
                     keywords.add(word);
