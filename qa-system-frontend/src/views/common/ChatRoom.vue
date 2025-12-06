@@ -175,24 +175,35 @@
                 <!-- 图片消息 -->
                 <template v-else-if="msg.type === 'IMAGE'">
                   <el-image 
-                    :src="msg.mediaUrl" 
-                    :preview-src-list="[msg.mediaUrl]"
+                    :src="getMediaUrl(msg.mediaUrl)" 
+                    :preview-src-list="[getMediaUrl(msg.mediaUrl)]"
                     fit="cover"
                     class="message-image"
-                  />
+                    :loading="'lazy'"
+                  >
+                    <template #error>
+                      <div class="image-error">
+                        <el-icon><Picture /></el-icon>
+                        <span>加载失败</span>
+                      </div>
+                    </template>
+                  </el-image>
                 </template>
                 <!-- 视频消息 -->
                 <template v-else-if="msg.type === 'VIDEO'">
                   <video 
-                    :src="msg.mediaUrl" 
+                    :src="getMediaUrl(msg.mediaUrl)" 
                     controls 
-                    :poster="msg.mediaThumbnail"
+                    :poster="msg.mediaThumbnail ? getMediaUrl(msg.mediaThumbnail) : ''"
                     class="message-video"
-                  />
+                    preload="metadata"
+                  >
+                    您的浏览器不支持视频播放
+                  </video>
                 </template>
                 <!-- 表情消息 -->
                 <template v-else-if="msg.type === 'EMOJI'">
-                  <img :src="msg.mediaUrl" class="message-emoji" />
+                  <img :src="getMediaUrl(msg.mediaUrl)" class="message-emoji" @error="handleEmojiError" />
                 </template>
                 <!-- 撤回消息 -->
                 <template v-else-if="msg.isRecalled">
@@ -606,7 +617,7 @@ const filteredConversations = computed(() => {
 const sortedConversations = computed(() => {
   // 过滤隐藏的会话
   const visible = filteredConversations.value.filter(conv => {
-    const key = conv.id || `${conv.type}_${conv.targetId}`
+    const key = conv.id ? String(conv.id) : `${conv.type}_${conv.targetId}`
     return !hiddenConversations.value.has(key)
   })
   
@@ -624,7 +635,22 @@ const sortedConversations = computed(() => {
 const loadConversations = async () => {
   try {
     const res = await chatApi.getConversations()
-    conversations.value = res.data || []
+    const newConversations = res.data || res || []
+    
+    // 保留本地创建的临时会话（id为null的）
+    const tempConversations = conversations.value.filter(c => c.id === null)
+    
+    // 如果后端返回了数据，合并
+    if (Array.isArray(newConversations) && newConversations.length > 0) {
+      const serverIds = new Set(newConversations.map(c => `${c.type}_${c.targetId}`))
+      const remainingTemp = tempConversations.filter(c => 
+        !serverIds.has(`${c.type}_${c.targetId}`)
+      )
+      conversations.value = [...newConversations, ...remainingTemp]
+    } else if (tempConversations.length > 0) {
+      // 如果后端没有数据但有临时会话，保留临时会话
+      conversations.value = tempConversations
+    }
   } catch (error) {
     console.error('加载会话列表失败:', error)
   }
@@ -707,80 +733,141 @@ const sendMessage = async () => {
   
   try {
     const conv = currentConversation.value
+    
+    // 立即更新本地会话信息
+    conv.lastMessage = content
+    conv.lastMessageTime = new Date().toISOString()
+    
     if (conv.type === 'PRIVATE') {
-      await chatApi.sendPrivateMessage({
+      const res = await chatApi.sendPrivateMessage({
         receiverId: conv.targetId,
         content,
         type: 'TEXT'
       })
+      // 立即添加消息到列表
+      if (res.data) {
+        messages.value.push(res.data)
+        nextTick(() => scrollToBottom())
+      }
     } else {
-      await chatApi.sendGroupMessage({
+      const res = await chatApi.sendGroupMessage({
         groupId: conv.targetId,
         content,
         type: 'TEXT'
       })
+      if (res.data) {
+        messages.value.push(res.data)
+        nextTick(() => scrollToBottom())
+      }
     }
     
-    await loadMessages()
-    await loadConversations()
+    // 后台刷新会话列表
+    loadConversations()
   } catch (error) {
     ElMessage.error('发送失败')
     console.error('发送消息失败:', error)
+    // 恢复输入框内容
+    inputMessage.value = content
   }
 }
 
 const handleImageUpload = async (file) => {
+  if (!currentConversation.value) {
+    ElMessage.warning('请先选择一个会话')
+    return false
+  }
+  
   try {
-    const res = await uploadFile(file)
-    const mediaUrl = res.data.url
+    const res = await uploadFile(file, 'chat')
+    // 兼容不同的响应结构
+    const mediaUrl = res.data?.url || res.url
+    
+    if (!mediaUrl) {
+      ElMessage.error('上传失败：未获取到文件地址')
+      return false
+    }
     
     const conv = currentConversation.value
+    let msgRes
     if (conv.type === 'PRIVATE') {
-      await chatApi.sendPrivateMessage({
+      msgRes = await chatApi.sendPrivateMessage({
         receiverId: conv.targetId,
         type: 'IMAGE',
-        mediaUrl
+        mediaUrl,
+        content: '[图片]'
       })
     } else {
-      await chatApi.sendGroupMessage({
+      msgRes = await chatApi.sendGroupMessage({
         groupId: conv.targetId,
         type: 'IMAGE',
-        mediaUrl
+        mediaUrl,
+        content: '[图片]'
       })
     }
     
-    await loadMessages()
-    await loadConversations()
+    // 添加消息到列表
+    if (msgRes.data) {
+      messages.value.push(msgRes.data)
+      nextTick(() => scrollToBottom())
+    }
+    
+    loadConversations()
   } catch (error) {
-    ElMessage.error('图片发送失败')
+    console.error('图片发送失败:', error)
+    ElMessage.error(error.response?.data?.message || '图片发送失败')
   }
   return false
 }
 
 const handleVideoUpload = async (file) => {
+  if (!currentConversation.value) {
+    ElMessage.warning('请先选择一个会话')
+    return false
+  }
+  
+  // 检查文件大小 (50MB)
+  if (file.size > 50 * 1024 * 1024) {
+    ElMessage.error('视频文件不能超过50MB')
+    return false
+  }
+  
   try {
-    const res = await uploadFile(file)
-    const mediaUrl = res.data.url
+    ElMessage.info('正在上传视频...')
+    const res = await uploadFile(file, 'video')
+    const mediaUrl = res.data?.url || res.url
+    
+    if (!mediaUrl) {
+      ElMessage.error('上传失败：未获取到文件地址')
+      return false
+    }
     
     const conv = currentConversation.value
+    let msgRes
     if (conv.type === 'PRIVATE') {
-      await chatApi.sendPrivateMessage({
+      msgRes = await chatApi.sendPrivateMessage({
         receiverId: conv.targetId,
         type: 'VIDEO',
-        mediaUrl
+        mediaUrl,
+        content: '[视频]'
       })
     } else {
-      await chatApi.sendGroupMessage({
+      msgRes = await chatApi.sendGroupMessage({
         groupId: conv.targetId,
         type: 'VIDEO',
-        mediaUrl
+        mediaUrl,
+        content: '[视频]'
       })
     }
     
-    await loadMessages()
-    await loadConversations()
+    if (msgRes.data) {
+      messages.value.push(msgRes.data)
+      nextTick(() => scrollToBottom())
+    }
+    
+    loadConversations()
   } catch (error) {
-    ElMessage.error('视频发送失败')
+    console.error('视频发送失败:', error)
+    ElMessage.error(error.response?.data?.message || '视频发送失败')
   }
   return false
 }
@@ -889,11 +976,18 @@ const acceptRequest = async (requestId) => {
   try {
     await chatApi.handleFriendRequest(requestId, true)
     ElMessage.success('已添加好友')
-    loadFriendRequests()
-    loadFriendList()
-    loadPendingRequestCount()
+    // 立即刷新
+    await loadFriendRequests()
+    await loadFriendList()
+    await loadPendingRequestCount()
+    await loadConversations()
+    // 延迟再刷新一次确保数据库已更新
+    setTimeout(() => {
+      loadFriendList()
+      loadConversations()
+    }, 500)
   } catch (error) {
-    ElMessage.error('操作失败')
+    ElMessage.error(error.response?.data?.message || '操作失败')
   }
 }
 
@@ -980,8 +1074,27 @@ const formatMessageTime = (time) => {
 
 const renderEmoji = (content) => {
   if (!content) return ''
-  // 简单的表情替换，实际应该使用表情库
-  return content.replace(/\[([^\]]+)\]/g, '<span class="emoji-text">[$1]</span>')
+  // 直接显示内容，emoji字符会正常显示
+  return content
+}
+
+// 获取媒体文件URL
+const getMediaUrl = (url) => {
+  if (!url) return ''
+  // 如果已经是完整URL，直接返回
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+  // 确保URL以/开头
+  if (!url.startsWith('/')) {
+    url = '/' + url
+  }
+  return url
+}
+
+// 表情加载失败处理
+const handleEmojiError = (e) => {
+  e.target.style.display = 'none'
 }
 
 const scrollToBottom = () => {
@@ -1124,11 +1237,19 @@ const confirmDeleteFriend = async (friend) => {
     )
     await chatApi.deleteFriend(friend.userId)
     ElMessage.success('已删除好友')
-    loadFriendList()
-    loadConversations()
+    // 立即刷新
+    await loadFriendList()
+    await loadConversations()
+    // 关闭好友详情对话框
+    showFriendDetail.value = false
+    // 延迟再刷新一次
+    setTimeout(() => {
+      loadFriendList()
+      loadConversations()
+    }, 500)
   } catch (error) {
     if (error !== 'cancel') {
-      ElMessage.error('删除失败')
+      ElMessage.error(error.response?.data?.message || '删除失败')
     }
   }
 }
@@ -1266,21 +1387,40 @@ const handleScroll = (e) => {
 
 // WebSocket 连接
 const connectWebSocket = () => {
-  const wsUrl = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws/chat?userId=${currentUserId.value}`
+  if (!currentUserId.value) {
+    console.error('无法连接WebSocket: 用户ID未定义')
+    return
+  }
+  
+  // 开发环境直接连接后端，生产环境使用当前host
+  const isDev = import.meta.env.DEV
+  const wsHost = isDev ? 'localhost:8080' : location.host
+  const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
+  const wsUrl = `${wsProtocol}//${wsHost}/ws/chat?userId=${currentUserId.value}`
+  
+  console.log('WebSocket 连接URL:', wsUrl)
   ws = new WebSocket(wsUrl)
   
   ws.onopen = () => {
-    console.log('WebSocket 连接成功')
+    console.log('WebSocket 连接成功, 用户ID:', currentUserId.value)
   }
   
   ws.onmessage = (event) => {
-    const data = JSON.parse(event.data)
-    handleWebSocketMessage(data)
+    console.log('WebSocket 收到消息:', event.data)
+    try {
+      const data = JSON.parse(event.data)
+      handleWebSocketMessage(data)
+    } catch (e) {
+      console.error('WebSocket 消息解析失败:', e)
+    }
   }
   
-  ws.onclose = () => {
-    console.log('WebSocket 连接关闭，3秒后重连')
-    setTimeout(connectWebSocket, 3000)
+  ws.onclose = (event) => {
+    console.log('WebSocket 连接关闭, code:', event.code, 'reason:', event.reason)
+    // 非正常关闭才重连
+    if (event.code !== 1000) {
+      setTimeout(connectWebSocket, 3000)
+    }
   }
   
   ws.onerror = (error) => {
@@ -1306,10 +1446,23 @@ const handleWebSocketMessage = (data) => {
       // 好友申请被处理
       if (data.accepted) {
         ElMessage.success(`${data.data?.realName || '对方'} 已同意你的好友申请`)
+        // 刷新好友列表和会话列表
         loadFriendList()
+        loadConversations()
       } else {
         ElMessage.info(`${data.data?.realName || '对方'} 拒绝了你的好友申请`)
       }
+      break
+    case 'FRIEND_ADDED':
+      // 有新好友添加
+      ElMessage.success(`已成功添加好友`)
+      loadFriendList()
+      loadConversations()
+      break
+    case 'FRIEND_DELETED':
+      // 被好友删除
+      loadFriendList()
+      loadConversations()
       break
     case 'ONLINE_STATUS':
       // 更新好友在线状态
@@ -1325,16 +1478,75 @@ const handleWebSocketMessage = (data) => {
 }
 
 const handleNewPrivateMessage = (msg) => {
+  console.log('收到新私聊消息:', msg.senderId, msg.content || msg.type)
+  
   // 如果当前正在查看这个会话
   if (currentConversation.value?.type === 'PRIVATE' && 
       currentConversation.value?.targetId === msg.senderId) {
     messages.value.push(msg)
     nextTick(() => scrollToBottom())
+    // 标记消息已读
+    if (currentConversation.value.id) {
+      chatApi.markMessagesAsRead(currentConversation.value.id).catch(() => {})
+    }
   }
   
-  // 更新会话列表
-  loadConversations()
+  // 查找或创建会话
+  let conv = conversations.value.find(c => 
+    c.type === 'PRIVATE' && c.targetId === msg.senderId
+  )
+  
+  if (conv) {
+    // 更新现有会话
+    conv.lastMessage = getMessagePreview(msg)
+    conv.lastMessageTime = msg.createTime || new Date().toISOString()
+    // 如果不是当前查看的会话，增加未读数
+    if (currentConversation.value?.targetId !== msg.senderId) {
+      conv.unreadCount = (conv.unreadCount || 0) + 1
+    }
+  } else {
+    // 创建新会话
+    const senderInfo = msg.sender || {}
+    const newConv = {
+      id: null,
+      type: 'PRIVATE',
+      targetId: msg.senderId,
+      targetUser: {
+        id: msg.senderId,
+        realName: senderInfo.realName || msg.senderName || '新用户',
+        avatar: senderInfo.avatar || msg.senderAvatar || '',
+        username: senderInfo.username || ''
+      },
+      lastMessage: getMessagePreview(msg),
+      lastMessageTime: msg.createTime || new Date().toISOString(),
+      unreadCount: 1,
+      isTop: false
+    }
+    conversations.value.unshift(newConv)
+    console.log('创建新会话:', newConv.targetUser.realName)
+    ElMessage.info(`收到 ${newConv.targetUser.realName} 的新消息`)
+  }
+  
+  // 立即更新未读数
   loadUnreadCount()
+  
+  // 延迟刷新会话列表，确保后端已创建会话
+  setTimeout(() => {
+    loadConversations()
+  }, 300)
+}
+
+// 获取消息预览文本
+const getMessagePreview = (msg) => {
+  if (!msg) return ''
+  switch (msg.type) {
+    case 'IMAGE': return '[图片]'
+    case 'VIDEO': return '[视频]'
+    case 'FILE': return '[文件]'
+    case 'VOICE': return '[语音]'
+    case 'EMOJI': return '[表情]'
+    default: return msg.content || ''
+  }
 }
 
 const handleNewGroupMessage = (groupId, msg) => {
@@ -1701,17 +1913,35 @@ watch(showFriendRequests, (val) => {
       
       .message-image {
         max-width: 200px;
+        max-height: 200px;
         border-radius: 8px;
+        cursor: pointer;
+      }
+      
+      .image-error {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100px;
+        height: 100px;
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        color: #999;
+        font-size: 12px;
+        gap: 4px;
       }
       
       .message-video {
         max-width: 300px;
+        max-height: 200px;
         border-radius: 8px;
       }
       
       .message-emoji {
-        width: 100px;
-        height: 100px;
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
       }
       
       .recalled-message,
