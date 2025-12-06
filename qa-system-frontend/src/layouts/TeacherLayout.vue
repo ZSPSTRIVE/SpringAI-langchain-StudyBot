@@ -24,7 +24,7 @@
             <el-icon><ChatLineSquare /></el-icon>
             <span>答疑中心</span>
           </el-menu-item>
-          <el-menu-item index="/student/questions">
+          <el-menu-item index="/teacher/questions">
             <el-icon><QuestionFilled /></el-icon>
             <span>问题广场</span>
           </el-menu-item>

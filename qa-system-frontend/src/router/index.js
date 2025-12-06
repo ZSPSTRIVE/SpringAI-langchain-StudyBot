@@ -81,7 +81,12 @@ const router = createRouter({
       children: [
         {
           path: '',
-          redirect: '/teacher/answers'
+          redirect: '/teacher/questions'
+        },
+        {
+          path: 'questions',
+          name: 'TeacherQuestions',
+          component: () => import('@/views/student/Questions.vue')  // 复用学生的问题广场组件
         },
         {
           path: 'answers',
