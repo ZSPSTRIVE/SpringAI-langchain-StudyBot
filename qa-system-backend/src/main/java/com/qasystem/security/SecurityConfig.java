@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import jakarta.servlet.DispatcherType;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,6 +48,9 @@ public class SecurityConfig {
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // 允许异步分发请求（SSE等）
+                        .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
+                        
                         // 公开接口（无需认证）
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
@@ -70,6 +74,9 @@ public class SecurityConfig {
                         
                         // 文档降重 WebSocket 通道（用于前端实时改写）
                         .requestMatchers("/ws/**").permitAll()
+                        
+                        // SSE 流式接口（异步请求需要特殊处理）
+                        .requestMatchers("/api/ai/chat/stream").authenticated()
                         
                         // 科目相关（查询公开，管理需要管理员）
                         .requestMatchers(HttpMethod.GET, "/api/v1/subjects/**").permitAll()

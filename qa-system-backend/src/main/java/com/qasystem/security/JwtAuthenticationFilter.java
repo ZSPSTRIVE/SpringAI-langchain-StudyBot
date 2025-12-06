@@ -2,6 +2,7 @@ package com.qasystem.security;
 
 import com.qasystem.common.util.JwtUtil;
 import com.qasystem.common.util.RedisUtil;
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +33,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String TOKEN_PREFIX = "Bearer ";
     private static final String HEADER_AUTH = "Authorization";
+
+    /**
+     * 跳过异步分发请求的过滤
+     * SSE/异步请求完成后的ASYNC dispatch不需要再次验证
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return request.getDispatcherType() == DispatcherType.ASYNC;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

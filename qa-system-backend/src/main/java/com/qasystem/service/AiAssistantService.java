@@ -11,11 +11,14 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.output.Response;
+import dev.langchain4j.model.StreamingResponseHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +71,9 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
     // 大语言模型接口，用于生成AI回答
     // 支持多种模型：OpenAI GPT、百度文心一言、阿里通义千问等
     private final ChatLanguageModel chatLanguageModel;
+    
+    // 流式大语言模型接口，用于SSE流式响应
+    private final StreamingChatLanguageModel streamingChatLanguageModel;
     
     // Redis模板，用于缓存会话历史
     // 提高会话历史查询速度，减少数据库压力
@@ -201,6 +207,131 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
             // 抛出友好的运行时异常
             throw new RuntimeException("AI服务暂时不可用，请稍后重试");
         }
+    }
+    
+    /**
+     * 🌊 流式AI聊天对话 - 使用SSE实现打字机效果的实时响应
+     * 
+     * 与普通chat方法的区别：
+     * - 普通chat：等待AI完整回复后一次性返回
+     * - 流式chat：AI生成过程中实时推送每个token，实现打字机效果
+     * 
+     * 技术实现：
+     * - 使用SseEmitter实现Server-Sent Events
+     * - 调用StreamingChatLanguageModel进行流式生成
+     * - 每收到一个token就推送给客户端
+     * 
+     * @param userId 用户ID
+     * @param request AI聊天请求
+     * @return SseEmitter SSE发射器
+     */
+    public SseEmitter chatStream(Long userId, AiChatRequest request) {
+        // 创建SSE发射器，设置超时时间为5分钟
+        SseEmitter emitter = new SseEmitter(300000L);
+        
+        // 生成或使用现有的会话ID
+        String sessionId = request.getSessionId();
+        if (sessionId == null || sessionId.isEmpty()) {
+            sessionId = UUID.randomUUID().toString();
+        }
+        final String finalSessionId = sessionId;
+        
+        // 用于收集完整的AI回复
+        StringBuilder fullResponse = new StringBuilder();
+        
+        try {
+            // 构建对话历史
+            List<ChatMessage> messages = buildConversationHistory(userId, sessionId, request.getMessage());
+            
+            log.info("开始流式AI对话，用户ID: {}, 会话ID: {}", userId, sessionId);
+            
+            // 先发送会话ID给客户端
+            emitter.send(SseEmitter.event()
+                    .name("session")
+                    .data("{\"sessionId\":\"" + finalSessionId + "\"}"));
+            
+            // 调用流式AI模型
+            streamingChatLanguageModel.generate(messages, new StreamingResponseHandler<AiMessage>() {
+                
+                @Override
+                public void onNext(String token) {
+                    try {
+                        // 收集token
+                        fullResponse.append(token);
+                        // 发送token给客户端
+                        emitter.send(SseEmitter.event()
+                                .name("message")
+                                .data(token));
+                    } catch (Exception e) {
+                        log.error("发送SSE消息失败", e);
+                        emitter.completeWithError(e);
+                    }
+                }
+                
+                @Override
+                public void onComplete(Response<AiMessage> response) {
+                    try {
+                        // 分类问题
+                        String category = categorizeQuestion(request.getMessage());
+                        
+                        // 保存对话记录
+                        AiConversation conversation = saveConversation(
+                            userId,
+                            finalSessionId,
+                            request.getMessage(),
+                            fullResponse.toString(),
+                            category,
+                            null,
+                            response.tokenUsage() != null ? response.tokenUsage().totalTokenCount() : 0
+                        );
+                        
+                        // 缓存会话历史
+                        cacheConversationHistory(userId, finalSessionId);
+                        
+                        // 发送完成事件
+                        emitter.send(SseEmitter.event()
+                                .name("done")
+                                .data("{\"conversationId\":" + conversation.getId() + 
+                                      ",\"category\":\"" + category + "\"}"));
+                        
+                        log.info("流式AI对话完成，用户ID: {}, 会话ID: {}", userId, finalSessionId);
+                        emitter.complete();
+                    } catch (Exception e) {
+                        log.error("完成流式响应失败", e);
+                        emitter.completeWithError(e);
+                    }
+                }
+                
+                @Override
+                public void onError(Throwable error) {
+                    log.error("流式AI对话出错", error);
+                    try {
+                        emitter.send(SseEmitter.event()
+                                .name("error")
+                                .data("{\"error\":\"AI服务暂时不可用\"}"));
+                    } catch (Exception e) {
+                        log.error("发送错误消息失败", e);
+                    }
+                    emitter.completeWithError(error);
+                }
+            });
+            
+        } catch (Exception e) {
+            log.error("初始化流式对话失败", e);
+            emitter.completeWithError(e);
+        }
+        
+        // 设置超时和完成回调
+        emitter.onTimeout(() -> {
+            log.warn("SSE连接超时，用户ID: {}", userId);
+            emitter.complete();
+        });
+        
+        emitter.onCompletion(() -> {
+            log.debug("SSE连接完成，用户ID: {}", userId);
+        });
+        
+        return emitter;
     }
     
     /**

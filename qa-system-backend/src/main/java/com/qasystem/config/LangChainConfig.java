@@ -3,7 +3,9 @@ package com.qasystem.config;
 import com.qasystem.entity.AiModelConfig;
 import com.qasystem.service.AiModelConfigService;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -192,6 +194,57 @@ public class LangChainConfig {
                 .timeout(Duration.ofSeconds(60))  // 设置请求超时时间为60秒
                 .logRequests(false)  // 关闭请求日志，避免敏感信息泄露
                 .logResponses(false)  // 关闭响应日志，避免敏感信息泄露
+                .build();
+    }
+    
+    /**
+     * 🌊 创建StreamingChatLanguageModel Bean - 流式AI聊天模型
+     * 
+     * 用于SSE流式对话，实现打字机效果的实时响应。
+     * 配置与ChatLanguageModel保持一致，但使用流式API。
+     * 
+     * @return 配置好的StreamingChatLanguageModel实例
+     */
+    @Bean
+    public StreamingChatLanguageModel streamingChatLanguageModel() {
+        // 优先从数据库读取激活的模型配置
+        AiModelConfig activeConfig = null;
+        try {
+            activeConfig = aiModelConfigService.getActiveConfig();
+        } catch (Exception e) {
+            log.warn("获取数据库AI模型配置失败，使用默认配置: {}", e.getMessage());
+        }
+        
+        // 初始化配置变量为默认值
+        String apiKey = defaultApiKey;
+        String baseUrl = defaultBaseUrl;
+        String modelName = defaultModelName;
+        Double temperature = defaultTemperature;
+        Integer maxTokens = defaultMaxTokens;
+        
+        // 如果数据库中有激活配置，则使用数据库配置覆盖默认值
+        if (activeConfig != null) {
+            log.info("使用数据库AI模型配置(流式): {} - {}", 
+                    activeConfig.getProviderName(), activeConfig.getModelDisplayName());
+            apiKey = activeConfig.getApiKey();
+            baseUrl = activeConfig.getBaseUrl();
+            modelName = activeConfig.getModelName();
+            temperature = activeConfig.getTemperature();
+            maxTokens = activeConfig.getMaxTokens();
+        } else {
+            log.info("使用默认AI模型配置(流式): {}", defaultModelName);
+        }
+        
+        // 创建流式聊天模型
+        return OpenAiStreamingChatModel.builder()
+                .apiKey(apiKey)
+                .baseUrl(baseUrl)
+                .modelName(modelName)
+                .temperature(temperature)
+                .maxTokens(maxTokens)
+                .timeout(Duration.ofSeconds(120))  // 流式响应需要更长超时
+                .logRequests(false)
+                .logResponses(false)
                 .build();
     }
 }

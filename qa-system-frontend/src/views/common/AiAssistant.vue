@@ -205,19 +205,6 @@
               </div>
             </div>
 
-            <!-- 加载中 -->
-            <div v-if="loading" class="message-wrapper assistant">
-              <div class="message-avatar">
-                <el-avatar class="ai-avatar">
-                  <el-icon><Opportunity /></el-icon>
-                </el-avatar>
-              </div>
-              <div class="message-content">
-                <div class="typing-indicator">
-                  <span></span><span></span><span></span>
-                </div>
-              </div>
-            </div>
           </div>
         </el-scrollbar>
       </div>
@@ -409,41 +396,68 @@ const sendMessage = async () => {
 
   // 显示加载状态
   loading.value = true
+  
+  // 添加AI回复占位（用于流式显示）
+  const aiMessageIndex = messages.value.length
+  messages.value.push({
+    role: 'assistant',
+    content: '',
+    timestamp: new Date(),
+    typing: true,  // 显示打字指示器
+    conversationId: null,
+    category: null,
+    recommendations: null,
+    bookmarked: false,
+    feedback: null
+  })
+  scrollToBottom()
 
   try {
-    const res = await aiApi.chatWithAi({
-      message: userMessage,
-      sessionId: currentSessionId.value || undefined,
-      needRecommendation: needRecommendation.value
-    })
-
-    const data = res.data
-    
-    // 更新会话ID
-    if (data.sessionId) {
-      currentSessionId.value = data.sessionId
-    }
-
-    // 添加AI回复
-    messages.value.push({
-      role: 'assistant',
-      content: data.response,
-      timestamp: new Date(),
-      conversationId: data.conversationId,
-      category: data.category,
-      recommendations: data.recommendations,
-      bookmarked: false,
-      feedback: null
-    })
-
-    // 重新加载会话列表
-    loadSessions()
-    scrollToBottom()
+    await aiApi.chatWithAiStream(
+      {
+        message: userMessage,
+        sessionId: currentSessionId.value || undefined,
+        needRecommendation: needRecommendation.value
+      },
+      // onMessage - 每收到一个token就更新显示
+      (token, sessionId) => {
+        if (sessionId && !currentSessionId.value) {
+          currentSessionId.value = sessionId
+        }
+        messages.value[aiMessageIndex].content += token
+        messages.value[aiMessageIndex].typing = false
+        scrollToBottom()
+      },
+      // onDone - 完成时更新元数据
+      (data) => {
+        if (data.sessionId) {
+          currentSessionId.value = data.sessionId
+        }
+        messages.value[aiMessageIndex].conversationId = data.conversationId
+        messages.value[aiMessageIndex].category = data.category
+        messages.value[aiMessageIndex].typing = false
+        loading.value = false
+        
+        // 重新加载会话列表
+        loadSessions()
+        scrollToBottom()
+      },
+      // onError - 错误处理
+      (error) => {
+        ElMessage.error(error || 'AI服务暂时不可用')
+        // 移除AI回复占位
+        messages.value.splice(aiMessageIndex, 1)
+        // 移除用户消息
+        messages.value.pop()
+        loading.value = false
+      }
+    )
   } catch (error) {
     ElMessage.error(error.message || 'AI服务暂时不可用')
+    // 移除AI回复占位
+    messages.value.splice(aiMessageIndex, 1)
     // 移除用户消息
     messages.value.pop()
-  } finally {
     loading.value = false
   }
 }

@@ -10,8 +10,10 @@ import com.qasystem.service.AiAssistantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
@@ -148,6 +150,44 @@ public class AiAssistantController {
         
         // 返回AI响应
         return Result.success(response);
+    }
+    
+    /**
+     * 🌊 流式AI聊天对话 - 使用SSE实现打字机效果的实时响应
+     * 
+     * 业务流程：
+     * 1. 建立SSE连接
+     * 2. 发送会话ID给客户端
+     * 3. AI生成回答过程中，实时推送每个token
+     * 4. 生成完成后发送done事件
+     * 
+     * SSE事件类型：
+     * - session: 会话信息 {"sessionId":"xxx"}
+     * - message: AI回复的token片段
+     * - done: 完成事件 {"conversationId":123,"category":"xxx"}
+     * - error: 错误事件 {"error":"错误信息"}
+     * 
+     * 请求示例：
+     * POST /api/ai/chat/stream
+     * Headers:
+     *   Authorization: Bearer eyJhbGciOiJIUzI1NiI...
+     *   Accept: text/event-stream
+     * Body:
+     * {
+     *   "message": "请解释一下二叉树的概念",
+     *   "sessionId": "session-abc123"
+     * }
+     * 
+     * @param request AI聊天请求对象
+     * @param authentication Spring Security认证对象
+     * @return SseEmitter SSE事件流
+     */
+    @PostMapping(value = "/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter chatStream(@Valid @RequestBody AiChatRequest request,
+                                  Authentication authentication) {
+        Long userId = getUserId(authentication);
+        log.info("用户 {} 发起流式AI对话: {}", userId, request.getMessage());
+        return aiAssistantService.chatStream(userId, request);
     }
     
     /**
