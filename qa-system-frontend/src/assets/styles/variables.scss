@@ -83,21 +83,43 @@ $spacing-xl: 32px;
 $spacing-2xl: 48px;
 
 // ==================== 字体 ====================
-$font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", 
-  "PingFang SC", "Microsoft YaHei", sans-serif;
+// 系统字体栈 - 优先使用系统原生字体，保证最佳渲染效果
+$font-family-system: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", 
+  "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", 
+  "Microsoft YaHei", "Source Han Sans CN", "Noto Sans SC", sans-serif;
 
-$font-size-xs: 12px;
-$font-size-sm: 13px;
-$font-size-md: 15px;
-$font-size-lg: 17px;
-$font-size-xl: 20px;
-$font-size-2xl: 28px;
-$font-size-3xl: 34px;
+// 等宽字体 - 用于代码显示
+$font-family-mono: "SF Mono", "Fira Code", "Consolas", "Monaco", "Menlo", 
+  "Source Code Pro", monospace;
 
+// 默认字体
+$font-family: $font-family-system;
+
+// 字号 - 使用 rem 单位，基于 16px
+$font-size-xs: 0.75rem;   // 12px
+$font-size-sm: 0.8125rem; // 13px
+$font-size-md: 0.9375rem; // 15px
+$font-size-lg: 1.0625rem; // 17px
+$font-size-xl: 1.25rem;   // 20px
+$font-size-2xl: 1.75rem;  // 28px
+$font-size-3xl: 2.125rem; // 34px
+
+// 字重
+$font-weight-light: 300;
 $font-weight-normal: 400;
 $font-weight-medium: 500;
 $font-weight-semibold: 600;
 $font-weight-bold: 700;
+
+// 行高
+$line-height-tight: 1.25;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.75;
+
+// 字间距
+$letter-spacing-tight: -0.02em;
+$letter-spacing-normal: 0;
+$letter-spacing-wide: 0.02em;
 
 // ==================== 动画 ====================
 $transition-base: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);

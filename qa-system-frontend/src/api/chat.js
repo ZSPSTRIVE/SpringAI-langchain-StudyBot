@@ -344,6 +344,30 @@ export function kickMember(groupId, userId) {
   })
 }
 
+// 别名，用于兼容
+export const kickGroupMember = kickMember
+
+/**
+ * 获取我的群聊列表
+ */
+export function getMyGroups() {
+  return request({
+    url: '/v1/chat/groups/my',
+    method: 'get'
+  })
+}
+
+/**
+ * 转让群主
+ */
+export function transferGroupOwner(groupId, newOwnerId) {
+  return request({
+    url: `/v1/chat/groups/${groupId}/transfer`,
+    method: 'post',
+    data: { newOwnerId }
+  })
+}
+
 /**
  * 禁言/解除禁言
  */

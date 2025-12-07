@@ -183,6 +183,16 @@ public interface ChatService {
      */
     void muteMember(Long groupId, Long operatorId, Long targetUserId, Integer minutes);
 
+    /**
+     * 转让群主
+     */
+    void transferGroupOwner(Long groupId, Long currentOwnerId, Long newOwnerId);
+
+    /**
+     * 获取我的群聊列表（包含角色信息）
+     */
+    List<Map<String, Object>> getMyGroupsWithRole(Long userId);
+
     // ==================== 表情相关 ====================
 
     /**

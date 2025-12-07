@@ -187,8 +187,10 @@
               {{ msg.sender?.realName?.[0] }}
             </el-avatar>
             <div class="message-content">
-              <div class="message-sender" v-if="currentConversation.type === 'GROUP' && msg.senderId !== currentUserId">
-                {{ msg.sender?.realName }}
+              <div class="message-sender" v-if="currentConversation.type === 'GROUP'">
+                <span class="sender-name">{{ msg.sender?.realName }}</span>
+                <el-tag v-if="getMemberRole(msg.senderId) === 'OWNER'" type="warning" size="small" class="role-badge">群主</el-tag>
+                <el-tag v-else-if="getMemberRole(msg.senderId) === 'ADMIN'" type="primary" size="small" class="role-badge">管理</el-tag>
               </div>
               <div class="message-bubble" @contextmenu.prevent="showMessageMenu($event, msg)">
                 <!-- 文本消息 -->
@@ -399,7 +401,7 @@
             >
               <el-checkbox 
                 :model-value="groupForm.memberIds.includes(friend.userId)"
-                @change="toggleMemberSelect(friend.userId)"
+                @click.stop
               />
               <el-avatar :size="32" :src="friend.avatar">{{ friend.realName?.[0] }}</el-avatar>
               <span class="member-name">{{ friend.remark || friend.realName }}</span>
@@ -493,6 +495,315 @@
       </template>
     </el-dialog>
 
+    <!-- 群聊设置对话框 -->
+    <el-dialog v-model="showGroupInfo" title="群聊设置" width="520px" class="group-info-dialog">
+      <div v-if="currentConversation?.group" class="group-profile">
+        <!-- 群头像和基本信息 -->
+        <div class="profile-header">
+          <div class="avatar-wrapper">
+            <el-avatar :size="72" :src="currentConversation.group.avatar">
+              {{ currentConversation.group.name?.[0] }}
+            </el-avatar>
+            <el-button 
+              v-if="isGroupOwnerOrAdmin" 
+              class="edit-avatar-btn" 
+              circle 
+              size="small"
+              @click="showEditGroupName = true"
+            >
+              <el-icon><Edit /></el-icon>
+            </el-button>
+          </div>
+          <div class="profile-info">
+            <div class="name-row">
+              <h3>{{ currentConversation.group.name }}</h3>
+              <el-button v-if="isGroupOwnerOrAdmin" link size="small" @click="showEditGroupName = true">
+                <el-icon><Edit /></el-icon>
+              </el-button>
+            </div>
+            <p class="group-meta">
+              <span class="group-id">群号: {{ currentConversation.group.id }}</span>
+              <span class="member-count">
+                <el-icon><User /></el-icon>
+                {{ groupMembers.length }} 人
+              </span>
+            </p>
+          </div>
+        </div>
+
+        <!-- 群公告 -->
+        <div class="group-section">
+          <div class="section-header">
+            <span class="section-title">
+              <el-icon><Bell /></el-icon> 群公告
+            </span>
+            <el-button v-if="isGroupOwnerOrAdmin" link size="small" @click="showEditAnnouncement = true">
+              编辑
+            </el-button>
+          </div>
+          <div class="announcement-content">
+            {{ currentConversation.group.announcement || '暂无公告' }}
+          </div>
+        </div>
+
+        <!-- 群成员 -->
+        <div class="group-section">
+          <div class="section-header">
+            <span class="section-title">
+              <el-icon><UserFilled /></el-icon> 群成员 ({{ groupMembers.length }})
+            </span>
+            <el-button v-if="isGroupOwnerOrAdmin" link size="small" @click="showInviteMembers = true">
+              <el-icon><Plus /></el-icon> 邀请
+            </el-button>
+          </div>
+          <div class="group-members-grid">
+            <div 
+              v-for="member in groupMembers" 
+              :key="member.userId" 
+              class="member-card"
+              @click="showMemberOptions(member)"
+            >
+              <el-avatar :size="40" :src="member.avatar || member.user?.avatar">
+                {{ (member.realName || member.user?.realName)?.[0] }}
+              </el-avatar>
+              <span class="member-name">{{ member.realName || member.user?.realName || '未知' }}</span>
+              <el-tag v-if="member.role === 'OWNER'" type="warning" size="small" class="role-tag">群主</el-tag>
+              <el-tag v-else-if="member.role === 'ADMIN'" type="primary" size="small" class="role-tag">管理</el-tag>
+            </div>
+            <div v-if="isGroupOwnerOrAdmin" class="member-card add-member" @click="showInviteMembers = true">
+              <div class="add-icon">
+                <el-icon><Plus /></el-icon>
+              </div>
+              <span class="member-name">邀请</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 操作区 -->
+        <div class="group-actions">
+          <el-button @click="clearGroupMessages" plain>
+            <el-icon><Delete /></el-icon> 清空聊天记录
+          </el-button>
+          <el-button v-if="isGroupOwner" type="danger" @click="dismissGroup">
+            <el-icon><DeleteFilled /></el-icon> 解散群聊
+          </el-button>
+          <el-button v-else type="danger" plain @click="leaveGroup">
+            <el-icon><SwitchButton /></el-icon> 退出群聊
+          </el-button>
+        </div>
+      </div>
+      <div v-else class="no-group-info">
+        <el-icon :size="48"><Warning /></el-icon>
+        <p>无法获取群信息</p>
+      </div>
+    </el-dialog>
+
+    <!-- 编辑群名称对话框 -->
+    <el-dialog v-model="showEditGroupName" title="编辑群信息" width="400px" append-to-body>
+      <el-form :model="editGroupForm" label-width="80px">
+        <el-form-item label="群名称">
+          <el-input v-model="editGroupForm.name" maxlength="20" show-word-limit placeholder="请输入群名称" />
+        </el-form-item>
+        <el-form-item label="群头像">
+          <el-input v-model="editGroupForm.avatar" placeholder="输入头像URL（可选）" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showEditGroupName = false">取消</el-button>
+        <el-button type="primary" @click="saveGroupInfo">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 编辑群公告对话框 -->
+    <el-dialog v-model="showEditAnnouncement" title="编辑群公告" width="450px" append-to-body>
+      <el-input 
+        v-model="editGroupForm.announcement" 
+        type="textarea" 
+        :rows="4" 
+        maxlength="200" 
+        show-word-limit 
+        placeholder="请输入群公告内容"
+      />
+      <template #footer>
+        <el-button @click="showEditAnnouncement = false">取消</el-button>
+        <el-button type="primary" @click="saveGroupAnnouncement">发布公告</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 邀请成员对话框 -->
+    <el-dialog 
+      v-model="showInviteMembers" 
+      title="邀请好友加入群聊" 
+      width="450px" 
+      append-to-body
+      @open="onInviteDialogOpen"
+    >
+      <!-- 搜索框 -->
+      <el-input 
+        v-model="inviteSearchKeyword" 
+        placeholder="搜索好友" 
+        prefix-icon="Search" 
+        clearable
+        class="invite-search"
+      />
+      
+      <!-- 已选择的好友 -->
+      <div v-if="inviteIds.length > 0" class="selected-friends">
+        <span class="label">已选择:</span>
+        <el-tag 
+          v-for="id in inviteIds" 
+          :key="id" 
+          closable 
+          size="small"
+          @close="toggleInvite(id)"
+        >
+          {{ getFriendNameById(id) }}
+        </el-tag>
+      </div>
+      
+      <!-- 好友列表 -->
+      <div class="invite-member-list">
+        <div 
+          v-for="friend in filteredFriendsToInvite" 
+          :key="friend.userId"
+          :class="['invite-item', { selected: inviteIds.includes(friend.userId) }]"
+          @click="toggleInvite(friend.userId)"
+        >
+          <el-checkbox :model-value="inviteIds.includes(friend.userId)" @click.stop />
+          <div class="friend-avatar-wrapper">
+            <el-avatar :size="40" :src="friend.avatar">{{ friend.realName?.[0] }}</el-avatar>
+            <span v-if="friend.online" class="online-indicator"></span>
+          </div>
+          <div class="friend-info">
+            <span class="friend-name">{{ friend.remark || friend.realName }}</span>
+            <span class="friend-status">{{ friend.online ? '在线' : '离线' }}</span>
+          </div>
+        </div>
+        <div v-if="filteredFriendsToInvite.length === 0" class="no-friends">
+          <el-icon :size="32"><User /></el-icon>
+          <p>{{ inviteSearchKeyword ? '未找到匹配的好友' : '没有可邀请的好友' }}</p>
+        </div>
+      </div>
+      <template #footer>
+        <div class="invite-footer">
+          <span class="select-count">已选 {{ inviteIds.length }} 人</span>
+          <div class="footer-buttons">
+            <el-button @click="showInviteMembers = false">取消</el-button>
+            <el-button type="primary" @click="inviteFriendsToGroup" :disabled="inviteIds.length === 0">
+              确认邀请
+            </el-button>
+          </div>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 群聊列表对话框 -->
+    <el-dialog v-model="showGroupList" title="我的群聊" width="500px">
+      <el-tabs v-model="groupListTab">
+        <el-tab-pane label="我创建的" name="created">
+          <div class="group-list">
+            <div 
+              v-for="group in myCreatedGroups" 
+              :key="group.id" 
+              class="group-item"
+              @click="openGroupChat(group)"
+            >
+              <el-avatar :size="48" :src="group.avatar">{{ group.name?.[0] }}</el-avatar>
+              <div class="group-info">
+                <div class="group-name">{{ group.name }}</div>
+                <div class="group-meta">{{ group.memberCount || 0 }} 人 · 群号: {{ group.id }}</div>
+              </div>
+              <el-tag type="warning" size="small">群主</el-tag>
+            </div>
+            <el-empty v-if="myCreatedGroups.length === 0" description="还没有创建群聊" :image-size="60" />
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="我加入的" name="joined">
+          <div class="group-list">
+            <div 
+              v-for="group in myJoinedGroups" 
+              :key="group.id" 
+              class="group-item"
+              @click="openGroupChat(group)"
+            >
+              <el-avatar :size="48" :src="group.avatar">{{ group.name?.[0] }}</el-avatar>
+              <div class="group-info">
+                <div class="group-name">{{ group.name }}</div>
+                <div class="group-meta">{{ group.memberCount || 0 }} 人 · 群号: {{ group.id }}</div>
+              </div>
+              <el-tag v-if="group.myRole === 'ADMIN'" type="primary" size="small">管理员</el-tag>
+            </div>
+            <el-empty v-if="myJoinedGroups.length === 0" description="还没有加入群聊" :image-size="60" />
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+      <template #footer>
+        <el-button @click="showGroupList = false">关闭</el-button>
+        <el-button type="primary" @click="showCreateGroup = true; showGroupList = false">创建群聊</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 成员管理对话框 -->
+    <el-dialog v-model="showMemberManage" title="成员管理" width="400px" append-to-body>
+      <div v-if="selectedMember" class="member-manage-content">
+        <div class="member-profile">
+          <el-avatar :size="64" :src="selectedMember.avatar || selectedMember.user?.avatar">
+            {{ (selectedMember.realName || selectedMember.user?.realName)?.[0] }}
+          </el-avatar>
+          <div class="member-info">
+            <h4>{{ selectedMember.realName || selectedMember.user?.realName }}</h4>
+            <p class="member-role">
+              <el-tag v-if="selectedMember.role === 'OWNER'" type="warning" size="small">群主</el-tag>
+              <el-tag v-else-if="selectedMember.role === 'ADMIN'" type="primary" size="small">管理员</el-tag>
+              <el-tag v-else type="info" size="small">成员</el-tag>
+            </p>
+          </div>
+        </div>
+        
+        <el-divider />
+        
+        <div class="member-actions">
+          <!-- 群主可以设置/取消管理员 -->
+          <template v-if="isGroupOwner && selectedMember.role !== 'OWNER'">
+            <el-button 
+              v-if="selectedMember.role !== 'ADMIN'" 
+              type="primary" 
+              plain 
+              @click="setMemberAdmin(selectedMember.userId, true)"
+            >
+              <el-icon><UserFilled /></el-icon> 设为管理员
+            </el-button>
+            <el-button 
+              v-else 
+              type="warning" 
+              plain 
+              @click="setMemberAdmin(selectedMember.userId, false)"
+            >
+              <el-icon><User /></el-icon> 取消管理员
+            </el-button>
+          </template>
+          
+          <!-- 群主可以转让群主 -->
+          <el-button 
+            v-if="isGroupOwner && selectedMember.role !== 'OWNER'" 
+            type="warning" 
+            @click="transferOwnership(selectedMember.userId)"
+          >
+            <el-icon><Switch /></el-icon> 转让群主
+          </el-button>
+          
+          <!-- 群主和管理员可以踢人（管理员不能踢管理员和群主） -->
+          <el-button 
+            v-if="canKickMember(selectedMember)" 
+            type="danger" 
+            @click="kickMember(selectedMember.userId)"
+          >
+            <el-icon><RemoveFilled /></el-icon> 移出群聊
+          </el-button>
+        </div>
+      </div>
+    </el-dialog>
+
     <!-- 消息右键菜单 -->
     <div 
       v-show="messageContextMenu.visible" 
@@ -526,7 +837,8 @@ import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
   Search, Plus, UserFilled, ChatDotSquare, ChatLineSquare, User,
-  Bell, More, Loading, Grape, Picture, VideoCamera
+  Bell, More, Loading, Grape, Picture, VideoCamera, Edit, Delete,
+  DeleteFilled, SwitchButton, Warning, Switch, RemoveFilled
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { debounce } from 'lodash-es'
@@ -573,9 +885,87 @@ const showGroupInfo = ref(false)
 const showFriendDetail = ref(false)
 const showRemarkDialog = ref(false)
 const showGroupDialog = ref(false)
+const showEditGroupName = ref(false)
+const showEditAnnouncement = ref(false)
+const showInviteMembers = ref(false)
+const showMemberManage = ref(false)
 
 // 当前操作的好友
 const currentFriend = ref(null)
+
+// 群成员列表
+const groupMembers = ref([])
+
+// 群聊列表相关
+const groupListTab = ref('created')
+const myGroups = ref([])
+const selectedMember = ref(null)
+
+// 邀请成员相关
+const inviteIds = ref([])
+const inviteSearchKeyword = ref('')
+
+// 编辑群信息表单
+const editGroupForm = reactive({
+  name: '',
+  avatar: '',
+  announcement: ''
+})
+
+// 计算属性：是否是群主
+const isGroupOwner = computed(() => {
+  if (!currentConversation.value?.group?.id) return false
+  const myMember = groupMembers.value.find(m => m.userId === currentUserId.value)
+  return myMember?.role === 'OWNER'
+})
+
+// 计算属性：是否是群主或管理员
+const isGroupOwnerOrAdmin = computed(() => {
+  if (!currentConversation.value?.group?.id) return false
+  const myMember = groupMembers.value.find(m => m.userId === currentUserId.value)
+  return myMember?.role === 'OWNER' || myMember?.role === 'ADMIN'
+})
+
+// 计算属性：可邀请的好友（排除已在群内的）
+const availableFriendsToInvite = computed(() => {
+  const memberIds = new Set(groupMembers.value.map(m => m.userId))
+  return friendList.value.filter(f => !memberIds.has(f.userId))
+})
+
+// 计算属性：搜索过滤后的可邀请好友
+const filteredFriendsToInvite = computed(() => {
+  if (!inviteSearchKeyword.value) return availableFriendsToInvite.value
+  const keyword = inviteSearchKeyword.value.toLowerCase()
+  return availableFriendsToInvite.value.filter(f => {
+    const name = (f.remark || f.realName || '').toLowerCase()
+    return name.includes(keyword)
+  })
+})
+
+// 计算属性：我创建的群聊
+const myCreatedGroups = computed(() => {
+  return myGroups.value.filter(g => g.myRole === 'OWNER')
+})
+
+// 计算属性：我加入的群聊（非群主）
+const myJoinedGroups = computed(() => {
+  return myGroups.value.filter(g => g.myRole !== 'OWNER')
+})
+
+// 获取成员角色
+const getMemberRole = (userId) => {
+  const member = groupMembers.value.find(m => m.userId === userId)
+  return member?.role || 'MEMBER'
+}
+
+// 判断是否可以踢出该成员
+const canKickMember = (member) => {
+  if (!member || member.userId === currentUserId.value) return false
+  if (member.role === 'OWNER') return false
+  if (isGroupOwner.value) return true
+  if (isGroupOwnerOrAdmin.value && member.role !== 'ADMIN') return true
+  return false
+}
 
 // 备注表单
 const remarkForm = reactive({
@@ -622,12 +1012,14 @@ const groupForm = reactive({
 
 // 切换成员选择
 const toggleMemberSelect = (userId) => {
+  console.log('切换成员选择:', userId, '当前已选:', groupForm.memberIds)
   const index = groupForm.memberIds.indexOf(userId)
   if (index > -1) {
     groupForm.memberIds.splice(index, 1)
   } else {
     groupForm.memberIds.push(userId)
   }
+  console.log('更新后已选:', groupForm.memberIds)
 }
 
 // WebSocket
@@ -1071,6 +1463,269 @@ const createGroupChat = async () => {
   } catch (error) {
     console.error('创建群聊失败:', error)
     ElMessage.error(error.response?.data?.message || '创建失败')
+  }
+}
+
+// 加载群成员
+const loadGroupMembers = async (groupId) => {
+  try {
+    const res = await chatApi.getGroupMembers(groupId)
+    groupMembers.value = res.data || res || []
+  } catch (error) {
+    console.error('加载群成员失败:', error)
+    groupMembers.value = []
+  }
+}
+
+// 退出群聊
+const leaveGroup = async () => {
+  if (!currentConversation.value?.group?.id) return
+  
+  try {
+    await ElMessageBox.confirm('确定要退出该群聊吗？', '退出群聊', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await chatApi.leaveGroup(currentConversation.value.group.id)
+    ElMessage.success('已退出群聊')
+    showGroupInfo.value = false
+    currentConversation.value = null
+    messages.value = []
+    await loadConversations()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('退出群聊失败:', error)
+      ElMessage.error(error.response?.data?.message || '退出失败')
+    }
+  }
+}
+
+// 解散群聊
+const dismissGroup = async () => {
+  if (!currentConversation.value?.group?.id) return
+  
+  try {
+    await ElMessageBox.confirm('解散群聊后，所有聊天记录将被删除，确定要解散吗？', '解散群聊', {
+      confirmButtonText: '解散',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await chatApi.dismissGroup(currentConversation.value.group.id)
+    ElMessage.success('群聊已解散')
+    showGroupInfo.value = false
+    currentConversation.value = null
+    messages.value = []
+    await loadConversations()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('解散群聊失败:', error)
+      ElMessage.error(error.response?.data?.message || '解散失败')
+    }
+  }
+}
+
+// 保存群信息
+const saveGroupInfo = async () => {
+  if (!currentConversation.value?.group?.id) return
+  if (!editGroupForm.name.trim()) {
+    ElMessage.warning('请输入群名称')
+    return
+  }
+  
+  try {
+    await chatApi.updateGroupInfo(currentConversation.value.group.id, {
+      name: editGroupForm.name,
+      avatar: editGroupForm.avatar || null
+    })
+    ElMessage.success('群信息已更新')
+    showEditGroupName.value = false
+    // 更新本地数据
+    currentConversation.value.group.name = editGroupForm.name
+    if (editGroupForm.avatar) {
+      currentConversation.value.group.avatar = editGroupForm.avatar
+    }
+    await loadConversations()
+  } catch (error) {
+    console.error('更新群信息失败:', error)
+    ElMessage.error(error.response?.data?.message || '更新失败')
+  }
+}
+
+// 保存群公告
+const saveGroupAnnouncement = async () => {
+  if (!currentConversation.value?.group?.id) return
+  
+  try {
+    await chatApi.updateGroupInfo(currentConversation.value.group.id, {
+      announcement: editGroupForm.announcement
+    })
+    ElMessage.success('群公告已更新')
+    showEditAnnouncement.value = false
+    currentConversation.value.group.announcement = editGroupForm.announcement
+  } catch (error) {
+    console.error('更新群公告失败:', error)
+    ElMessage.error(error.response?.data?.message || '更新失败')
+  }
+}
+
+// 切换邀请成员
+const toggleInvite = (userId) => {
+  const index = inviteIds.value.indexOf(userId)
+  if (index > -1) {
+    inviteIds.value.splice(index, 1)
+  } else {
+    inviteIds.value.push(userId)
+  }
+}
+
+// 邀请对话框打开时初始化
+const onInviteDialogOpen = () => {
+  inviteIds.value = []
+  inviteSearchKeyword.value = ''
+}
+
+// 根据ID获取好友名称
+const getFriendNameById = (userId) => {
+  const friend = friendList.value.find(f => f.userId === userId)
+  return friend?.remark || friend?.realName || '未知'
+}
+
+// 邀请好友加入群聊
+const inviteFriendsToGroup = async () => {
+  if (!currentConversation.value?.group?.id || inviteIds.value.length === 0) return
+  
+  try {
+    await chatApi.inviteMembers(currentConversation.value.group.id, inviteIds.value)
+    ElMessage.success('已邀请好友加入群聊')
+    showInviteMembers.value = false
+    inviteIds.value = []
+    // 重新加载群成员
+    await loadGroupMembers(currentConversation.value.group.id)
+  } catch (error) {
+    console.error('邀请失败:', error)
+    ElMessage.error(error.response?.data?.message || '邀请失败')
+  }
+}
+
+// 显示成员操作选项
+const showMemberOptions = (member) => {
+  // 如果点击的是自己，不显示操作
+  if (member.userId === currentUserId.value) return
+  // 普通成员不能操作他人
+  if (!isGroupOwnerOrAdmin.value) return
+  // 群主不能被操作（除了查看）
+  if (member.role === 'OWNER') return
+  
+  selectedMember.value = member
+  showMemberManage.value = true
+}
+
+// 加载我的群聊列表
+const loadMyGroups = async () => {
+  try {
+    const res = await chatApi.getMyGroups()
+    myGroups.value = res.data || res || []
+  } catch (error) {
+    console.error('加载群聊列表失败:', error)
+    myGroups.value = []
+  }
+}
+
+// 打开群聊
+const openGroupChat = async (group) => {
+  showGroupList.value = false
+  // 查找是否已有该群的会话
+  let conv = conversations.value.find(c => c.type === 'GROUP' && c.targetId === group.id)
+  if (!conv) {
+    // 如果没有，需要创建会话
+    await loadConversations()
+    conv = conversations.value.find(c => c.type === 'GROUP' && c.targetId === group.id)
+  }
+  if (conv) {
+    selectConversation(conv)
+  }
+}
+
+// 设置/取消管理员
+const setMemberAdmin = async (userId, isAdmin) => {
+  if (!currentConversation.value?.group?.id) return
+  
+  try {
+    await chatApi.setGroupAdmin(currentConversation.value.group.id, userId, isAdmin)
+    ElMessage.success(isAdmin ? '已设为管理员' : '已取消管理员')
+    showMemberManage.value = false
+    // 重新加载群成员
+    await loadGroupMembers(currentConversation.value.group.id)
+  } catch (error) {
+    console.error('操作失败:', error)
+    ElMessage.error(error.response?.data?.message || '操作失败')
+  }
+}
+
+// 转让群主
+const transferOwnership = async (userId) => {
+  if (!currentConversation.value?.group?.id) return
+  
+  try {
+    await ElMessageBox.confirm('转让群主后，你将变为普通成员，确定要转让吗？', '转让群主', {
+      confirmButtonText: '确定转让',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await chatApi.transferGroupOwner(currentConversation.value.group.id, userId)
+    ElMessage.success('群主已转让')
+    showMemberManage.value = false
+    showGroupInfo.value = false
+    // 重新加载群成员
+    await loadGroupMembers(currentConversation.value.group.id)
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('转让失败:', error)
+      ElMessage.error(error.response?.data?.message || '转让失败')
+    }
+  }
+}
+
+// 踢出成员
+const kickMember = async (userId) => {
+  if (!currentConversation.value?.group?.id) return
+  
+  try {
+    await ElMessageBox.confirm('确定要将该成员移出群聊吗？', '移出成员', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await chatApi.kickGroupMember(currentConversation.value.group.id, userId)
+    ElMessage.success('已将成员移出群聊')
+    showMemberManage.value = false
+    // 重新加载群成员
+    await loadGroupMembers(currentConversation.value.group.id)
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('移出失败:', error)
+      ElMessage.error(error.response?.data?.message || '移出失败')
+    }
+  }
+}
+
+// 清空群聊天记录（本地）
+const clearGroupMessages = async () => {
+  try {
+    await ElMessageBox.confirm('确定要清空本地聊天记录吗？', '清空聊天记录', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    messages.value = []
+    ElMessage.success('聊天记录已清空')
+  } catch (error) {
+    // 取消操作
   }
 }
 
@@ -1890,6 +2545,24 @@ watch(() => userStore.userInfo, (newUserInfo) => {
   }
 }, { immediate: true })
 
+// 监听群设置对话框打开，加载群成员并初始化表单
+watch(showGroupInfo, async (visible) => {
+  if (visible && currentConversation.value?.type === 'GROUP' && currentConversation.value?.group?.id) {
+    await loadGroupMembers(currentConversation.value.group.id)
+    // 初始化编辑表单
+    editGroupForm.name = currentConversation.value.group.name || ''
+    editGroupForm.avatar = currentConversation.value.group.avatar || ''
+    editGroupForm.announcement = currentConversation.value.group.announcement || ''
+  }
+})
+
+// 监听群聊列表对话框打开，加载群聊列表
+watch(showGroupList, async (visible) => {
+  if (visible) {
+    await loadMyGroups()
+  }
+})
+
 onUnmounted(() => {
   // 关闭WebSocket连接
   stopHeartbeat()
@@ -2413,6 +3086,15 @@ watch(showFriendRequests, (val) => {
 }
 
 // 群成员选择
+.member-select-list {
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid $glass-border;
+  border-radius: $radius-lg;
+  padding: $spacing-xs;
+  background: $glass-white-light;
+}
+
 .member-item {
   display: flex;
   align-items: center;
@@ -2421,14 +3103,28 @@ watch(showFriendRequests, (val) => {
   cursor: pointer;
   transition: all 150ms;
   border-radius: $radius-md;
+  margin-bottom: 2px;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
   
   &:hover {
     background: $bg-hover;
   }
   
   &.selected {
-    background: rgba($primary-color, 0.1);
-    color: $primary-color;
+    background: rgba($primary-color, 0.15);
+    border: 1px solid rgba($primary-color, 0.3);
+    
+    .member-name {
+      color: $primary-color;
+      font-weight: 500;
+    }
+  }
+  
+  .el-checkbox {
+    margin-right: 0;
   }
   
   .member-name {
@@ -2533,6 +3229,299 @@ watch(showFriendRequests, (val) => {
   }
 }
 
+// 群设置对话框
+.group-profile {
+  .profile-header {
+    display: flex;
+    align-items: center;
+    gap: $spacing-lg;
+    padding-bottom: $spacing-md;
+    border-bottom: 1px solid $glass-border;
+    margin-bottom: $spacing-md;
+    
+    .avatar-wrapper {
+      position: relative;
+      
+      .edit-avatar-btn {
+        position: absolute;
+        bottom: -4px;
+        right: -4px;
+        width: 24px;
+        height: 24px;
+        background: white;
+        border: 1px solid $glass-border;
+        box-shadow: $shadow-sm;
+      }
+    }
+    
+    .profile-info {
+      flex: 1;
+      
+      .name-row {
+        display: flex;
+        align-items: center;
+        gap: $spacing-xs;
+        
+        h3 {
+          margin: 0;
+          font-size: 18px;
+          color: $text-primary;
+        }
+      }
+      
+      .group-meta {
+        margin: 8px 0 0;
+        display: flex;
+        align-items: center;
+        gap: $spacing-md;
+        color: $text-secondary;
+        font-size: 13px;
+        
+        .member-count {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+      }
+    }
+  }
+  
+  .group-section {
+    margin-bottom: $spacing-md;
+    
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: $spacing-sm;
+      
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: $spacing-xs;
+        font-weight: 600;
+        color: $text-primary;
+        font-size: 14px;
+      }
+    }
+    
+    .announcement-content {
+      padding: $spacing-sm $spacing-md;
+      background: $glass-white-light;
+      border-radius: $radius-md;
+      color: $text-secondary;
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: 40px;
+    }
+  }
+  
+  .group-members-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: $spacing-sm;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: $spacing-sm;
+    background: $glass-white-light;
+    border-radius: $radius-lg;
+  }
+  
+  .member-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: $spacing-sm;
+    border-radius: $radius-md;
+    cursor: pointer;
+    transition: all 150ms;
+    position: relative;
+    
+    &:hover {
+      background: $bg-hover;
+    }
+    
+    .member-name {
+      font-size: 12px;
+      color: $text-primary;
+      margin-top: 4px;
+      text-align: center;
+      max-width: 60px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .role-tag {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      font-size: 10px;
+      padding: 0 4px;
+      height: 16px;
+      line-height: 16px;
+    }
+    
+    &.add-member {
+      .add-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 2px dashed $glass-border;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $text-secondary;
+        font-size: 20px;
+      }
+      
+      &:hover .add-icon {
+        border-color: $primary-color;
+        color: $primary-color;
+      }
+    }
+  }
+  
+  .group-actions {
+    display: flex;
+    justify-content: center;
+    gap: $spacing-md;
+    padding-top: $spacing-md;
+    border-top: 1px solid $glass-border;
+    margin-top: $spacing-md;
+  }
+}
+
+.no-group-info {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $text-secondary;
+  
+  .el-icon {
+    color: $text-placeholder;
+    margin-bottom: $spacing-sm;
+  }
+  
+  p {
+    margin: 0;
+  }
+}
+
+// 邀请成员对话框
+.invite-search {
+  margin-bottom: $spacing-md;
+}
+
+.selected-friends {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+  padding: $spacing-sm;
+  background: $glass-white-light;
+  border-radius: $radius-md;
+  
+  .label {
+    font-size: 12px;
+    color: $text-secondary;
+  }
+}
+
+.invite-member-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid $glass-border;
+  border-radius: $radius-lg;
+  padding: $spacing-xs;
+  
+  .invite-item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: $spacing-sm $spacing-md;
+    cursor: pointer;
+    border-radius: $radius-md;
+    transition: all 150ms;
+    
+    &:hover {
+      background: $bg-hover;
+    }
+    
+    &.selected {
+      background: rgba($primary-color, 0.1);
+      border: 1px solid rgba($primary-color, 0.2);
+    }
+    
+    .friend-avatar-wrapper {
+      position: relative;
+      
+      .online-indicator {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 10px;
+        height: 10px;
+        background: $success-color;
+        border: 2px solid white;
+        border-radius: 50%;
+      }
+    }
+    
+    .friend-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      
+      .friend-name {
+        font-size: 14px;
+        color: $text-primary;
+      }
+      
+      .friend-status {
+        font-size: 12px;
+        color: $text-secondary;
+      }
+    }
+  }
+  
+  .no-friends {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: $spacing-xl;
+    color: $text-secondary;
+    
+    .el-icon {
+      margin-bottom: $spacing-sm;
+      color: $text-placeholder;
+    }
+    
+    p {
+      margin: 0;
+      font-size: 14px;
+    }
+  }
+}
+
+.invite-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  
+  .select-count {
+    font-size: 13px;
+    color: $text-secondary;
+  }
+  
+  .footer-buttons {
+    display: flex;
+    gap: $spacing-sm;
+  }
+}
+
 // 消息右键菜单
 .context-menu {
   position: fixed;
@@ -2578,6 +3567,92 @@ watch(showFriendRequests, (val) => {
   
   &.read {
     color: $primary-color;
+  }
+}
+
+// 群聊列表
+.group-list {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.group-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  border-radius: $radius-lg;
+  cursor: pointer;
+  transition: all 150ms;
+  
+  &:hover {
+    background: $bg-hover;
+  }
+  
+  .group-info {
+    flex: 1;
+    
+    .group-name {
+      font-weight: 600;
+      color: $text-primary;
+      font-size: 15px;
+    }
+    
+    .group-meta {
+      font-size: 12px;
+      color: $text-secondary;
+      margin-top: 4px;
+    }
+  }
+}
+
+// 成员管理对话框
+.member-manage-content {
+  .member-profile {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    
+    .member-info {
+      h4 {
+        margin: 0 0 4px;
+        font-size: 16px;
+        color: $text-primary;
+      }
+      
+      .member-role {
+        margin: 0;
+      }
+    }
+  }
+  
+  .member-actions {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+    
+    .el-button {
+      justify-content: flex-start;
+    }
+  }
+}
+
+// 消息发送者角色标签
+.message-sender {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  
+  .sender-name {
+    font-size: 12px;
+    color: $text-secondary;
+  }
+  
+  .role-badge {
+    font-size: 10px;
+    padding: 0 4px;
+    height: 16px;
+    line-height: 14px;
   }
 }
 </style>

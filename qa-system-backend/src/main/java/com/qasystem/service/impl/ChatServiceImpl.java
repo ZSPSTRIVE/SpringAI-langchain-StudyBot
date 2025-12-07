@@ -779,6 +779,66 @@ public class ChatServiceImpl implements ChatService {
         groupMemberMapper.updateById(target);
     }
 
+    @Override
+    @Transactional
+    public void transferGroupOwner(Long groupId, Long currentOwnerId, Long newOwnerId) {
+        ChatGroup group = groupMapper.selectById(groupId);
+        if (group == null) {
+            throw new RuntimeException("群不存在");
+        }
+        
+        // 验证当前用户是群主
+        ChatGroupMember currentOwner = groupMemberMapper.findMember(groupId, currentOwnerId);
+        if (currentOwner == null || !"OWNER".equals(currentOwner.getRole())) {
+            throw new RuntimeException("只有群主才能转让群主");
+        }
+        
+        // 验证新群主是群成员
+        ChatGroupMember newOwner = groupMemberMapper.findMember(groupId, newOwnerId);
+        if (newOwner == null) {
+            throw new RuntimeException("目标用户不是群成员");
+        }
+        
+        // 转让群主
+        currentOwner.setRole("MEMBER");
+        groupMemberMapper.updateById(currentOwner);
+        
+        newOwner.setRole("OWNER");
+        groupMemberMapper.updateById(newOwner);
+        
+        // 更新群主ID
+        group.setOwnerId(newOwnerId);
+        groupMapper.updateById(group);
+        
+        // 发送系统消息
+        User newOwnerUser = userMapper.selectById(newOwnerId);
+        sendGroupMessage(groupId, currentOwnerId, newOwnerUser.getRealName() + " 已成为新群主", "SYSTEM", null, null, null, null, null, false);
+    }
+
+    @Override
+    public List<Map<String, Object>> getMyGroupsWithRole(Long userId) {
+        List<ChatGroupMember> memberships = groupMemberMapper.findByUserId(userId);
+        List<Map<String, Object>> result = new ArrayList<>();
+        
+        for (ChatGroupMember membership : memberships) {
+            ChatGroup group = groupMapper.selectById(membership.getGroupId());
+            if (group != null) {
+                Map<String, Object> groupInfo = new HashMap<>();
+                groupInfo.put("id", group.getId());
+                groupInfo.put("name", group.getName());
+                groupInfo.put("avatar", group.getAvatar());
+                groupInfo.put("announcement", group.getAnnouncement());
+                groupInfo.put("memberCount", group.getMemberCount());
+                groupInfo.put("myRole", membership.getRole());
+                groupInfo.put("ownerId", group.getOwnerId());
+                groupInfo.put("createTime", group.getCreateTime());
+                result.add(groupInfo);
+            }
+        }
+        
+        return result;
+    }
+
     // ==================== 表情相关 ====================
 
     @Override

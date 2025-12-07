@@ -444,6 +444,29 @@ public class ChatController {
         return Result.success(minutes > 0 ? "已禁言" : "已解除禁言", null);
     }
 
+    /**
+     * 转让群主
+     */
+    @PostMapping("/groups/{groupId}/transfer")
+    public Result<Void> transferGroupOwner(
+            Authentication authentication,
+            @PathVariable Long groupId,
+            @RequestBody Map<String, Object> request) {
+        Long userId = getUserId(authentication);
+        Long newOwnerId = ((Number) request.get("newOwnerId")).longValue();
+        chatService.transferGroupOwner(groupId, userId, newOwnerId);
+        return Result.success("群主已转让", null);
+    }
+
+    /**
+     * 获取我的群聊列表（包含我的角色信息）
+     */
+    @GetMapping("/groups/my")
+    public Result<List<Map<String, Object>>> getMyGroups(Authentication authentication) {
+        Long userId = getUserId(authentication);
+        return Result.success(chatService.getMyGroupsWithRole(userId));
+    }
+
     // ==================== 表情相关 ====================
 
     /**

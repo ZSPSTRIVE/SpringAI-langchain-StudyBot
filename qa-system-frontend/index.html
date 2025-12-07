@@ -5,6 +5,40 @@
     <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>师生答疑系统</title>
+    <!-- 预加载字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <style>
+      /* 全局字体渲染优化 */
+      * {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+      
+      html {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", 
+          "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", 
+          "Microsoft YaHei", "Source Han Sans CN", sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+        font-weight: 400;
+        font-synthesis: none;
+        text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
+      }
+      
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-feature-settings: "kern" 1, "liga" 1;
+      }
+      
+      /* 数字等宽显示 */
+      .tabular-nums {
+        font-variant-numeric: tabular-nums;
+      }
+    </style>
   </head>
   <body>
     <div id="app"></div>
