@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 聊天控制器 - 提供好友、私聊、群聊功能
@@ -88,6 +89,14 @@ public class ChatController {
     public Result<List<Map<String, Object>>> getFriendList(Authentication authentication) {
         Long userId = getUserId(authentication);
         return Result.success(chatService.getFriendList(userId));
+    }
+
+    /**
+     * 获取在线用户ID列表
+     */
+    @GetMapping("/online-users")
+    public Result<Set<Long>> getOnlineUsers() {
+        return Result.success(chatService.getOnlineUserIds());
     }
 
     /**

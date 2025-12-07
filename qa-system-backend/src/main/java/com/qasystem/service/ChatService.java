@@ -5,11 +5,19 @@ import com.qasystem.entity.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 聊天服务接口
  */
 public interface ChatService {
+
+    // ==================== 在线状态 ====================
+    
+    /**
+     * 获取在线用户ID列表
+     */
+    Set<Long> getOnlineUserIds();
 
     // ==================== 好友相关 ====================
     

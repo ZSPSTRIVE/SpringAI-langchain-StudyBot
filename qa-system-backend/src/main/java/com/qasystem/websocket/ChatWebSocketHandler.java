@@ -10,6 +10,7 @@ import org.springframework.web.socket.*;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -240,14 +241,17 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
      */
     public boolean isOnline(Long userId) {
         WebSocketSession session = userSessions.get(userId);
-        return session != null && session.isOpen();
+        boolean online = session != null && session.isOpen();
+        log.debug("检查用户 {} 在线状态: {}, 当前在线用户: {}", userId, online, userSessions.keySet());
+        return online;
     }
 
     /**
      * 获取在线用户ID列表
      */
     public Set<Long> getOnlineUserIds() {
-        return userSessions.keySet();
+        log.info("获取在线用户列表: {}", userSessions.keySet());
+        return new HashSet<>(userSessions.keySet());
     }
 
     // ==================== 私有方法 ====================

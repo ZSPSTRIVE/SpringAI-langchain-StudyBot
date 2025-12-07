@@ -35,6 +35,13 @@ public class ChatServiceImpl implements ChatService {
     private final UserMapper userMapper;
     private final ChatWebSocketHandler webSocketHandler;
 
+    // ==================== 在线状态 ====================
+
+    @Override
+    public Set<Long> getOnlineUserIds() {
+        return webSocketHandler.getOnlineUserIds();
+    }
+
     // ==================== 好友相关 ====================
 
     @Override

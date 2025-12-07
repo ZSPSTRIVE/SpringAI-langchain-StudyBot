@@ -70,11 +70,19 @@
         >
           <!-- 置顶标识 -->
           <div v-if="conv.isTop" class="pin-indicator">📌</div>
-          <el-badge :value="conv.unreadCount" :hidden="conv.unreadCount === 0" :max="99">
-            <el-avatar :size="48" :src="getConversationAvatar(conv)">
-              {{ getConversationName(conv)?.[0] }}
-            </el-avatar>
-          </el-badge>
+          <div class="avatar-wrapper">
+            <el-badge :value="conv.unreadCount" :hidden="conv.unreadCount === 0" :max="99">
+              <el-avatar :size="48" :src="getConversationAvatar(conv)">
+                {{ getConversationName(conv)?.[0] }}
+              </el-avatar>
+            </el-badge>
+            <!-- 私聊在线状态指示器 -->
+            <span 
+              v-if="conv.type === 'PRIVATE'" 
+              :class="['online-dot', { online: isConversationOnline(conv) }]"
+              :title="isConversationOnline(conv) ? '在线' : '离线'"
+            ></span>
+          </div>
           <div class="conv-info">
             <div class="conv-header">
               <span class="conv-name">{{ getConversationName(conv) }}</span>
@@ -119,9 +127,12 @@
           @click="startChat(friend)"
           @contextmenu.prevent="showFriendContextMenu($event, friend)"
         >
-          <el-avatar :size="40" :src="friend.avatar">
-            {{ friend.realName?.[0] }}
-          </el-avatar>
+          <div class="friend-avatar-wrapper">
+            <el-avatar :size="40" :src="friend.avatar">
+              {{ friend.realName?.[0] }}
+            </el-avatar>
+            <span :class="['online-dot', { online: friend.online }]"></span>
+          </div>
           <div class="friend-info">
             <span class="friend-name">{{ friend.remark || friend.realName }}</span>
             <span :class="['online-status', { online: friend.online }]">
@@ -530,7 +541,14 @@ dayjs.extend(relativeTime)
 dayjs.locale('zh-cn')
 
 const userStore = useUserStore()
-const currentUserId = computed(() => userStore.userInfo?.id)
+
+// 获取当前用户ID
+const currentUserId = computed(() => {
+  const userInfo = userStore.userInfo
+  if (userInfo?.id) return userInfo.id
+  if (userInfo?.userId) return userInfo.userId
+  return null
+})
 
 // 状态
 const activeTab = ref('chat')
@@ -1073,6 +1091,14 @@ const getConversationAvatar = (conv) => {
   }
 }
 
+// 获取会话对方是否在线（私聊）
+const isConversationOnline = (conv) => {
+  if (conv.type !== 'PRIVATE') return false
+  const targetId = Number(conv.targetId || conv.targetUser?.id)
+  const friend = friendList.value.find(f => Number(f.userId) === targetId)
+  return friend?.online || false
+}
+
 const formatTime = (time) => {
   if (!time) return ''
   const d = dayjs(time)
@@ -1413,6 +1439,53 @@ const handleScroll = (e) => {
 
 // WebSocket 连接状态
 const wsConnected = ref(false)
+let wsHeartbeatTimer = null
+let wsReconnectTimer = null
+let wsReconnectAttempts = 0
+const WS_MAX_RECONNECT_ATTEMPTS = 10
+
+// 刷新在线状态
+const refreshOnlineStatus = async () => {
+  try {
+    const res = await chatApi.getOnlineUsers()
+    const rawIds = res.data || res || []
+    // 转换为数字类型的Set，避免类型不匹配
+    const onlineIds = new Set(rawIds.map(id => Number(id)))
+    
+    // 更新好友列表的在线状态
+    friendList.value.forEach(friend => {
+      const friendId = Number(friend.userId)
+      friend.online = onlineIds.has(friendId)
+    })
+    
+    // 强制刷新会话列表
+    conversations.value = [...conversations.value]
+  } catch (error) {
+    console.error('获取在线状态失败:', error)
+  }
+}
+
+// 发送心跳
+const sendHeartbeat = () => {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'PING' }))
+  }
+}
+
+// 启动心跳
+const startHeartbeat = () => {
+  stopHeartbeat()
+  // 每30秒发送一次心跳
+  wsHeartbeatTimer = setInterval(sendHeartbeat, 30000)
+}
+
+// 停止心跳
+const stopHeartbeat = () => {
+  if (wsHeartbeatTimer) {
+    clearInterval(wsHeartbeatTimer)
+    wsHeartbeatTimer = null
+  }
+}
 
 // WebSocket 连接
 const connectWebSocket = () => {
@@ -1421,9 +1494,18 @@ const connectWebSocket = () => {
     return
   }
   
+  // 清除重连定时器
+  if (wsReconnectTimer) {
+    clearTimeout(wsReconnectTimer)
+    wsReconnectTimer = null
+  }
+  
   // 关闭旧连接
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.close()
+  if (ws) {
+    if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+      ws.close()
+    }
+    ws = null
   }
   
   // 开发环境直接连接后端，生产环境使用当前host
@@ -1438,16 +1520,24 @@ const connectWebSocket = () => {
     ws = new WebSocket(wsUrl)
   } catch (e) {
     console.error('WebSocket 创建失败:', e)
+    scheduleReconnect()
     return
   }
   
   ws.onopen = () => {
-    console.log('✅ WebSocket 连接成功, 用户ID:', currentUserId.value)
+    console.log('WebSocket 连接成功')
     wsConnected.value = true
+    wsReconnectAttempts = 0
+    startHeartbeat()
+    // 连接成功后刷新在线状态
+    refreshOnlineStatus()
   }
   
   ws.onmessage = (event) => {
-    console.log('📩 WebSocket 收到消息:', event.data)
+    // 忽略心跳响应的日志
+    if (!event.data.includes('PONG')) {
+      console.log('📩 WebSocket 收到消息:', event.data)
+    }
     try {
       const data = JSON.parse(event.data)
       handleWebSocketMessage(data)
@@ -1457,12 +1547,12 @@ const connectWebSocket = () => {
   }
   
   ws.onclose = (event) => {
-    console.log('❌ WebSocket 连接关闭, code:', event.code)
+    console.log('❌ WebSocket 连接关闭, code:', event.code, 'reason:', event.reason)
     wsConnected.value = false
+    stopHeartbeat()
     // 非正常关闭才重连
-    if (event.code !== 1000 && event.code !== 1005) {
-      console.log('3秒后重连...')
-      setTimeout(connectWebSocket, 3000)
+    if (event.code !== 1000) {
+      scheduleReconnect()
     }
   }
   
@@ -1472,8 +1562,75 @@ const connectWebSocket = () => {
   }
 }
 
+// 计划重连
+const scheduleReconnect = () => {
+  if (wsReconnectAttempts >= WS_MAX_RECONNECT_ATTEMPTS) {
+    console.error('WebSocket 重连次数已达上限')
+    ElMessage.error('连接已断开，请刷新页面重试')
+    return
+  }
+  
+  // 指数退避重连，最长30秒
+  const delay = Math.min(1000 * Math.pow(2, wsReconnectAttempts), 30000)
+  console.log(`${delay/1000}秒后重连...`)
+  
+  wsReconnectTimer = setTimeout(() => {
+    wsReconnectAttempts++
+    connectWebSocket()
+  }, delay)
+}
+
+// 播放消息提示音
+const playNotificationSound = () => {
+  try {
+    // 使用 Web Audio API 生成简单提示音
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
+    
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
+    
+    oscillator.frequency.value = 800
+    oscillator.type = 'sine'
+    gainNode.gain.value = 0.1
+    
+    oscillator.start()
+    setTimeout(() => {
+      oscillator.stop()
+      audioContext.close()
+    }, 100)
+  } catch (e) {
+    // 忽略音频播放错误
+  }
+}
+
+// 显示浏览器通知
+const showBrowserNotification = (title, body) => {
+  // 检查是否支持通知
+  if (!('Notification' in window)) return
+  
+  // 请求通知权限
+  if (Notification.permission === 'granted') {
+    new Notification(title, { body, icon: '/favicon.ico' })
+  } else if (Notification.permission !== 'denied') {
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        new Notification(title, { body, icon: '/favicon.ico' })
+      }
+    })
+  }
+}
+
 const handleWebSocketMessage = (data) => {
   switch (data.type) {
+    case 'CONNECTED':
+      // 连接成功确认
+      console.log('WebSocket 连接已确认, userId:', data.userId)
+      break
+    case 'PONG':
+      // 心跳响应，不需要处理
+      break
     case 'PRIVATE_MESSAGE':
       handleNewPrivateMessage(data.data)
       break
@@ -1510,10 +1667,13 @@ const handleWebSocketMessage = (data) => {
       break
     case 'ONLINE_STATUS':
       // 更新好友在线状态
-      const friend = friendList.value.find(f => f.userId === data.userId)
-      if (friend) {
-        friend.online = data.online
+      console.log('在线状态变化:', data.userId, data.online ? '上线' : '离线')
+      const onlineFriend = friendList.value.find(f => f.userId === data.userId)
+      if (onlineFriend) {
+        onlineFriend.online = data.online
       }
+      // 强制触发会话列表的重新渲染（因为在线状态是通过方法计算的）
+      conversations.value = [...conversations.value]
       break
     case 'MESSAGE_RECALLED':
       handleMessageRecalled(data.messageId)
@@ -1524,6 +1684,9 @@ const handleWebSocketMessage = (data) => {
 const handleNewPrivateMessage = (msg) => {
   console.log('收到新私聊消息:', msg.senderId, msg.content || msg.type)
   
+  // 播放提示音
+  playNotificationSound()
+  
   // 如果当前正在查看这个会话
   if (currentConversation.value?.type === 'PRIVATE' && 
       currentConversation.value?.targetId === msg.senderId) {
@@ -1533,6 +1696,9 @@ const handleNewPrivateMessage = (msg) => {
     if (currentConversation.value.id) {
       chatApi.markMessagesAsRead(currentConversation.value.id).catch(() => {})
     }
+  } else {
+    // 不在当前会话，显示浏览器通知
+    showBrowserNotification(msg.sender?.realName || '新消息', getMessagePreview(msg))
   }
   
   // 查找或创建会话
@@ -1617,10 +1783,17 @@ const getMessagePreview = (msg) => {
 }
 
 const handleNewGroupMessage = (groupId, msg) => {
+  // 播放提示音
+  playNotificationSound()
+  
   if (currentConversation.value?.type === 'GROUP' && 
       currentConversation.value?.targetId === groupId) {
     messages.value.push(msg)
     nextTick(() => scrollToBottom())
+  } else {
+    // 不在当前会话，显示浏览器通知
+    const senderName = msg.sender?.realName || '群消息'
+    showBrowserNotification(senderName, getMessagePreview(msg))
   }
   
   // 查找群会话，如果被隐藏则恢复
@@ -1675,6 +1848,10 @@ const startAutoRefresh = () => {
   refreshTimer = setInterval(() => {
     loadFriendList()
     loadPendingRequestCount()
+    // 如果WebSocket已连接，刷新在线状态
+    if (wsConnected.value) {
+      refreshOnlineStatus()
+    }
   }, 30000)
 }
 
@@ -1683,13 +1860,18 @@ onMounted(async () => {
   // 加载隐藏的会话记录
   loadHiddenConversations()
   
-  await Promise.all([
-    loadConversations(),
-    loadFriendList(),
-    loadUnreadCount(),
-    loadPendingRequestCount()
-  ])
+  try {
+    await Promise.all([
+      loadConversations(),
+      loadFriendList(),
+      loadUnreadCount(),
+      loadPendingRequestCount()
+    ])
+  } catch (error) {
+    console.error('加载数据失败:', error)
+  }
   
+  // 确保 WebSocket 连接
   if (currentUserId.value) {
     connectWebSocket()
   }
@@ -1701,10 +1883,23 @@ onMounted(async () => {
   startAutoRefresh()
 })
 
-onUnmounted(() => {
-  if (ws) {
-    ws.close()
+// 监听用户信息变化，当用户ID可用时自动连接 WebSocket
+watch(() => userStore.userInfo, (newUserInfo) => {
+  if (newUserInfo?.id && !wsConnected.value && !ws) {
+    connectWebSocket()
   }
+}, { immediate: true })
+
+onUnmounted(() => {
+  // 关闭WebSocket连接
+  stopHeartbeat()
+  if (wsReconnectTimer) {
+    clearTimeout(wsReconnectTimer)
+  }
+  if (ws) {
+    ws.close(1000, 'Component unmounted')
+  }
+  
   // 移除全局点击事件监听
   document.removeEventListener('click', handleDocumentClick)
   
@@ -1728,51 +1923,68 @@ watch(showFriendRequests, (val) => {
 .chat-room {
   display: flex;
   height: calc(100vh - 140px);
-  background: $neo-white;
-  border: 3px solid $neo-black;
-  border-radius: 16px;
+  background: $bg-glass;
+  backdrop-filter: blur($blur-lg);
+  -webkit-backdrop-filter: blur($blur-lg);
+  border: 1px solid $glass-border;
+  border-radius: $radius-xl;
   overflow: hidden;
-  box-shadow: 8px 8px 0 0 $neo-black;
+  box-shadow: $shadow-glass;
 }
 
 // 左侧面板
 .left-panel {
   width: 320px;
-  border-right: 3px solid $neo-black;
+  border-right: 1px solid $glass-border;
   display: flex;
   flex-direction: column;
-  background: $neo-cream;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .panel-header {
   padding: $spacing-md;
   display: flex;
   gap: $spacing-sm;
-  border-bottom: 2px solid $neo-black;
+  border-bottom: 1px solid $glass-border;
   
   .search-input {
     flex: 1;
+    :deep(.el-input__wrapper) {
+      background: $glass-white-light;
+      box-shadow: none;
+      border: 1px solid $glass-border;
+      border-radius: $radius-md;
+      
+      &:hover, &.is-focus {
+        background: $glass-white;
+        box-shadow: $shadow-sm;
+      }
+    }
   }
   
   .action-btn {
-    background: $neo-yellow;
-    border: 2px solid $neo-black;
-    box-shadow: 2px 2px 0 0 $neo-black;
+    background: $glass-white;
+    border: 1px solid $glass-border;
+    border-radius: $radius-md;
+    box-shadow: $shadow-sm;
+    color: $text-primary;
     
     &:hover {
-      transform: translate(-1px, -1px);
-      box-shadow: 3px 3px 0 0 $neo-black;
+      background: $primary-color;
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: $shadow-md;
     }
   }
   
   .ws-status {
     font-size: 12px;
-    color: #f56c6c;
+    color: $danger-color;
     cursor: pointer;
     margin-right: 8px;
     
     &.connected {
-      color: #67c23a;
+      color: $success-color;
       cursor: default;
     }
   }
@@ -1780,7 +1992,8 @@ watch(showFriendRequests, (val) => {
 
 .tab-bar {
   display: flex;
-  border-bottom: 2px solid $neo-black;
+  border-bottom: 1px solid $glass-border;
+  background: rgba(255, 255, 255, 0.2);
   
   .tab-item {
     flex: 1;
@@ -1793,14 +2006,29 @@ watch(showFriendRequests, (val) => {
     font-size: 12px;
     font-weight: 600;
     transition: all 150ms;
+    color: $text-secondary;
     
     &:hover {
-      background: rgba($neo-black, 0.05);
+      background: $bg-hover;
+      color: $text-primary;
     }
     
     &.active {
-      background: $neo-yellow;
-      color: $neo-black;
+      background: transparent;
+      color: $primary-color;
+      position: relative;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 3px;
+        background: $primary-color;
+        border-radius: $radius-full;
+      }
     }
     
     .el-icon {
@@ -1812,68 +2040,97 @@ watch(showFriendRequests, (val) => {
 .conversation-list {
   flex: 1;
   overflow-y: auto;
-}
-
-.conversation-item {
-  display: flex;
-  align-items: center;
-  padding: $spacing-md;
-  gap: $spacing-md;
-  cursor: pointer;
-  border-bottom: 1px solid rgba($neo-black, 0.1);
-  transition: all 150ms;
-  position: relative;
   
-  &:hover {
-    background: rgba($neo-black, 0.05);
-  }
-  
-  &.active {
-    background: $neo-yellow;
-  }
-  
-  &.pinned {
-    background: rgba($neo-yellow, 0.2);
-  }
-  
-  .pin-indicator {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    font-size: 10px;
-  }
-  
-  .conv-info {
-    flex: 1;
-    min-width: 0;
+  .conversation-item {
+    display: flex;
+    align-items: center;
+    padding: $spacing-md;
+    gap: $spacing-md;
+    cursor: pointer;
+    border-bottom: 1px solid $glass-border;
+    transition: all 150ms;
+    position: relative;
+    margin: $spacing-xs $spacing-sm;
+    border-radius: $radius-lg;
     
-    .conv-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 4px;
+    &:hover {
+      background: $bg-hover;
+    }
+    
+    &.active {
+      background: $glass-white;
+      box-shadow: $shadow-sm;
+    }
+    
+    &.pinned {
+      background: rgba($ios-yellow, 0.1);
+    }
+    
+    .pin-indicator {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      font-size: 10px;
+    }
+    
+    .conv-info {
+      flex: 1;
+      min-width: 0;
       
-      .conv-name {
-        font-weight: 600;
-        font-size: 14px;
+      .conv-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+        
+        .conv-name {
+          font-weight: 600;
+          font-size: 14px;
+          color: $text-primary;
+        }
+        
+        .conv-time {
+          font-size: 12px;
+          color: $text-secondary;
+        }
       }
       
-      .conv-time {
+      .conv-preview {
         font-size: 12px;
         color: $text-secondary;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        
+        .group-tag {
+          color: $primary-color;
+          margin-right: 4px;
+          font-weight: 600;
+        }
       }
     }
     
-    .conv-preview {
-      font-size: 12px;
-      color: $text-secondary;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .avatar-wrapper {
+      position: relative;
+      flex-shrink: 0;
+      display: inline-block;
       
-      .group-tag {
-        color: $neo-blue;
-        margin-right: 4px;
+      .online-dot {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #c0c4cc;
+        border: 2px solid #fff;
+        z-index: 10;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+        
+        &.online {
+          background: $success-color;
+          box-shadow: 0 0 4px rgba($success-color, 0.5);
+        }
       }
     }
   }
@@ -1890,15 +2147,17 @@ watch(showFriendRequests, (val) => {
     padding: $spacing-md;
     gap: $spacing-md;
     cursor: pointer;
-    border-bottom: 1px solid rgba($neo-black, 0.1);
+    border-bottom: 1px solid $glass-border;
+    margin: $spacing-xs $spacing-sm;
+    border-radius: $radius-lg;
     
     &:hover {
-      background: rgba($neo-black, 0.05);
+      background: $bg-hover;
     }
     
     .section-icon {
       font-size: 24px;
-      color: $neo-blue;
+      color: $primary-color;
     }
   }
 }
@@ -1909,10 +2168,36 @@ watch(showFriendRequests, (val) => {
   padding: $spacing-md;
   gap: $spacing-md;
   cursor: pointer;
-  border-bottom: 1px solid rgba($neo-black, 0.1);
+  border-bottom: 1px solid $glass-border;
+  margin: $spacing-xs $spacing-sm;
+  border-radius: $radius-lg;
   
   &:hover {
-    background: rgba($neo-black, 0.05);
+    background: $bg-hover;
+  }
+  
+  .friend-avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+    display: inline-block;
+    
+    .online-dot {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #c0c4cc;
+      border: 2px solid #fff;
+      z-index: 10;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+      
+      &.online {
+        background: $success-color;
+        box-shadow: 0 0 4px rgba($success-color, 0.5);
+      }
+    }
   }
   
   .friend-info {
@@ -1921,6 +2206,7 @@ watch(showFriendRequests, (val) => {
     .friend-name {
       font-weight: 600;
       display: block;
+      color: $text-primary;
     }
     
     .online-status {
@@ -1928,7 +2214,7 @@ watch(showFriendRequests, (val) => {
       color: $text-secondary;
       
       &.online {
-        color: $neo-green;
+        color: $success-color;
       }
     }
   }
@@ -1939,19 +2225,22 @@ watch(showFriendRequests, (val) => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: $neo-white;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
 }
 
 .chat-header {
   padding: $spacing-md $spacing-lg;
-  border-bottom: 2px solid $neo-black;
+  border-bottom: 1px solid $glass-border;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: rgba(255, 255, 255, 0.2);
   
   .chat-title {
     font-size: 16px;
     font-weight: 700;
+    color: $text-primary;
   }
 }
 
@@ -1972,19 +2261,6 @@ watch(showFriendRequests, (val) => {
   gap: $spacing-md;
   margin-bottom: $spacing-lg;
   
-  &.is-self {
-    flex-direction: row-reverse;
-    
-    .message-content {
-      align-items: flex-end;
-    }
-    
-    .message-bubble {
-      background: $neo-blue;
-      color: white;
-    }
-  }
-  
   .message-content {
     display: flex;
     flex-direction: column;
@@ -1998,76 +2274,113 @@ watch(showFriendRequests, (val) => {
     
     .message-bubble {
       padding: $spacing-sm $spacing-md;
-      background: $neo-cream;
-      border: 2px solid $neo-black;
-      border-radius: 12px;
+      background: $glass-white;
+      border: 1px solid $glass-border;
+      border-radius: $radius-lg;
       word-break: break-word;
-      
-      .message-image {
-        max-width: 200px;
-        max-height: 200px;
-        border-radius: 8px;
-        cursor: pointer;
-      }
-      
-      .image-error {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        width: 100px;
-        height: 100px;
-        background: rgba(0, 0, 0, 0.05);
-        border-radius: 8px;
-        color: #999;
-        font-size: 12px;
-        gap: 4px;
-      }
-      
-      .message-video {
-        max-width: 300px;
-        max-height: 200px;
-        border-radius: 8px;
-      }
-      
-      .message-emoji {
-        width: 80px;
-        height: 80px;
-        object-fit: contain;
-      }
-      
-      .recalled-message,
-      .system-message {
-        color: $text-secondary;
-        font-style: italic;
-      }
+      box-shadow: $shadow-sm;
+      backdrop-filter: blur(5px);
+      color: $text-primary;
     }
+  }
+  
+  // 自己发送的消息样式 - 放在后面以确保覆盖
+  &.is-self {
+    flex-direction: row-reverse;
     
-    .message-time {
-      font-size: 11px;
-      color: $text-placeholder;
-      margin-top: 4px;
+    .message-content {
+      align-items: flex-end;
+      
+      .message-bubble {
+        background: $primary-color;
+        color: white;
+        border: none;
+        box-shadow: 0 2px 8px rgba($primary-color, 0.3);
+      }
     }
+  }
+  
+  // 消息内容中的媒体元素
+  .message-image {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: $radius-md;
+    cursor: pointer;
+  }
+  
+  .image-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: 100px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: $radius-md;
+    color: #999;
+    font-size: 12px;
+    gap: 4px;
+  }
+  
+  .message-video {
+    max-width: 300px;
+    max-height: 200px;
+    border-radius: $radius-md;
+  }
+  
+  .message-emoji {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+  }
+  
+  .recalled-message,
+  .system-message {
+    color: $text-secondary;
+    font-style: italic;
+  }
+  
+  .message-time {
+    font-size: 11px;
+    color: $text-placeholder;
+    margin-top: 4px;
   }
 }
 
 // 输入区域
 .input-area {
-  border-top: 2px solid $neo-black;
+  border-top: 1px solid $glass-border;
   padding: $spacing-md;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
   
   .input-toolbar {
     display: flex;
-    gap: $spacing-sm;
+    flex-direction: row;
+    gap: $spacing-md;
     margin-bottom: $spacing-sm;
     
     .toolbar-btn {
       font-size: 20px;
       color: $text-secondary;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: $radius-sm;
+      transition: all 0.2s;
       
       &:hover {
-        color: $neo-blue;
+        color: $primary-color;
+        background: $bg-hover;
       }
+      
+      .el-icon {
+        font-size: 20px;
+      }
+    }
+    
+    // 确保 el-upload 不破坏横向布局
+    :deep(.el-upload) {
+      display: inline-flex;
     }
   }
   
@@ -2079,74 +2392,48 @@ watch(showFriendRequests, (val) => {
     
     .input-hint {
       font-size: 12px;
-      color: $text-placeholder;
-    }
-  }
-}
-
-.no-conversation {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-// 搜索结果
-.search-results {
-  margin-top: $spacing-md;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.search-result-item {
-  display: flex;
-  align-items: center;
-  gap: $spacing-md;
-  padding: $spacing-sm 0;
-  border-bottom: 1px solid rgba($neo-black, 0.1);
-  
-  .user-info {
-    flex: 1;
-    
-    .user-name {
-      font-weight: 600;
-      display: block;
-    }
-    
-    .user-role {
-      font-size: 12px;
       color: $text-secondary;
     }
   }
+  
+  :deep(.el-textarea__inner) {
+    background: $glass-white-light;
+    border: 1px solid $glass-border;
+    border-radius: $radius-lg;
+    resize: none;
+    box-shadow: none;
+    transition: all 0.2s;
+    
+    &:hover, &:focus {
+      background: $glass-white;
+      box-shadow: $shadow-sm;
+      border-color: $primary-color;
+    }
+  }
 }
 
-// 成员选择列表
-.member-select-list {
-  max-height: 250px;
-  overflow-y: auto;
-  border: 1px solid rgba($neo-black, 0.1);
-  border-radius: 8px;
+// 群成员选择
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  cursor: pointer;
+  transition: all 150ms;
+  border-radius: $radius-md;
   
-  .member-item {
-    display: flex;
-    align-items: center;
-    gap: $spacing-sm;
-    padding: $spacing-sm $spacing-md;
-    cursor: pointer;
-    transition: all 150ms;
-    
-    &:hover {
-      background: rgba($neo-black, 0.05);
-    }
-    
-    &.selected {
-      background: rgba($neo-yellow, 0.3);
-    }
-    
-    .member-name {
-      flex: 1;
-      font-size: 14px;
-    }
+  &:hover {
+    background: $bg-hover;
+  }
+  
+  &.selected {
+    background: rgba($primary-color, 0.1);
+    color: $primary-color;
+  }
+  
+  .member-name {
+    flex: 1;
+    font-size: 14px;
   }
 }
 
@@ -2158,7 +2445,7 @@ watch(showFriendRequests, (val) => {
 
 .selected-count {
   margin-top: $spacing-sm;
-  color: $neo-blue;
+  color: $primary-color;
   font-size: 12px;
 }
 
@@ -2173,7 +2460,7 @@ watch(showFriendRequests, (val) => {
   align-items: center;
   gap: $spacing-md;
   padding: $spacing-md 0;
-  border-bottom: 1px solid rgba($neo-black, 0.1);
+  border-bottom: 1px solid $glass-border;
   
   .request-info {
     flex: 1;
@@ -2181,6 +2468,7 @@ watch(showFriendRequests, (val) => {
     .request-name {
       font-weight: 600;
       display: block;
+      color: $text-primary;
     }
     
     .request-message {
@@ -2199,6 +2487,11 @@ watch(showFriendRequests, (val) => {
 .friend-more-btn {
   opacity: 0;
   transition: opacity 150ms;
+  color: $text-secondary;
+  
+  &:hover {
+    color: $primary-color;
+  }
 }
 
 .friend-item:hover .friend-more-btn {
@@ -2217,6 +2510,7 @@ watch(showFriendRequests, (val) => {
       h3 {
         margin: 0 0 4px;
         font-size: 18px;
+        color: $text-primary;
       }
       
       .username {
@@ -2231,6 +2525,10 @@ watch(showFriendRequests, (val) => {
     :deep(.el-descriptions__label) {
       width: 80px;
       font-weight: 600;
+      color: $text-secondary;
+    }
+    :deep(.el-descriptions__content) {
+      color: $text-primary;
     }
   }
 }
@@ -2238,29 +2536,34 @@ watch(showFriendRequests, (val) => {
 // 消息右键菜单
 .context-menu {
   position: fixed;
-  background: $neo-white;
-  border: 2px solid $neo-black;
-  border-radius: 8px;
-  box-shadow: 4px 4px 0 0 $neo-black;
+  background: $glass-white-strong;
+  backdrop-filter: blur(20px);
+  border: 1px solid $glass-border;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-glass;
   z-index: 1000;
   min-width: 120px;
   overflow: hidden;
+  padding: 4px;
   
   .menu-item {
-    padding: 10px 16px;
+    padding: 8px 12px;
     cursor: pointer;
     font-size: 14px;
     transition: all 150ms;
+    border-radius: $radius-sm;
+    color: $text-primary;
     
     &:hover {
-      background: $neo-yellow;
+      background: $primary-color;
+      color: white;
     }
     
     &.danger {
-      color: $neo-red;
+      color: $danger-color;
       
       &:hover {
-        background: $neo-red;
+        background: $danger-color;
         color: white;
       }
     }
@@ -2274,7 +2577,7 @@ watch(showFriendRequests, (val) => {
   margin-top: 2px;
   
   &.read {
-    color: $neo-blue;
+    color: $primary-color;
   }
 }
 </style>

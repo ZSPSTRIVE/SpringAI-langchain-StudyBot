@@ -66,6 +66,16 @@ export function getFriendList() {
 }
 
 /**
+ * 获取在线用户ID列表
+ */
+export function getOnlineUsers() {
+  return request({
+    url: '/v1/chat/online-users',
+    method: 'get'
+  })
+}
+
+/**
  * 删除好友
  */
 export function deleteFriend(friendId) {
