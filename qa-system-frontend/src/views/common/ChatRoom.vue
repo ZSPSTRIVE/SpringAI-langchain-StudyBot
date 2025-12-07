@@ -12,7 +12,7 @@
           class="search-input"
         />
         <div class="header-actions">
-          <!-- 连接状态指示器 -->
+        
           <el-tooltip :content="wsConnected ? '已连接' : '未连接，点击重连'" placement="bottom">
             <span 
               :class="['ws-status', { connected: wsConnected }]" 
