@@ -344,5 +344,5 @@ qa-system/
 </p>
 
 <p align="center">
-  Made with ❤️ by <a href="https://github.com/ZSPSTRIVE</a>
+  Made with ❤️ by <a href="https://github.com/ZSPSTRIVE">ZSPSTRIVE</a>
 </p>
