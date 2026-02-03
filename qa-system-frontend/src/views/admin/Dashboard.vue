@@ -8,59 +8,100 @@
     />
 
     <!-- 统计卡片 -->
-    <el-row :gutter="24" class="stats-row">
-      <el-col :xs="24" :sm="12" :md="6">
+    <el-row
+      :gutter="24"
+      class="stats-row"
+    >
+      <el-col
+        :xs="24"
+        :sm="12"
+        :md="6"
+      >
         <div class="stat-card user-card">
           <div class="stat-icon">
             <el-icon><User /></el-icon>
           </div>
           <div class="stat-content">
-            <div class="stat-value">{{ statistics.totalUsers || 0 }}</div>
-            <div class="stat-label">总用户数</div>
+            <div class="stat-value">
+              {{ statistics.totalUsers || 0 }}
+            </div>
+            <div class="stat-label">
+              总用户数
+            </div>
           </div>
         </div>
       </el-col>
 
-      <el-col :xs="24" :sm="12" :md="6">
+      <el-col
+        :xs="24"
+        :sm="12"
+        :md="6"
+      >
         <div class="stat-card question-card">
           <div class="stat-icon">
             <el-icon><QuestionFilled /></el-icon>
           </div>
           <div class="stat-content">
-            <div class="stat-value">{{ statistics.totalQuestions || 0 }}</div>
-            <div class="stat-label">问题总数</div>
+            <div class="stat-value">
+              {{ statistics.totalQuestions || 0 }}
+            </div>
+            <div class="stat-label">
+              问题总数
+            </div>
           </div>
         </div>
       </el-col>
 
-      <el-col :xs="24" :sm="12" :md="6">
+      <el-col
+        :xs="24"
+        :sm="12"
+        :md="6"
+      >
         <div class="stat-card answer-card">
           <div class="stat-icon">
             <el-icon><ChatDotRound /></el-icon>
           </div>
           <div class="stat-content">
-            <div class="stat-value">{{ statistics.totalAnswers || 0 }}</div>
-            <div class="stat-label">回答总数</div>
+            <div class="stat-value">
+              {{ statistics.totalAnswers || 0 }}
+            </div>
+            <div class="stat-label">
+              回答总数
+            </div>
           </div>
         </div>
       </el-col>
 
-      <el-col :xs="24" :sm="12" :md="6">
+      <el-col
+        :xs="24"
+        :sm="12"
+        :md="6"
+      >
         <div class="stat-card resolved-card">
           <div class="stat-icon">
             <el-icon><SuccessFilled /></el-icon>
           </div>
           <div class="stat-content">
-            <div class="stat-value">{{ statistics.resolvedQuestions || 0 }}</div>
-            <div class="stat-label">已解决问题</div>
+            <div class="stat-value">
+              {{ statistics.resolvedQuestions || 0 }}
+            </div>
+            <div class="stat-label">
+              已解决问题
+            </div>
           </div>
         </div>
       </el-col>
     </el-row>
 
     <!-- 详细统计 -->
-    <el-row :gutter="24" class="detail-row">
-      <el-col :xs="24" :md="12">
+    <el-row
+      :gutter="24"
+      class="detail-row"
+    >
+      <el-col
+        :xs="24"
+        :md="12"
+      >
         <el-card class="detail-card">
           <template #header>
             <div class="card-header">
@@ -72,24 +113,35 @@
           <div class="user-distribution">
             <div class="distribution-item">
               <div class="distribution-label">
-                <el-icon class="student-icon"><Reading /></el-icon>
+                <el-icon class="student-icon">
+                  <Reading />
+                </el-icon>
                 <span>学生用户</span>
               </div>
-              <div class="distribution-value">{{ statistics.studentCount || 0 }}</div>
+              <div class="distribution-value">
+                {{ statistics.studentCount || 0 }}
+              </div>
             </div>
             <el-divider />
             <div class="distribution-item">
               <div class="distribution-label">
-                <el-icon class="teacher-icon"><User /></el-icon>
+                <el-icon class="teacher-icon">
+                  <User />
+                </el-icon>
                 <span>教师用户</span>
               </div>
-              <div class="distribution-value">{{ statistics.teacherCount || 0 }}</div>
+              <div class="distribution-value">
+                {{ statistics.teacherCount || 0 }}
+              </div>
             </div>
           </div>
         </el-card>
       </el-col>
 
-      <el-col :xs="24" :md="12">
+      <el-col
+        :xs="24"
+        :md="12"
+      >
         <el-card class="detail-card">
           <template #header>
             <div class="card-header">
@@ -101,18 +153,26 @@
           <div class="question-status">
             <div class="status-item">
               <div class="status-label">
-                <el-icon class="pending-icon"><Clock /></el-icon>
+                <el-icon class="pending-icon">
+                  <Clock />
+                </el-icon>
                 <span>待解决</span>
               </div>
-              <div class="status-value">{{ statistics.pendingQuestions || 0 }}</div>
+              <div class="status-value">
+                {{ statistics.pendingQuestions || 0 }}
+              </div>
             </div>
             <el-divider />
             <div class="status-item">
               <div class="status-label">
-                <el-icon class="resolved-icon"><CircleCheck /></el-icon>
+                <el-icon class="resolved-icon">
+                  <CircleCheck />
+                </el-icon>
                 <span>已解决</span>
               </div>
-              <div class="status-value">{{ statistics.resolvedQuestions || 0 }}</div>
+              <div class="status-value">
+                {{ statistics.resolvedQuestions || 0 }}
+              </div>
             </div>
           </div>
         </el-card>

@@ -2,25 +2,73 @@
   <div class="login-container">
     <!-- 浮动粒子背景 -->
     <div class="particles">
-      <div class="orb orb--blue" style="top: -120px; left: -80px;"></div>
-      <div class="orb orb--teal" style="top: 18%; right: -140px;"></div>
-      <div class="orb orb--green" style="bottom: -160px; left: 12%;"></div>
-      <div class="orb orb--sky" style="bottom: 15%; right: 12%;"></div>
-      <div class="beam beam--a"></div>
-      <div class="beam beam--b"></div>
-      <div class="beam beam--c"></div>
-      <div class="particle" style="left: 10%;"></div>
-      <div class="particle" style="left: 25%;"></div>
-      <div class="particle" style="left: 40%;"></div>
-      <div class="particle" style="left: 55%;"></div>
-      <div class="particle" style="left: 70%;"></div>
-      <div class="particle" style="left: 85%;"></div>
-      <div class="particle" style="left: 15%;"></div>
-      <div class="particle" style="left: 30%;"></div>
-      <div class="particle" style="left: 45%;"></div>
-      <div class="particle" style="left: 60%;"></div>
-      <div class="particle" style="left: 75%;"></div>
-      <div class="particle" style="left: 90%;"></div>
+      <div
+        class="orb orb--blue"
+        style="top: -120px; left: -80px;"
+      />
+      <div
+        class="orb orb--teal"
+        style="top: 18%; right: -140px;"
+      />
+      <div
+        class="orb orb--green"
+        style="bottom: -160px; left: 12%;"
+      />
+      <div
+        class="orb orb--sky"
+        style="bottom: 15%; right: 12%;"
+      />
+      <div class="beam beam--a" />
+      <div class="beam beam--b" />
+      <div class="beam beam--c" />
+      <div
+        class="particle"
+        style="left: 10%;"
+      />
+      <div
+        class="particle"
+        style="left: 25%;"
+      />
+      <div
+        class="particle"
+        style="left: 40%;"
+      />
+      <div
+        class="particle"
+        style="left: 55%;"
+      />
+      <div
+        class="particle"
+        style="left: 70%;"
+      />
+      <div
+        class="particle"
+        style="left: 85%;"
+      />
+      <div
+        class="particle"
+        style="left: 15%;"
+      />
+      <div
+        class="particle"
+        style="left: 30%;"
+      />
+      <div
+        class="particle"
+        style="left: 45%;"
+      />
+      <div
+        class="particle"
+        style="left: 60%;"
+      />
+      <div
+        class="particle"
+        style="left: 75%;"
+      />
+      <div
+        class="particle"
+        style="left: 90%;"
+      />
     </div>
     
     <!-- 左侧展示区 -->
@@ -29,21 +77,32 @@
         <!-- Logo区域 -->
         <div class="logo-section">
           <div class="logo-box">
-            <el-icon class="logo-icon"><School /></el-icon>
+            <el-icon class="logo-icon">
+              <School />
+            </el-icon>
           </div>
-          <h1 class="system-title">师生答疑系统</h1>
-          <p class="system-slogan">智能化在线答疑平台</p>
+          <h1 class="system-title">
+            师生答疑系统
+          </h1>
+          <p class="system-slogan">
+            智能化在线答疑平台
+          </p>
         </div>
         
         <!-- 特性卡片 -->
         <div class="feature-grid">
           <div 
-            class="feature-card" 
             v-for="(feature, index) in features" 
-            :key="index"
+            :key="index" 
+            class="feature-card"
           >
-            <div class="feature-icon" :class="`feature-icon--${feature.color}`">
-              <el-icon :size="24"><component :is="feature.icon" /></el-icon>
+            <div
+              class="feature-icon"
+              :class="`feature-icon--${feature.color}`"
+            >
+              <el-icon :size="24">
+                <component :is="feature.icon" />
+              </el-icon>
             </div>
             <div class="feature-text">
               <h3>{{ feature.title }}</h3>
@@ -62,8 +121,12 @@
             <el-icon><School /></el-icon>
           </div>
           <div class="brand-text">
-            <div class="brand-title">师生答疑系统</div>
-            <div class="brand-subtitle">安全登录 · 工作台体验</div>
+            <div class="brand-title">
+              师生答疑系统
+            </div>
+            <div class="brand-subtitle">
+              安全登录 · 工作台体验
+            </div>
           </div>
         </div>
 
@@ -120,12 +183,19 @@
 
           <div class="login-footer">
             <span class="footer-text">还没有账号？</span>
-            <router-link to="/register" class="register-link">立即注册</router-link>
+            <router-link
+              to="/register"
+              class="register-link"
+            >
+              立即注册
+            </router-link>
           </div>
         </el-form>
       </div>
       
-      <p class="copyright">© 2025 师生答疑系统</p>
+      <p class="copyright">
+        © 2025 师生答疑系统
+      </p>
     </div>
   </div>
 </template>

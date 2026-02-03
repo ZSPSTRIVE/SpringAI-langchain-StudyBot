@@ -10,7 +10,11 @@
 
     <!-- 搜索和操作栏 -->
     <el-card class="search-card">
-      <el-form :inline="true" :model="searchForm" class="search-form">
+      <el-form
+        :inline="true"
+        :model="searchForm"
+        class="search-form"
+      >
         <el-form-item label="搜索">
           <el-input
             v-model="searchForm.keyword"
@@ -50,17 +54,35 @@
             style="width: 150px"
             @change="handleSearch"
           >
-            <el-option label="待解决" value="PENDING" />
-            <el-option label="已解决" value="RESOLVED" />
-            <el-option label="已关闭" value="CLOSED" />
+            <el-option
+              label="待解决"
+              value="PENDING"
+            />
+            <el-option
+              label="已解决"
+              value="RESOLVED"
+            />
+            <el-option
+              label="已关闭"
+              value="CLOSED"
+            />
           </el-select>
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" :icon="Search" @click="handleSearch">
+          <el-button
+            type="primary"
+            :icon="Search"
+            @click="handleSearch"
+          >
             搜索
           </el-button>
-          <el-button :icon="Refresh" @click="handleReset">重置</el-button>
+          <el-button
+            :icon="Refresh"
+            @click="handleReset"
+          >
+            重置
+          </el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -73,9 +95,17 @@
         stripe
         style="width: 100%"
       >
-        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column
+          prop="id"
+          label="ID"
+          width="80"
+        />
         
-        <el-table-column prop="title" label="问题标题" min-width="250">
+        <el-table-column
+          prop="title"
+          label="问题标题"
+          min-width="250"
+        >
           <template #default="{ row }">
             <div class="question-title-cell">
               <el-link
@@ -89,10 +119,16 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="提问者" width="120">
+        <el-table-column
+          label="提问者"
+          width="120"
+        >
           <template #default="{ row }">
             <div class="user-cell">
-              <el-avatar :size="28" :src="row.studentAvatar">
+              <el-avatar
+                :size="28"
+                :src="row.studentAvatar"
+              >
                 {{ row.studentName?.[0] }}
               </el-avatar>
               <span>{{ row.studentName }}</span>
@@ -100,9 +136,16 @@
           </template>
         </el-table-column>
 
-        <el-table-column prop="subjectName" label="科目" width="120" />
+        <el-table-column
+          prop="subjectName"
+          label="科目"
+          width="120"
+        />
 
-        <el-table-column label="状态" width="100">
+        <el-table-column
+          label="状态"
+          width="100"
+        >
           <template #default="{ row }">
             <el-tag
               v-if="row.status === 'PENDING'"
@@ -118,13 +161,20 @@
             >
               已解决
             </el-tag>
-            <el-tag v-else type="info" size="small">
+            <el-tag
+              v-else
+              type="info"
+              size="small"
+            >
               已关闭
             </el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column label="统计" width="150">
+        <el-table-column
+          label="统计"
+          width="150"
+        >
           <template #default="{ row }">
             <div class="stats-cell">
               <span class="stat-item">
@@ -139,13 +189,20 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="创建时间" width="180">
+        <el-table-column
+          label="创建时间"
+          width="180"
+        >
           <template #default="{ row }">
             {{ formatDate(row.createTime) }}
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column
+          label="操作"
+          width="180"
+          fixed="right"
+        >
           <template #default="{ row }">
             <el-button
               type="primary"
@@ -197,7 +254,10 @@
       width="900px"
       top="5vh"
     >
-      <div v-if="currentQuestion" class="question-detail">
+      <div
+        v-if="currentQuestion"
+        class="question-detail"
+      >
         <div class="detail-header">
           <h2>{{ currentQuestion.title }}</h2>
           <el-tag
@@ -227,10 +287,16 @@
 
         <div class="detail-content">
           <h4>问题描述</h4>
-          <div class="content-text" v-html="formatContent(currentQuestion.content)"></div>
+          <div
+            class="content-text"
+            v-html="formatContent(currentQuestion.content)"
+          />
         </div>
 
-        <div v-if="currentQuestion.imageUrls && currentQuestion.imageUrls.length > 0" class="detail-images">
+        <div
+          v-if="currentQuestion.imageUrls && currentQuestion.imageUrls.length > 0"
+          class="detail-images"
+        >
           <h4>图片</h4>
           <div class="image-list">
             <el-image
@@ -257,7 +323,9 @@
         </div>
       </div>
       <template #footer>
-        <el-button @click="detailDialogVisible = false">关闭</el-button>
+        <el-button @click="detailDialogVisible = false">
+          关闭
+        </el-button>
         <el-button
           v-if="currentQuestion && currentQuestion.status === 'PENDING'"
           type="success"

@@ -1,14 +1,23 @@
 <template>
-  <div class="ai-assistant-container" :class="{ embedded }">
+  <div
+    class="ai-assistant-container"
+    :class="{ embedded }"
+  >
     <!-- 侧边栏 - 会话历史 -->
-    <div class="sidebar" :class="{ collapsed: sidebarCollapsed }">
+    <div
+      class="sidebar"
+      :class="{ collapsed: sidebarCollapsed }"
+    >
       <div class="sidebar-header">
         <el-button 
           :icon="sidebarCollapsed ? 'Expand' : 'Fold'" 
           circle 
           @click="sidebarCollapsed = !sidebarCollapsed"
         />
-        <span v-if="!sidebarCollapsed" class="title">对话历史</span>
+        <span
+          v-if="!sidebarCollapsed"
+          class="title"
+        >对话历史</span>
         <el-button 
           v-if="!sidebarCollapsed"
           type="primary" 
@@ -19,7 +28,10 @@
         </el-button>
       </div>
 
-      <div v-if="!sidebarCollapsed" class="sidebar-content">
+      <div
+        v-if="!sidebarCollapsed"
+        class="sidebar-content"
+      >
         <el-scrollbar>
           <div 
             v-for="session in sessions" 
@@ -31,8 +43,12 @@
           >
             <el-icon><ChatDotRound /></el-icon>
             <div class="session-info">
-              <div class="session-preview">{{ session.title || getSessionPreview(session) }}</div>
-              <div class="session-time">{{ formatTime(session.createdAt) }}</div>
+              <div class="session-preview">
+                {{ session.title || getSessionPreview(session) }}
+              </div>
+              <div class="session-time">
+                {{ formatTime(session.createdAt) }}
+              </div>
             </div>
           </div>
         </el-scrollbar>
@@ -77,15 +93,25 @@
       <!-- 顶部工具栏 -->
       <div class="chat-header">
         <div class="header-left">
-          <el-icon class="ai-icon"><Opportunity /></el-icon>
+          <el-icon class="ai-icon">
+            <Opportunity />
+          </el-icon>
           <span class="ai-title">AI学习助手</span>
         </div>
         <div class="header-right">
           <el-tooltip content="收藏的对话">
-            <el-button :icon="'Star'" circle @click="showBookmarks" />
+            <el-button
+              :icon="'Star'"
+              circle
+              @click="showBookmarks"
+            />
           </el-tooltip>
           <el-tooltip content="清空对话">
-            <el-button :icon="'Delete'" circle @click="clearConversation" />
+            <el-button
+              :icon="'Delete'"
+              circle
+              @click="clearConversation"
+            />
           </el-tooltip>
         </div>
       </div>
@@ -95,8 +121,13 @@
         <el-scrollbar ref="scrollbarRef">
           <div class="messages-content">
             <!-- 欢迎消息 -->
-            <div v-if="messages.length === 0" class="welcome-message">
-              <el-icon class="welcome-icon"><Opportunity /></el-icon>
+            <div
+              v-if="messages.length === 0"
+              class="welcome-message"
+            >
+              <el-icon class="welcome-icon">
+                <Opportunity />
+              </el-icon>
               <h2>你好！我是AI学习助手</h2>
               <p>我可以帮助你：</p>
               <ul>
@@ -105,7 +136,9 @@
                 <li>🔍 推荐学习资源</li>
                 <li>🎯 理解复杂概念</li>
               </ul>
-              <p class="tip">有什么问题可以随时问我哦！</p>
+              <p class="tip">
+                有什么问题可以随时问我哦！
+              </p>
             </div>
 
             <!-- 消息列表 -->
@@ -116,8 +149,14 @@
               :class="message.role"
             >
               <div class="message-avatar">
-                <el-avatar v-if="message.role === 'user'" :icon="'User'" />
-                <el-avatar v-else class="ai-avatar">
+                <el-avatar
+                  v-if="message.role === 'user'"
+                  :icon="'User'"
+                />
+                <el-avatar
+                  v-else
+                  class="ai-avatar"
+                >
                   <el-icon><Opportunity /></el-icon>
                 </el-avatar>
               </div>
@@ -132,19 +171,35 @@
                 
                 <div class="message-body">
                   <!-- 用户消息 -->
-                  <div v-if="message.role === 'user'" class="user-text">
+                  <div
+                    v-if="message.role === 'user'"
+                    class="user-text"
+                  >
                     {{ message.content }}
                   </div>
                   
                   <!-- AI消息 - 支持Markdown -->
-                  <div v-else class="ai-text">
-                    <div v-if="message.typing" class="typing-indicator">
-                      <span></span><span></span><span></span>
+                  <div
+                    v-else
+                    class="ai-text"
+                  >
+                    <div
+                      v-if="message.typing"
+                      class="typing-indicator"
+                    >
+                      <span /><span /><span />
                     </div>
-                    <div v-else v-html="renderMarkdown(message.content)" class="markdown-body"></div>
+                    <div
+                      v-else
+                      class="markdown-body"
+                      v-html="renderMarkdown(message.content)"
+                    />
                     
                     <!-- 推荐资源 -->
-                    <div v-if="message.recommendations && message.recommendations.length > 0" class="recommendations">
+                    <div
+                      v-if="message.recommendations && message.recommendations.length > 0"
+                      class="recommendations"
+                    >
                       <div class="recommendations-title">
                         <el-icon><Reading /></el-icon>
                         推荐学习资源
@@ -163,8 +218,14 @@
                             </el-icon>
                             <span class="resource-title">{{ resource.title }}</span>
                           </div>
-                          <p class="resource-desc">{{ resource.description }}</p>
-                          <el-link :href="resource.url" target="_blank" type="primary">
+                          <p class="resource-desc">
+                            {{ resource.description }}
+                          </p>
+                          <el-link
+                            :href="resource.url"
+                            target="_blank"
+                            type="primary"
+                          >
                             查看资源 <el-icon><TopRight /></el-icon>
                           </el-link>
                         </div>
@@ -174,7 +235,10 @@
                 </div>
 
                 <!-- AI消息操作按钮 -->
-                <div v-if="message.role === 'assistant' && !message.typing" class="message-actions">
+                <div
+                  v-if="message.role === 'assistant' && !message.typing"
+                  class="message-actions"
+                >
                   <el-button 
                     text 
                     :icon="'CopyDocument'" 
@@ -204,7 +268,6 @@
                 </div>
               </div>
             </div>
-
           </div>
         </el-scrollbar>
       </div>
@@ -226,7 +289,10 @@
               需要学习资源推荐
             </el-checkbox>
             <div class="action-buttons">
-              <el-button :disabled="loading" @click="inputMessage = ''">
+              <el-button
+                :disabled="loading"
+                @click="inputMessage = ''"
+              >
                 清空
               </el-button>
               <el-button 
@@ -250,10 +316,16 @@
       width="800px"
     >
       <el-scrollbar max-height="500px">
-        <div v-if="bookmarkedConversations.length === 0" class="empty-state">
+        <div
+          v-if="bookmarkedConversations.length === 0"
+          class="empty-state"
+        >
           <el-empty description="暂无收藏的对话" />
         </div>
-        <div v-else class="bookmarks-list">
+        <div
+          v-else
+          class="bookmarks-list"
+        >
           <div 
             v-for="conv in bookmarkedConversations" 
             :key="conv.id"
@@ -269,7 +341,7 @@
               </div>
               <div class="bookmark-answer">
                 <strong>答：</strong>
-                <div v-html="renderMarkdown(conv.aiResponse)"></div>
+                <div v-html="renderMarkdown(conv.aiResponse)" />
               </div>
             </div>
           </div>

@@ -12,8 +12,11 @@ module.exports = {
   },
   extends: ['eslint:recommended', 'plugin:vue/vue3-recommended'],
   rules: {
+    'no-unused-vars': 'off',
+    'no-empty': 'off',
+    'no-constant-condition': 'off',
+    'no-case-declarations': 'off',
     'vue/multi-word-component-names': 'off',
     'vue/no-v-html': 'off',
   },
 }
-

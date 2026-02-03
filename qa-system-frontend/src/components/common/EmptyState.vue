@@ -1,5 +1,8 @@
 <template>
-  <div class="empty-state" :class="sizeClass">
+  <div
+    class="empty-state"
+    :class="sizeClass"
+  >
     <div class="empty-icon">
       <el-icon v-if="icon">
         <component :is="icon" />
@@ -10,12 +13,22 @@
     </div>
     
     <div class="empty-content">
-      <h3 class="empty-title">{{ title || '暂无数据' }}</h3>
-      <p v-if="description" class="empty-description">{{ description }}</p>
+      <h3 class="empty-title">
+        {{ title || '暂无数据' }}
+      </h3>
+      <p
+        v-if="description"
+        class="empty-description"
+      >
+        {{ description }}
+      </p>
     </div>
     
-    <div v-if="$slots.action" class="empty-action">
-      <slot name="action"></slot>
+    <div
+      v-if="$slots.action"
+      class="empty-action"
+    >
+      <slot name="action" />
     </div>
   </div>
 </template>

@@ -7,10 +7,20 @@
         </div>
       </template>
 
-      <el-skeleton :loading="loading" :rows="5" animated>
-        <el-empty v-if="questions.length === 0" description="暂无收藏" />
+      <el-skeleton
+        :loading="loading"
+        :rows="5"
+        animated
+      >
+        <el-empty
+          v-if="questions.length === 0"
+          description="暂无收藏"
+        />
 
-        <div v-else class="question-list">
+        <div
+          v-else
+          class="question-list"
+        >
           <div
             v-for="question in questions"
             :key="question.id"
@@ -21,13 +31,21 @@
               <div class="question-title">
                 <span>{{ question.title }}</span>
               </div>
-              <el-tag :type="getStatusType(question.status)" size="small">
+              <el-tag
+                :type="getStatusType(question.status)"
+                size="small"
+              >
                 {{ getStatusText(question.status) }}
               </el-tag>
             </div>
 
             <div class="question-meta">
-              <el-tag size="small" effect="plain">{{ question.subjectName }}</el-tag>
+              <el-tag
+                size="small"
+                effect="plain"
+              >
+                {{ question.subjectName }}
+              </el-tag>
               <span class="meta-item">
                 <el-icon><User /></el-icon>
                 {{ question.studentName }}

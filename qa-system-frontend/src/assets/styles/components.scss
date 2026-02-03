@@ -339,7 +339,11 @@
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  background: $re-bg-dark; // Dark underlying theme
+  // Light, Apple-like base with theme palette support
+  background:
+    radial-gradient(900px circle at 12% 10%, rgba(255, 255, 255, 0.85), transparent 58%),
+    radial-gradient(800px circle at 88% 28%, rgba(255, 255, 255, 0.65), transparent 60%),
+    linear-gradient(145deg, var(--theme-pure-1, #f2f4f8), var(--theme-pure-2, #e5ebf3));
 
   &::before,
   &::after {
@@ -349,7 +353,7 @@
     height: 60vw;
     border-radius: 50%;
     filter: blur($blur-vxl);
-    opacity: 0.5;
+    opacity: 0.42;
     animation: float-glow 10s ease-in-out infinite alternate;
   }
 

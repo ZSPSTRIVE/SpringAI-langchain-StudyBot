@@ -10,7 +10,11 @@
 
     <!-- 搜索条件 -->
     <el-card class="search-card">
-      <el-form :inline="true" :model="searchForm" class="search-form">
+      <el-form
+        :inline="true"
+        :model="searchForm"
+        class="search-form"
+      >
         <el-form-item label="用户ID">
           <el-input
             v-model="searchForm.userId"
@@ -29,9 +33,18 @@
             style="width: 160px"
             @change="handleSearch"
           >
-            <el-option label="学生" value="STUDENT" />
-            <el-option label="教师" value="TEACHER" />
-            <el-option label="管理员" value="ADMIN" />
+            <el-option
+              label="学生"
+              value="STUDENT"
+            />
+            <el-option
+              label="教师"
+              value="TEACHER"
+            />
+            <el-option
+              label="管理员"
+              value="ADMIN"
+            />
           </el-select>
         </el-form-item>
 
@@ -43,10 +56,22 @@
             style="width: 180px"
             @change="handleSearch"
           >
-            <el-option label="上传并查重" value="UPLOAD_AND_CHECK" />
-            <el-option label="AI降重" value="REWRITE" />
-            <el-option label="保存版本" value="SAVE_VERSION" />
-            <el-option label="下载报告" value="DOWNLOAD" />
+            <el-option
+              label="上传并查重"
+              value="UPLOAD_AND_CHECK"
+            />
+            <el-option
+              label="AI降重"
+              value="REWRITE"
+            />
+            <el-option
+              label="保存版本"
+              value="SAVE_VERSION"
+            />
+            <el-option
+              label="下载报告"
+              value="DOWNLOAD"
+            />
           </el-select>
         </el-form-item>
 
@@ -74,8 +99,19 @@
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
-          <el-button :icon="Refresh" @click="handleReset">重置</el-button>
+          <el-button
+            type="primary"
+            :icon="Search"
+            @click="handleSearch"
+          >
+            搜索
+          </el-button>
+          <el-button
+            :icon="Refresh"
+            @click="handleReset"
+          >
+            重置
+          </el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -88,35 +124,79 @@
         stripe
         style="width: 100%"
       >
-        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column
+          prop="id"
+          label="ID"
+          width="80"
+        />
 
-        <el-table-column prop="userId" label="用户ID" width="100" />
+        <el-table-column
+          prop="userId"
+          label="用户ID"
+          width="100"
+        />
 
-        <el-table-column label="角色" width="100">
+        <el-table-column
+          label="角色"
+          width="100"
+        >
           <template #default="{ row }">
-            <el-tag size="small">{{ formatRole(row.userRole) }}</el-tag>
+            <el-tag size="small">
+              {{ formatRole(row.userRole) }}
+            </el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column label="操作类型" width="140">
+        <el-table-column
+          label="操作类型"
+          width="140"
+        >
           <template #default="{ row }">
-            <el-tag :type="getOperationTypeTag(row.operationType)" size="small">
+            <el-tag
+              :type="getOperationTypeTag(row.operationType)"
+              size="small"
+            >
               {{ formatOperationType(row.operationType) }}
             </el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column prop="documentId" label="文档ID" width="100" />
+        <el-table-column
+          prop="documentId"
+          label="文档ID"
+          width="100"
+        />
 
-        <el-table-column prop="paragraphId" label="段落ID" width="100" />
+        <el-table-column
+          prop="paragraphId"
+          label="段落ID"
+          width="100"
+        />
 
-        <el-table-column prop="detail" label="详情" min-width="260" show-overflow-tooltip />
+        <el-table-column
+          prop="detail"
+          label="详情"
+          min-width="260"
+          show-overflow-tooltip
+        />
 
-        <el-table-column prop="clientIp" label="IP" width="140" />
+        <el-table-column
+          prop="clientIp"
+          label="IP"
+          width="140"
+        />
 
-        <el-table-column prop="userAgent" label="User-Agent" min-width="220" show-overflow-tooltip />
+        <el-table-column
+          prop="userAgent"
+          label="User-Agent"
+          min-width="220"
+          show-overflow-tooltip
+        />
 
-        <el-table-column label="时间" width="180">
+        <el-table-column
+          label="时间"
+          width="180"
+        >
           <template #default="{ row }">
             {{ formatDate(row.createdAt || row.created_at) }}
           </template>

@@ -6,7 +6,10 @@
       sub-title="抱歉，您访问的页面不存在"
     >
       <template #extra>
-        <el-button type="primary" @click="router.push('/home')">
+        <el-button
+          type="primary"
+          @click="router.push('/home')"
+        >
           返回首页
         </el-button>
       </template>

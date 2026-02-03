@@ -8,7 +8,11 @@
       :breadcrumbs="[{ label: '科目管理' }]"
     >
       <template #extra>
-        <el-button type="primary" :icon="Plus" @click="handleAdd">
+        <el-button
+          type="primary"
+          :icon="Plus"
+          @click="handleAdd"
+        >
           添加科目
         </el-button>
       </template>
@@ -16,7 +20,11 @@
 
     <!-- 科目卡片列表 -->
     <div class="subjects-grid">
-      <LoadingState v-if="loading" size="large" text="加载中..." />
+      <LoadingState
+        v-if="loading"
+        size="large"
+        text="加载中..."
+      />
       
       <EmptyState
         v-else-if="!loading && subjects.length === 0"
@@ -25,11 +33,19 @@
         :icon="Reading"
       >
         <template #action>
-          <el-button type="primary" @click="handleAdd">添加科目</el-button>
+          <el-button
+            type="primary"
+            @click="handleAdd"
+          >
+            添加科目
+          </el-button>
         </template>
       </EmptyState>
 
-      <div v-else class="subject-cards">
+      <div
+        v-else
+        class="subject-cards"
+      >
         <el-card
           v-for="subject in subjects"
           :key="subject.id"
@@ -38,10 +54,15 @@
         >
           <div class="subject-header">
             <div class="subject-title">
-              <el-icon class="subject-icon"><Reading /></el-icon>
+              <el-icon class="subject-icon">
+                <Reading />
+              </el-icon>
               <h3>{{ subject.name }}</h3>
             </div>
-            <el-tag :type="subject.status === 'ACTIVE' ? 'success' : 'info'" size="small">
+            <el-tag
+              :type="subject.status === 'ACTIVE' ? 'success' : 'info'"
+              size="small"
+            >
               {{ subject.status === 'ACTIVE' ? '启用' : '禁用' }}
             </el-tag>
           </div>
@@ -115,7 +136,10 @@
         :rules="rules"
         label-width="100px"
       >
-        <el-form-item label="科目名称" prop="name">
+        <el-form-item
+          label="科目名称"
+          prop="name"
+        >
           <el-input
             v-model="form.name"
             placeholder="请输入科目名称"
@@ -124,7 +148,10 @@
           />
         </el-form-item>
 
-        <el-form-item label="科目代码" prop="code">
+        <el-form-item
+          label="科目代码"
+          prop="code"
+        >
           <el-input
             v-model="form.code"
             placeholder="请输入科目代码，如：CS101"
@@ -133,7 +160,10 @@
           />
         </el-form-item>
 
-        <el-form-item label="科目描述" prop="description">
+        <el-form-item
+          label="科目描述"
+          prop="description"
+        >
           <el-input
             v-model="form.description"
             type="textarea"
@@ -144,7 +174,10 @@
           />
         </el-form-item>
 
-        <el-form-item label="排序顺序" prop="sortOrder">
+        <el-form-item
+          label="排序顺序"
+          prop="sortOrder"
+        >
           <el-input-number
             v-model="form.sortOrder"
             :min="0"
@@ -153,17 +186,30 @@
           />
         </el-form-item>
 
-        <el-form-item label="状态" prop="status">
+        <el-form-item
+          label="状态"
+          prop="status"
+        >
           <el-radio-group v-model="form.status">
-            <el-radio value="ACTIVE">启用</el-radio>
-            <el-radio value="INACTIVE">禁用</el-radio>
+            <el-radio value="ACTIVE">
+              启用
+            </el-radio>
+            <el-radio value="INACTIVE">
+              禁用
+            </el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
 
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit">
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="submitting"
+          @click="handleSubmit"
+        >
           确定
         </el-button>
       </template>

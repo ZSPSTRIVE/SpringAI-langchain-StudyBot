@@ -10,7 +10,11 @@
 
     <!-- 搜索条件 -->
     <el-card class="search-card">
-      <el-form :inline="true" :model="searchForm" class="search-form">
+      <el-form
+        :inline="true"
+        :model="searchForm"
+        class="search-form"
+      >
         <el-form-item label="文档标题">
           <el-input
             v-model="searchForm.title"
@@ -43,15 +47,35 @@
             style="width: 160px"
             @change="handleSearch"
           >
-            <el-option label="已查重" value="CHECKED" />
-            <el-option label="处理中" value="CHECKING" />
-            <el-option label="已完成" value="COMPLETED" />
+            <el-option
+              label="已查重"
+              value="CHECKED"
+            />
+            <el-option
+              label="处理中"
+              value="CHECKING"
+            />
+            <el-option
+              label="已完成"
+              value="COMPLETED"
+            />
           </el-select>
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
-          <el-button :icon="Refresh" @click="handleReset">重置</el-button>
+          <el-button
+            type="primary"
+            :icon="Search"
+            @click="handleSearch"
+          >
+            搜索
+          </el-button>
+          <el-button
+            :icon="Refresh"
+            @click="handleReset"
+          >
+            重置
+          </el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -65,13 +89,29 @@
         style="width: 100%"
         @row-dblclick="handleViewDetail"
       >
-        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column
+          prop="id"
+          label="ID"
+          width="80"
+        />
 
-        <el-table-column prop="userId" label="用户ID" width="100" />
+        <el-table-column
+          prop="userId"
+          label="用户ID"
+          width="100"
+        />
 
-        <el-table-column prop="title" label="文档标题" min-width="260" show-overflow-tooltip />
+        <el-table-column
+          prop="title"
+          label="文档标题"
+          min-width="260"
+          show-overflow-tooltip
+        />
 
-        <el-table-column label="整体查重率" width="140">
+        <el-table-column
+          label="整体查重率"
+          width="140"
+        >
           <template #default="{ row }">
             <el-tag
               :type="getSimilarityType(row.overallSimilarity)"
@@ -82,19 +122,32 @@
           </template>
         </el-table-column>
 
-        <el-table-column prop="status" label="状态" width="120">
+        <el-table-column
+          prop="status"
+          label="状态"
+          width="120"
+        >
           <template #default="{ row }">
-            <el-tag size="small">{{ getStatusText(row.status) }}</el-tag>
+            <el-tag size="small">
+              {{ getStatusText(row.status) }}
+            </el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column label="创建时间" width="180">
+        <el-table-column
+          label="创建时间"
+          width="180"
+        >
           <template #default="{ row }">
             {{ formatDate(row.createdAt || row.created_at) }}
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column
+          label="操作"
+          width="180"
+          fixed="right"
+        >
           <template #default="{ row }">
             <el-button
               type="primary"
@@ -138,14 +191,22 @@
       width="900px"
       top="5vh"
     >
-      <div v-if="currentDetail" class="doc-detail">
+      <div
+        v-if="currentDetail"
+        class="doc-detail"
+      >
         <div class="detail-header">
           <div>
             <h2>{{ currentDetail.document.title }}</h2>
-            <p class="sub">文档ID：{{ currentDetail.document.id }} ｜ 用户ID：{{ currentDetail.document.userId }}</p>
+            <p class="sub">
+              文档ID：{{ currentDetail.document.id }} ｜ 用户ID：{{ currentDetail.document.userId }}
+            </p>
           </div>
           <div class="detail-tags">
-            <el-tag :type="getSimilarityType(currentDetail.document.overallSimilarity)" size="large">
+            <el-tag
+              :type="getSimilarityType(currentDetail.document.overallSimilarity)"
+              size="large"
+            >
               整体查重：{{ formatSimilarity(currentDetail.document.overallSimilarity) }}
             </el-tag>
           </div>
@@ -153,20 +214,32 @@
 
         <el-divider />
 
-        <el-row :gutter="16" class="summary-row">
-          <el-col :xs="24" :sm="8">
+        <el-row
+          :gutter="16"
+          class="summary-row"
+        >
+          <el-col
+            :xs="24"
+            :sm="8"
+          >
             <div class="summary-item">
               <span class="label">段落数</span>
               <span class="value">{{ currentDetail.paragraphCount }}</span>
             </div>
           </el-col>
-          <el-col :xs="24" :sm="8">
+          <el-col
+            :xs="24"
+            :sm="8"
+          >
             <div class="summary-item">
               <span class="label">平均查重率</span>
               <span class="value">{{ formatSimilarity(currentDetail.avgSimilarity) }}</span>
             </div>
           </el-col>
-          <el-col :xs="24" :sm="8">
+          <el-col
+            :xs="24"
+            :sm="8"
+          >
             <div class="summary-item">
               <span class="label">高风险段落数</span>
               <span class="value">{{ currentDetail.highRiskParagraphs?.length || 0 }}</span>
@@ -183,8 +256,15 @@
             size="small"
             style="width: 100%"
           >
-            <el-table-column prop="paragraphIndex" label="序号" width="80" />
-            <el-table-column label="查重率" width="120">
+            <el-table-column
+              prop="paragraphIndex"
+              label="序号"
+              width="80"
+            />
+            <el-table-column
+              label="查重率"
+              width="120"
+            >
               <template #default="{ row }">
                 <el-tag
                   :type="getSimilarityType(row.similarity)"
@@ -194,7 +274,10 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="内容" min-width="400">
+            <el-table-column
+              label="内容"
+              min-width="400"
+            >
               <template #default="{ row }">
                 <span class="paragraph-text">{{ row.originalText }}</span>
               </template>
@@ -204,7 +287,9 @@
       </div>
 
       <template #footer>
-        <el-button @click="detailDialogVisible = false">关闭</el-button>
+        <el-button @click="detailDialogVisible = false">
+          关闭
+        </el-button>
       </template>
     </el-dialog>
   </div>

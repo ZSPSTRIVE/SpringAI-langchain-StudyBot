@@ -12,15 +12,23 @@
           class="search-input"
         />
         <div class="header-actions">
-        
-          <el-tooltip :content="wsConnected ? '已连接' : '未连接，点击重连'" placement="bottom">
+          <el-tooltip
+            :content="wsConnected ? '已连接' : '未连接，点击重连'"
+            placement="bottom"
+          >
             <span 
               :class="['ws-status', { connected: wsConnected }]" 
               @click="!wsConnected && connectWebSocket()"
             >●</span>
           </el-tooltip>
-          <el-dropdown trigger="click" @command="handleAction">
-            <el-button circle class="action-btn">
+          <el-dropdown
+            trigger="click"
+            @command="handleAction"
+          >
+            <el-button
+              circle
+              class="action-btn"
+            >
               <el-icon><Plus /></el-icon>
             </el-button>
             <template #dropdown>
@@ -43,7 +51,11 @@
           :class="['tab-item', { active: activeTab === 'chat' }]"
           @click="activeTab = 'chat'"
         >
-          <el-badge :value="totalUnread" :hidden="totalUnread === 0" :max="99">
+          <el-badge
+            :value="totalUnread"
+            :hidden="totalUnread === 0"
+            :max="99"
+          >
             <el-icon><ChatLineSquare /></el-icon>
           </el-badge>
           <span>消息</span>
@@ -52,7 +64,10 @@
           :class="['tab-item', { active: activeTab === 'contacts' }]"
           @click="activeTab = 'contacts'"
         >
-          <el-badge :value="pendingRequests" :hidden="pendingRequests === 0">
+          <el-badge
+            :value="pendingRequests"
+            :hidden="pendingRequests === 0"
+          >
             <el-icon><User /></el-icon>
           </el-badge>
           <span>通讯录</span>
@@ -60,7 +75,10 @@
       </div>
 
       <!-- 会话列表 -->
-      <div v-if="activeTab === 'chat'" class="conversation-list">
+      <div
+        v-if="activeTab === 'chat'"
+        class="conversation-list"
+      >
         <div
           v-for="conv in sortedConversations"
           :key="conv.id || conv.targetId"
@@ -69,10 +87,22 @@
           @contextmenu.prevent="showConversationMenu($event, conv)"
         >
           <!-- 置顶标识 -->
-          <div v-if="conv.isTop" class="pin-indicator">📌</div>
+          <div
+            v-if="conv.isTop"
+            class="pin-indicator"
+          >
+            📌
+          </div>
           <div class="avatar-wrapper">
-            <el-badge :value="conv.unreadCount" :hidden="conv.unreadCount === 0" :max="99">
-              <el-avatar :size="48" :src="getConversationAvatar(conv)">
+            <el-badge
+              :value="conv.unreadCount"
+              :hidden="conv.unreadCount === 0"
+              :max="99"
+            >
+              <el-avatar
+                :size="48"
+                :src="getConversationAvatar(conv)"
+              >
                 {{ getConversationName(conv)?.[0] }}
               </el-avatar>
             </el-badge>
@@ -81,7 +111,7 @@
               v-if="conv.type === 'PRIVATE'" 
               :class="['online-dot', { online: isConversationOnline(conv) }]"
               :title="isConversationOnline(conv) ? '在线' : '离线'"
-            ></span>
+            />
           </div>
           <div class="conv-info">
             <div class="conv-header">
@@ -89,34 +119,66 @@
               <span class="conv-time">{{ formatTime(conv.lastMessageTime) }}</span>
             </div>
             <div class="conv-preview">
-              <span v-if="conv.type === 'GROUP'" class="group-tag">[群]</span>
+              <span
+                v-if="conv.type === 'GROUP'"
+                class="group-tag"
+              >[群]</span>
               {{ conv.lastMessage || '暂无消息' }}
             </div>
           </div>
         </div>
-        <el-empty v-if="sortedConversations.length === 0" description="暂无会话" />
+        <el-empty
+          v-if="sortedConversations.length === 0"
+          description="暂无会话"
+        />
       </div>
 
       <!-- 通讯录 -->
-      <div v-else class="contacts-panel">
+      <div
+        v-else
+        class="contacts-panel"
+      >
         <!-- 好友申请入口 -->
-        <div class="contact-section" @click="showFriendRequests = true">
-          <el-icon class="section-icon"><Bell /></el-icon>
+        <div
+          class="contact-section"
+          @click="showFriendRequests = true"
+        >
+          <el-icon class="section-icon">
+            <Bell />
+          </el-icon>
           <span>新朋友</span>
-          <el-badge :value="pendingRequests" :hidden="pendingRequests === 0" />
+          <el-badge
+            :value="pendingRequests"
+            :hidden="pendingRequests === 0"
+          />
         </div>
         
         <!-- 群聊入口 -->
-        <div class="contact-section" @click="showGroupList = true">
-          <el-icon class="section-icon"><ChatDotSquare /></el-icon>
+        <div
+          class="contact-section"
+          @click="showGroupList = true"
+        >
+          <el-icon class="section-icon">
+            <ChatDotSquare />
+          </el-icon>
           <span>群聊</span>
         </div>
 
         <el-divider>好友列表 ({{ friendList.length }})</el-divider>
 
         <!-- 好友列表为空 -->
-        <el-empty v-if="friendList.length === 0" description="暂无好友" :image-size="60">
-          <el-button type="primary" size="small" @click="showAddFriend = true">添加好友</el-button>
+        <el-empty
+          v-if="friendList.length === 0"
+          description="暂无好友"
+          :image-size="60"
+        >
+          <el-button
+            type="primary"
+            size="small"
+            @click="showAddFriend = true"
+          >
+            添加好友
+          </el-button>
         </el-empty>
 
         <!-- 好友列表 -->
@@ -128,10 +190,13 @@
           @contextmenu.prevent="showFriendContextMenu($event, friend)"
         >
           <div class="friend-avatar-wrapper">
-            <el-avatar :size="40" :src="friend.avatar">
+            <el-avatar
+              :size="40"
+              :src="friend.avatar"
+            >
               {{ friend.realName?.[0] }}
             </el-avatar>
-            <span :class="['online-dot', { online: friend.online }]"></span>
+            <span :class="['online-dot', { online: friend.online }]" />
           </div>
           <div class="friend-info">
             <span class="friend-name">{{ friend.remark || friend.realName }}</span>
@@ -139,23 +204,48 @@
               {{ friend.online ? '在线' : '离线' }}
             </span>
           </div>
-          <el-dropdown trigger="click" @command="(cmd) => handleFriendAction(cmd, friend)">
-            <el-button link class="friend-more-btn" @click.stop>
+          <el-dropdown
+            trigger="click"
+            @command="(cmd) => handleFriendAction(cmd, friend)"
+          >
+            <el-button
+              link
+              class="friend-more-btn"
+              @click.stop
+            >
               <el-icon><More /></el-icon>
             </el-button>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="chat">发消息</el-dropdown-item>
-                <el-dropdown-item command="detail">查看资料</el-dropdown-item>
-                <el-dropdown-item command="remark">设置备注</el-dropdown-item>
-                <el-dropdown-item command="group">移动分组</el-dropdown-item>
-                <el-dropdown-item divided command="delete">删除好友</el-dropdown-item>
-                <el-dropdown-item command="block">加入黑名单</el-dropdown-item>
+                <el-dropdown-item command="chat">
+                  发消息
+                </el-dropdown-item>
+                <el-dropdown-item command="detail">
+                  查看资料
+                </el-dropdown-item>
+                <el-dropdown-item command="remark">
+                  设置备注
+                </el-dropdown-item>
+                <el-dropdown-item command="group">
+                  移动分组
+                </el-dropdown-item>
+                <el-dropdown-item
+                  divided
+                  command="delete"
+                >
+                  删除好友
+                </el-dropdown-item>
+                <el-dropdown-item command="block">
+                  加入黑名单
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
         </div>
-        <el-empty v-if="friendList.length === 0" description="暂无好友" />
+        <el-empty
+          v-if="friendList.length === 0"
+          description="暂无好友"
+        />
       </div>
     </div>
 
@@ -166,16 +256,29 @@
         <div class="chat-header">
           <span class="chat-title">{{ getConversationName(currentConversation) }}</span>
           <div class="chat-actions">
-            <el-button v-if="currentConversation.type === 'GROUP'" link @click="showGroupInfo = true">
+            <el-button
+              v-if="currentConversation.type === 'GROUP'"
+              link
+              @click="showGroupInfo = true"
+            >
               <el-icon><More /></el-icon>
             </el-button>
           </div>
         </div>
 
         <!-- 消息列表 -->
-        <div ref="messageListRef" class="message-list" @scroll="handleScroll">
-          <div v-if="loadingMessages" class="loading-more">
-            <el-icon class="is-loading"><Loading /></el-icon> 加载中...
+        <div
+          ref="messageListRef"
+          class="message-list"
+          @scroll="handleScroll"
+        >
+          <div
+            v-if="loadingMessages"
+            class="loading-more"
+          >
+            <el-icon class="is-loading">
+              <Loading />
+            </el-icon> 加载中...
           </div>
           
           <div
@@ -183,19 +286,42 @@
             :key="msg.id"
             :class="['message-item', { 'is-self': msg.senderId === currentUserId }]"
           >
-            <el-avatar :size="36" :src="msg.sender?.avatar">
+            <el-avatar
+              :size="36"
+              :src="msg.sender?.avatar"
+            >
               {{ msg.sender?.realName?.[0] }}
             </el-avatar>
             <div class="message-content">
-              <div class="message-sender" v-if="currentConversation.type === 'GROUP'">
+              <div
+                v-if="currentConversation.type === 'GROUP'"
+                class="message-sender"
+              >
                 <span class="sender-name">{{ msg.sender?.realName }}</span>
-                <el-tag v-if="getMemberRole(msg.senderId) === 'OWNER'" type="warning" size="small" class="role-badge">群主</el-tag>
-                <el-tag v-else-if="getMemberRole(msg.senderId) === 'ADMIN'" type="primary" size="small" class="role-badge">管理</el-tag>
+                <el-tag
+                  v-if="getMemberRole(msg.senderId) === 'OWNER'"
+                  type="warning"
+                  size="small"
+                  class="role-badge"
+                >
+                  群主
+                </el-tag>
+                <el-tag
+                  v-else-if="getMemberRole(msg.senderId) === 'ADMIN'"
+                  type="primary"
+                  size="small"
+                  class="role-badge"
+                >
+                  管理
+                </el-tag>
               </div>
-              <div class="message-bubble" @contextmenu.prevent="showMessageMenu($event, msg)">
+              <div
+                class="message-bubble"
+                @contextmenu.prevent="showMessageMenu($event, msg)"
+              >
                 <!-- 文本消息 -->
                 <template v-if="msg.type === 'TEXT'">
-                  <span v-html="renderEmoji(msg.content)"></span>
+                  <span v-html="renderEmoji(msg.content)" />
                 </template>
                 <!-- 图片消息 -->
                 <template v-else-if="msg.type === 'IMAGE'">
@@ -228,7 +354,11 @@
                 </template>
                 <!-- 表情消息 -->
                 <template v-else-if="msg.type === 'EMOJI'">
-                  <img :src="getMediaUrl(msg.mediaUrl)" class="message-emoji" @error="handleEmojiError" />
+                  <img
+                    :src="getMediaUrl(msg.mediaUrl)"
+                    class="message-emoji"
+                    @error="handleEmojiError"
+                  >
                 </template>
                 <!-- 撤回消息 -->
                 <template v-else-if="msg.isRecalled">
@@ -239,7 +369,9 @@
                   <span class="system-message">{{ msg.content }}</span>
                 </template>
               </div>
-              <div class="message-time">{{ formatMessageTime(msg.createTime) }}</div>
+              <div class="message-time">
+                {{ formatMessageTime(msg.createTime) }}
+              </div>
             </div>
           </div>
         </div>
@@ -247,9 +379,16 @@
         <!-- 输入区域 -->
         <div class="input-area">
           <div class="input-toolbar">
-            <el-popover placement="top" trigger="click" :width="400">
+            <el-popover
+              placement="top"
+              trigger="click"
+              :width="400"
+            >
               <template #reference>
-                <el-button link class="toolbar-btn">
+                <el-button
+                  link
+                  class="toolbar-btn"
+                >
                   <el-icon><Grape /></el-icon>
                 </el-button>
               </template>
@@ -261,7 +400,10 @@
               :before-upload="handleImageUpload"
               accept="image/*"
             >
-              <el-button link class="toolbar-btn">
+              <el-button
+                link
+                class="toolbar-btn"
+              >
                 <el-icon><Picture /></el-icon>
               </el-button>
             </el-upload>
@@ -271,7 +413,10 @@
               :before-upload="handleVideoUpload"
               accept="video/*"
             >
-              <el-button link class="toolbar-btn">
+              <el-button
+                link
+                class="toolbar-btn"
+              >
                 <el-icon><VideoCamera /></el-icon>
               </el-button>
             </el-upload>
@@ -288,7 +433,11 @@
           
           <div class="input-actions">
             <span class="input-hint">Enter 发送，Ctrl+Enter 换行</span>
-            <el-button type="primary" :disabled="!inputMessage.trim()" @click="sendMessage">
+            <el-button
+              type="primary"
+              :disabled="!inputMessage.trim()"
+              @click="sendMessage"
+            >
               发送
             </el-button>
           </div>
@@ -296,15 +445,27 @@
       </template>
 
       <!-- 未选择会话 -->
-      <div v-else class="no-conversation">
+      <div
+        v-else
+        class="no-conversation"
+      >
         <el-empty description="选择一个会话开始聊天">
-          <el-button type="primary" @click="handleAction('addFriend')">添加好友</el-button>
+          <el-button
+            type="primary"
+            @click="handleAction('addFriend')"
+          >
+            添加好友
+          </el-button>
         </el-empty>
       </div>
     </div>
 
     <!-- 添加好友对话框 -->
-    <el-dialog v-model="showAddFriend" title="添加好友" width="500px">
+    <el-dialog
+      v-model="showAddFriend"
+      title="添加好友"
+      width="500px"
+    >
       <el-input
         v-model="searchUserKeyword"
         placeholder="搜索用户名或姓名"
@@ -320,15 +481,32 @@
           :key="user.userId"
           class="search-result-item"
         >
-          <el-avatar :size="40" :src="user.avatar">{{ user.realName?.[0] }}</el-avatar>
+          <el-avatar
+            :size="40"
+            :src="user.avatar"
+          >
+            {{ user.realName?.[0] }}
+          </el-avatar>
           <div class="user-info">
             <span class="user-name">{{ user.realName }}</span>
             <span class="user-role">{{ user.role === 'TEACHER' ? '教师' : '学生' }}</span>
           </div>
           <!-- 已是好友 -->
-          <el-tag v-if="user.isFriend" type="success" size="small">已是好友</el-tag>
+          <el-tag
+            v-if="user.isFriend"
+            type="success"
+            size="small"
+          >
+            已是好友
+          </el-tag>
           <!-- 我发送的申请等待中 -->
-          <el-tag v-else-if="user.hasPendingRequest" type="warning" size="small">等待验证</el-tag>
+          <el-tag
+            v-else-if="user.hasPendingRequest"
+            type="warning"
+            size="small"
+          >
+            等待验证
+          </el-tag>
           <!-- 对方发给我的申请 -->
           <el-button 
             v-else-if="user.hasReceivedRequest"
@@ -348,51 +526,106 @@
             添加
           </el-button>
         </div>
-        <el-empty v-if="searchResults.length === 0 && searchUserKeyword" description="未找到用户" />
+        <el-empty
+          v-if="searchResults.length === 0 && searchUserKeyword"
+          description="未找到用户"
+        />
       </div>
     </el-dialog>
 
     <!-- 好友申请列表 -->
-    <el-dialog v-model="showFriendRequests" title="好友申请" width="500px">
+    <el-dialog
+      v-model="showFriendRequests"
+      title="好友申请"
+      width="500px"
+    >
       <div class="friend-requests">
         <div
           v-for="req in friendRequests"
           :key="req.id"
           class="request-item"
         >
-          <el-avatar :size="40" :src="req.fromUser?.avatar">
+          <el-avatar
+            :size="40"
+            :src="req.fromUser?.avatar"
+          >
             {{ req.fromUser?.realName?.[0] }}
           </el-avatar>
           <div class="request-info">
             <span class="request-name">{{ req.fromUser?.realName }}</span>
             <span class="request-message">{{ req.message || '请求添加你为好友' }}</span>
           </div>
-          <div v-if="req.status === 'PENDING'" class="request-actions">
-            <el-button type="primary" size="small" @click="acceptRequest(req.id)">同意</el-button>
-            <el-button size="small" @click="rejectRequest(req.id)">拒绝</el-button>
+          <div
+            v-if="req.status === 'PENDING'"
+            class="request-actions"
+          >
+            <el-button
+              type="primary"
+              size="small"
+              @click="acceptRequest(req.id)"
+            >
+              同意
+            </el-button>
+            <el-button
+              size="small"
+              @click="rejectRequest(req.id)"
+            >
+              拒绝
+            </el-button>
           </div>
-          <el-tag v-else :type="req.status === 'ACCEPTED' ? 'success' : 'info'" size="small">
+          <el-tag
+            v-else
+            :type="req.status === 'ACCEPTED' ? 'success' : 'info'"
+            size="small"
+          >
             {{ req.status === 'ACCEPTED' ? '已同意' : '已拒绝' }}
           </el-tag>
         </div>
-        <el-empty v-if="friendRequests.length === 0" description="暂无好友申请" />
+        <el-empty
+          v-if="friendRequests.length === 0"
+          description="暂无好友申请"
+        />
       </div>
     </el-dialog>
 
     <!-- 创建群聊对话框 -->
-    <el-dialog v-model="showCreateGroup" title="创建群聊" width="500px">
-      <el-form :model="groupForm" label-width="80px">
-        <el-form-item label="群名称" required>
-          <el-input v-model="groupForm.name" placeholder="请输入群名称" maxlength="20" show-word-limit />
+    <el-dialog
+      v-model="showCreateGroup"
+      title="创建群聊"
+      width="500px"
+    >
+      <el-form
+        :model="groupForm"
+        label-width="80px"
+      >
+        <el-form-item
+          label="群名称"
+          required
+        >
+          <el-input
+            v-model="groupForm.name"
+            placeholder="请输入群名称"
+            maxlength="20"
+            show-word-limit
+          />
         </el-form-item>
         <el-form-item label="群头像">
-          <el-input v-model="groupForm.avatar" placeholder="可选，输入头像URL" />
+          <el-input
+            v-model="groupForm.avatar"
+            placeholder="可选，输入头像URL"
+          />
         </el-form-item>
         <el-form-item label="选择成员">
-          <div v-if="friendList.length === 0" class="no-friends-tip">
+          <div
+            v-if="friendList.length === 0"
+            class="no-friends-tip"
+          >
             暂无好友，请先添加好友
           </div>
-          <div v-else class="member-select-list">
+          <div
+            v-else
+            class="member-select-list"
+          >
             <div 
               v-for="friend in friendList" 
               :key="friend.userId"
@@ -403,40 +636,80 @@
                 :model-value="groupForm.memberIds.includes(friend.userId)"
                 @click.stop
               />
-              <el-avatar :size="32" :src="friend.avatar">{{ friend.realName?.[0] }}</el-avatar>
+              <el-avatar
+                :size="32"
+                :src="friend.avatar"
+              >
+                {{ friend.realName?.[0] }}
+              </el-avatar>
               <span class="member-name">{{ friend.remark || friend.realName }}</span>
-              <el-tag v-if="friend.online" type="success" size="small">在线</el-tag>
+              <el-tag
+                v-if="friend.online"
+                type="success"
+                size="small"
+              >
+                在线
+              </el-tag>
             </div>
           </div>
-          <div v-if="groupForm.memberIds.length > 0" class="selected-count">
+          <div
+            v-if="groupForm.memberIds.length > 0"
+            class="selected-count"
+          >
             已选择 {{ groupForm.memberIds.length }} 人
           </div>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showCreateGroup = false">取消</el-button>
-        <el-button type="primary" @click="createGroupChat" :disabled="!groupForm.name.trim() || groupForm.memberIds.length === 0">
+        <el-button @click="showCreateGroup = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :disabled="!groupForm.name.trim() || groupForm.memberIds.length === 0"
+          @click="createGroupChat"
+        >
           创建群聊 ({{ groupForm.memberIds.length + 1 }}人)
         </el-button>
       </template>
     </el-dialog>
 
     <!-- 好友详情对话框 -->
-    <el-dialog v-model="showFriendDetail" title="好友资料" width="400px" class="friend-detail-dialog">
-      <div v-if="currentFriend" class="friend-profile">
+    <el-dialog
+      v-model="showFriendDetail"
+      title="好友资料"
+      width="400px"
+      class="friend-detail-dialog"
+    >
+      <div
+        v-if="currentFriend"
+        class="friend-profile"
+      >
         <div class="profile-header">
-          <el-avatar :size="80" :src="currentFriend.avatar">
+          <el-avatar
+            :size="80"
+            :src="currentFriend.avatar"
+          >
             {{ currentFriend.realName?.[0] }}
           </el-avatar>
           <div class="profile-info">
             <h3>{{ currentFriend.realName }}</h3>
-            <p class="username">@{{ currentFriend.username }}</p>
-            <el-tag :type="currentFriend.online ? 'success' : 'info'" size="small">
+            <p class="username">
+              @{{ currentFriend.username }}
+            </p>
+            <el-tag
+              :type="currentFriend.online ? 'success' : 'info'"
+              size="small"
+            >
               {{ currentFriend.online ? '在线' : '离线' }}
             </el-tag>
           </div>
         </div>
-        <el-descriptions :column="1" border class="profile-details">
+        <el-descriptions
+          :column="1"
+          border
+          class="profile-details"
+        >
           <el-descriptions-item label="备注">
             {{ currentFriend.remark || '未设置' }}
           </el-descriptions-item>
@@ -444,7 +717,9 @@
             {{ currentFriend.groupName || '我的好友' }}
           </el-descriptions-item>
           <el-descriptions-item label="身份">
-            <el-tag size="small">{{ currentFriend.role === 'TEACHER' ? '教师' : '学生' }}</el-tag>
+            <el-tag size="small">
+              {{ currentFriend.role === 'TEACHER' ? '教师' : '学生' }}
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="性别">
             {{ currentFriend.gender === 'M' ? '男' : currentFriend.gender === 'F' ? '女' : '保密' }}
@@ -458,50 +733,115 @@
         </el-descriptions>
       </div>
       <template #footer>
-        <el-button @click="showFriendDetail = false">关闭</el-button>
-        <el-button type="primary" @click="startChatWithCurrentFriend">发消息</el-button>
+        <el-button @click="showFriendDetail = false">
+          关闭
+        </el-button>
+        <el-button
+          type="primary"
+          @click="startChatWithCurrentFriend"
+        >
+          发消息
+        </el-button>
       </template>
     </el-dialog>
 
     <!-- 设置备注对话框 -->
-    <el-dialog v-model="showRemarkDialog" title="设置备注" width="400px">
+    <el-dialog
+      v-model="showRemarkDialog"
+      title="设置备注"
+      width="400px"
+    >
       <el-form>
         <el-form-item label="备注名">
-          <el-input v-model="remarkForm.remark" placeholder="请输入备注名" maxlength="20" show-word-limit />
+          <el-input
+            v-model="remarkForm.remark"
+            placeholder="请输入备注名"
+            maxlength="20"
+            show-word-limit
+          />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showRemarkDialog = false">取消</el-button>
-        <el-button type="primary" @click="saveRemark">保存</el-button>
+        <el-button @click="showRemarkDialog = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          @click="saveRemark"
+        >
+          保存
+        </el-button>
       </template>
     </el-dialog>
 
     <!-- 移动分组对话框 -->
-    <el-dialog v-model="showGroupDialog" title="移动到分组" width="400px">
+    <el-dialog
+      v-model="showGroupDialog"
+      title="移动到分组"
+      width="400px"
+    >
       <el-form>
         <el-form-item label="选择分组">
-          <el-select v-model="groupMoveForm.groupName" placeholder="选择或输入分组" filterable allow-create>
-            <el-option label="我的好友" value="我的好友" />
-            <el-option label="同学" value="同学" />
-            <el-option label="老师" value="老师" />
-            <el-option label="同事" value="同事" />
-            <el-option label="家人" value="家人" />
+          <el-select
+            v-model="groupMoveForm.groupName"
+            placeholder="选择或输入分组"
+            filterable
+            allow-create
+          >
+            <el-option
+              label="我的好友"
+              value="我的好友"
+            />
+            <el-option
+              label="同学"
+              value="同学"
+            />
+            <el-option
+              label="老师"
+              value="老师"
+            />
+            <el-option
+              label="同事"
+              value="同事"
+            />
+            <el-option
+              label="家人"
+              value="家人"
+            />
           </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showGroupDialog = false">取消</el-button>
-        <el-button type="primary" @click="saveFriendGroup">确定</el-button>
+        <el-button @click="showGroupDialog = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          @click="saveFriendGroup"
+        >
+          确定
+        </el-button>
       </template>
     </el-dialog>
 
     <!-- 群聊设置对话框 -->
-    <el-dialog v-model="showGroupInfo" title="群聊设置" width="520px" class="group-info-dialog">
-      <div v-if="currentConversation?.group" class="group-profile">
+    <el-dialog
+      v-model="showGroupInfo"
+      title="群聊设置"
+      width="520px"
+      class="group-info-dialog"
+    >
+      <div
+        v-if="currentConversation?.group"
+        class="group-profile"
+      >
         <!-- 群头像和基本信息 -->
         <div class="profile-header">
           <div class="avatar-wrapper">
-            <el-avatar :size="72" :src="currentConversation.group.avatar">
+            <el-avatar
+              :size="72"
+              :src="currentConversation.group.avatar"
+            >
               {{ currentConversation.group.name?.[0] }}
             </el-avatar>
             <el-button 
@@ -517,7 +857,12 @@
           <div class="profile-info">
             <div class="name-row">
               <h3>{{ currentConversation.group.name }}</h3>
-              <el-button v-if="isGroupOwnerOrAdmin" link size="small" @click="showEditGroupName = true">
+              <el-button
+                v-if="isGroupOwnerOrAdmin"
+                link
+                size="small"
+                @click="showEditGroupName = true"
+              >
                 <el-icon><Edit /></el-icon>
               </el-button>
             </div>
@@ -537,7 +882,12 @@
             <span class="section-title">
               <el-icon><Bell /></el-icon> 群公告
             </span>
-            <el-button v-if="isGroupOwnerOrAdmin" link size="small" @click="showEditAnnouncement = true">
+            <el-button
+              v-if="isGroupOwnerOrAdmin"
+              link
+              size="small"
+              @click="showEditAnnouncement = true"
+            >
               编辑
             </el-button>
           </div>
@@ -552,7 +902,12 @@
             <span class="section-title">
               <el-icon><UserFilled /></el-icon> 群成员 ({{ groupMembers.length }})
             </span>
-            <el-button v-if="isGroupOwnerOrAdmin" link size="small" @click="showInviteMembers = true">
+            <el-button
+              v-if="isGroupOwnerOrAdmin"
+              link
+              size="small"
+              @click="showInviteMembers = true"
+            >
               <el-icon><Plus /></el-icon> 邀请
             </el-button>
           </div>
@@ -563,14 +918,35 @@
               class="member-card"
               @click="showMemberOptions(member)"
             >
-              <el-avatar :size="40" :src="member.avatar || member.user?.avatar">
+              <el-avatar
+                :size="40"
+                :src="member.avatar || member.user?.avatar"
+              >
                 {{ (member.realName || member.user?.realName)?.[0] }}
               </el-avatar>
               <span class="member-name">{{ member.realName || member.user?.realName || '未知' }}</span>
-              <el-tag v-if="member.role === 'OWNER'" type="warning" size="small" class="role-tag">群主</el-tag>
-              <el-tag v-else-if="member.role === 'ADMIN'" type="primary" size="small" class="role-tag">管理</el-tag>
+              <el-tag
+                v-if="member.role === 'OWNER'"
+                type="warning"
+                size="small"
+                class="role-tag"
+              >
+                群主
+              </el-tag>
+              <el-tag
+                v-else-if="member.role === 'ADMIN'"
+                type="primary"
+                size="small"
+                class="role-tag"
+              >
+                管理
+              </el-tag>
             </div>
-            <div v-if="isGroupOwnerOrAdmin" class="member-card add-member" @click="showInviteMembers = true">
+            <div
+              v-if="isGroupOwnerOrAdmin"
+              class="member-card add-member"
+              @click="showInviteMembers = true"
+            >
               <div class="add-icon">
                 <el-icon><Plus /></el-icon>
               </div>
@@ -581,41 +957,86 @@
 
         <!-- 操作区 -->
         <div class="group-actions">
-          <el-button @click="clearGroupMessages" plain>
+          <el-button
+            plain
+            @click="clearGroupMessages"
+          >
             <el-icon><Delete /></el-icon> 清空聊天记录
           </el-button>
-          <el-button v-if="isGroupOwner" type="danger" @click="dismissGroup">
+          <el-button
+            v-if="isGroupOwner"
+            type="danger"
+            @click="dismissGroup"
+          >
             <el-icon><DeleteFilled /></el-icon> 解散群聊
           </el-button>
-          <el-button v-else type="danger" plain @click="leaveGroup">
+          <el-button
+            v-else
+            type="danger"
+            plain
+            @click="leaveGroup"
+          >
             <el-icon><SwitchButton /></el-icon> 退出群聊
           </el-button>
         </div>
       </div>
-      <div v-else class="no-group-info">
-        <el-icon :size="48"><Warning /></el-icon>
+      <div
+        v-else
+        class="no-group-info"
+      >
+        <el-icon :size="48">
+          <Warning />
+        </el-icon>
         <p>无法获取群信息</p>
       </div>
     </el-dialog>
 
     <!-- 编辑群名称对话框 -->
-    <el-dialog v-model="showEditGroupName" title="编辑群信息" width="400px" append-to-body>
-      <el-form :model="editGroupForm" label-width="80px">
+    <el-dialog
+      v-model="showEditGroupName"
+      title="编辑群信息"
+      width="400px"
+      append-to-body
+    >
+      <el-form
+        :model="editGroupForm"
+        label-width="80px"
+      >
         <el-form-item label="群名称">
-          <el-input v-model="editGroupForm.name" maxlength="20" show-word-limit placeholder="请输入群名称" />
+          <el-input
+            v-model="editGroupForm.name"
+            maxlength="20"
+            show-word-limit
+            placeholder="请输入群名称"
+          />
         </el-form-item>
         <el-form-item label="群头像">
-          <el-input v-model="editGroupForm.avatar" placeholder="输入头像URL（可选）" />
+          <el-input
+            v-model="editGroupForm.avatar"
+            placeholder="输入头像URL（可选）"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showEditGroupName = false">取消</el-button>
-        <el-button type="primary" @click="saveGroupInfo">保存</el-button>
+        <el-button @click="showEditGroupName = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          @click="saveGroupInfo"
+        >
+          保存
+        </el-button>
       </template>
     </el-dialog>
 
     <!-- 编辑群公告对话框 -->
-    <el-dialog v-model="showEditAnnouncement" title="编辑群公告" width="450px" append-to-body>
+    <el-dialog
+      v-model="showEditAnnouncement"
+      title="编辑群公告"
+      width="450px"
+      append-to-body
+    >
       <el-input 
         v-model="editGroupForm.announcement" 
         type="textarea" 
@@ -625,8 +1046,15 @@
         placeholder="请输入群公告内容"
       />
       <template #footer>
-        <el-button @click="showEditAnnouncement = false">取消</el-button>
-        <el-button type="primary" @click="saveGroupAnnouncement">发布公告</el-button>
+        <el-button @click="showEditAnnouncement = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          @click="saveGroupAnnouncement"
+        >
+          发布公告
+        </el-button>
       </template>
     </el-dialog>
 
@@ -648,7 +1076,10 @@
       />
       
       <!-- 已选择的好友 -->
-      <div v-if="inviteIds.length > 0" class="selected-friends">
+      <div
+        v-if="inviteIds.length > 0"
+        class="selected-friends"
+      >
         <span class="label">已选择:</span>
         <el-tag 
           v-for="id in inviteIds" 
@@ -669,18 +1100,34 @@
           :class="['invite-item', { selected: inviteIds.includes(friend.userId) }]"
           @click="toggleInvite(friend.userId)"
         >
-          <el-checkbox :model-value="inviteIds.includes(friend.userId)" @click.stop />
+          <el-checkbox
+            :model-value="inviteIds.includes(friend.userId)"
+            @click.stop
+          />
           <div class="friend-avatar-wrapper">
-            <el-avatar :size="40" :src="friend.avatar">{{ friend.realName?.[0] }}</el-avatar>
-            <span v-if="friend.online" class="online-indicator"></span>
+            <el-avatar
+              :size="40"
+              :src="friend.avatar"
+            >
+              {{ friend.realName?.[0] }}
+            </el-avatar>
+            <span
+              v-if="friend.online"
+              class="online-indicator"
+            />
           </div>
           <div class="friend-info">
             <span class="friend-name">{{ friend.remark || friend.realName }}</span>
             <span class="friend-status">{{ friend.online ? '在线' : '离线' }}</span>
           </div>
         </div>
-        <div v-if="filteredFriendsToInvite.length === 0" class="no-friends">
-          <el-icon :size="32"><User /></el-icon>
+        <div
+          v-if="filteredFriendsToInvite.length === 0"
+          class="no-friends"
+        >
+          <el-icon :size="32">
+            <User />
+          </el-icon>
           <p>{{ inviteSearchKeyword ? '未找到匹配的好友' : '没有可邀请的好友' }}</p>
         </div>
       </div>
@@ -688,8 +1135,14 @@
         <div class="invite-footer">
           <span class="select-count">已选 {{ inviteIds.length }} 人</span>
           <div class="footer-buttons">
-            <el-button @click="showInviteMembers = false">取消</el-button>
-            <el-button type="primary" @click="inviteFriendsToGroup" :disabled="inviteIds.length === 0">
+            <el-button @click="showInviteMembers = false">
+              取消
+            </el-button>
+            <el-button
+              type="primary"
+              :disabled="inviteIds.length === 0"
+              @click="inviteFriendsToGroup"
+            >
               确认邀请
             </el-button>
           </div>
@@ -698,9 +1151,16 @@
     </el-dialog>
 
     <!-- 群聊列表对话框 -->
-    <el-dialog v-model="showGroupList" title="我的群聊" width="500px">
+    <el-dialog
+      v-model="showGroupList"
+      title="我的群聊"
+      width="500px"
+    >
       <el-tabs v-model="groupListTab">
-        <el-tab-pane label="我创建的" name="created">
+        <el-tab-pane
+          label="我创建的"
+          name="created"
+        >
           <div class="group-list">
             <div 
               v-for="group in myCreatedGroups" 
@@ -708,17 +1168,38 @@
               class="group-item"
               @click="openGroupChat(group)"
             >
-              <el-avatar :size="48" :src="group.avatar">{{ group.name?.[0] }}</el-avatar>
+              <el-avatar
+                :size="48"
+                :src="group.avatar"
+              >
+                {{ group.name?.[0] }}
+              </el-avatar>
               <div class="group-info">
-                <div class="group-name">{{ group.name }}</div>
-                <div class="group-meta">{{ group.memberCount || 0 }} 人 · 群号: {{ group.id }}</div>
+                <div class="group-name">
+                  {{ group.name }}
+                </div>
+                <div class="group-meta">
+                  {{ group.memberCount || 0 }} 人 · 群号: {{ group.id }}
+                </div>
               </div>
-              <el-tag type="warning" size="small">群主</el-tag>
+              <el-tag
+                type="warning"
+                size="small"
+              >
+                群主
+              </el-tag>
             </div>
-            <el-empty v-if="myCreatedGroups.length === 0" description="还没有创建群聊" :image-size="60" />
+            <el-empty
+              v-if="myCreatedGroups.length === 0"
+              description="还没有创建群聊"
+              :image-size="60"
+            />
           </div>
         </el-tab-pane>
-        <el-tab-pane label="我加入的" name="joined">
+        <el-tab-pane
+          label="我加入的"
+          name="joined"
+        >
           <div class="group-list">
             <div 
               v-for="group in myJoinedGroups" 
@@ -726,36 +1207,91 @@
               class="group-item"
               @click="openGroupChat(group)"
             >
-              <el-avatar :size="48" :src="group.avatar">{{ group.name?.[0] }}</el-avatar>
+              <el-avatar
+                :size="48"
+                :src="group.avatar"
+              >
+                {{ group.name?.[0] }}
+              </el-avatar>
               <div class="group-info">
-                <div class="group-name">{{ group.name }}</div>
-                <div class="group-meta">{{ group.memberCount || 0 }} 人 · 群号: {{ group.id }}</div>
+                <div class="group-name">
+                  {{ group.name }}
+                </div>
+                <div class="group-meta">
+                  {{ group.memberCount || 0 }} 人 · 群号: {{ group.id }}
+                </div>
               </div>
-              <el-tag v-if="group.myRole === 'ADMIN'" type="primary" size="small">管理员</el-tag>
+              <el-tag
+                v-if="group.myRole === 'ADMIN'"
+                type="primary"
+                size="small"
+              >
+                管理员
+              </el-tag>
             </div>
-            <el-empty v-if="myJoinedGroups.length === 0" description="还没有加入群聊" :image-size="60" />
+            <el-empty
+              v-if="myJoinedGroups.length === 0"
+              description="还没有加入群聊"
+              :image-size="60"
+            />
           </div>
         </el-tab-pane>
       </el-tabs>
       <template #footer>
-        <el-button @click="showGroupList = false">关闭</el-button>
-        <el-button type="primary" @click="showCreateGroup = true; showGroupList = false">创建群聊</el-button>
+        <el-button @click="showGroupList = false">
+          关闭
+        </el-button>
+        <el-button
+          type="primary"
+          @click="showCreateGroup = true; showGroupList = false"
+        >
+          创建群聊
+        </el-button>
       </template>
     </el-dialog>
 
     <!-- 成员管理对话框 -->
-    <el-dialog v-model="showMemberManage" title="成员管理" width="400px" append-to-body>
-      <div v-if="selectedMember" class="member-manage-content">
+    <el-dialog
+      v-model="showMemberManage"
+      title="成员管理"
+      width="400px"
+      append-to-body
+    >
+      <div
+        v-if="selectedMember"
+        class="member-manage-content"
+      >
         <div class="member-profile">
-          <el-avatar :size="64" :src="selectedMember.avatar || selectedMember.user?.avatar">
+          <el-avatar
+            :size="64"
+            :src="selectedMember.avatar || selectedMember.user?.avatar"
+          >
             {{ (selectedMember.realName || selectedMember.user?.realName)?.[0] }}
           </el-avatar>
           <div class="member-info">
             <h4>{{ selectedMember.realName || selectedMember.user?.realName }}</h4>
             <p class="member-role">
-              <el-tag v-if="selectedMember.role === 'OWNER'" type="warning" size="small">群主</el-tag>
-              <el-tag v-else-if="selectedMember.role === 'ADMIN'" type="primary" size="small">管理员</el-tag>
-              <el-tag v-else type="info" size="small">成员</el-tag>
+              <el-tag
+                v-if="selectedMember.role === 'OWNER'"
+                type="warning"
+                size="small"
+              >
+                群主
+              </el-tag>
+              <el-tag
+                v-else-if="selectedMember.role === 'ADMIN'"
+                type="primary"
+                size="small"
+              >
+                管理员
+              </el-tag>
+              <el-tag
+                v-else
+                type="info"
+                size="small"
+              >
+                成员
+              </el-tag>
             </p>
           </div>
         </div>
@@ -810,10 +1346,31 @@
       class="context-menu"
       :style="{ left: messageContextMenu.x + 'px', top: messageContextMenu.y + 'px' }"
     >
-      <div class="menu-item" @click="copyMessage">复制</div>
-      <div class="menu-item" @click="forwardMessage">转发</div>
-      <div v-if="messageContextMenu.isSelf" class="menu-item" @click="recallCurrentMessage">撤回</div>
-      <div class="menu-item danger" @click="deleteMessage">删除</div>
+      <div
+        class="menu-item"
+        @click="copyMessage"
+      >
+        复制
+      </div>
+      <div
+        class="menu-item"
+        @click="forwardMessage"
+      >
+        转发
+      </div>
+      <div
+        v-if="messageContextMenu.isSelf"
+        class="menu-item"
+        @click="recallCurrentMessage"
+      >
+        撤回
+      </div>
+      <div
+        class="menu-item danger"
+        @click="deleteMessage"
+      >
+        删除
+      </div>
     </div>
 
     <!-- 会话右键菜单 -->
@@ -822,12 +1379,30 @@
       class="context-menu"
       :style="{ left: conversationMenu.x + 'px', top: conversationMenu.y + 'px' }"
     >
-      <div class="menu-item" @click="togglePinConversation">
+      <div
+        class="menu-item"
+        @click="togglePinConversation"
+      >
         {{ conversationMenu.conv?.isTop ? '取消置顶' : '置顶会话' }}
       </div>
-      <div class="menu-item" @click="markConversationRead">标为已读</div>
-      <div class="menu-item" @click="hideConversation">隐藏会话</div>
-      <div class="menu-item danger" @click="deleteConversation">删除会话</div>
+      <div
+        class="menu-item"
+        @click="markConversationRead"
+      >
+        标为已读
+      </div>
+      <div
+        class="menu-item"
+        @click="hideConversation"
+      >
+        隐藏会话
+      </div>
+      <div
+        class="menu-item danger"
+        @click="deleteConversation"
+      >
+        删除会话
+      </div>
     </div>
   </div>
 </template>

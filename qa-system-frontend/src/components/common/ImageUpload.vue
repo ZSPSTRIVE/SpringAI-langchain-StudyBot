@@ -11,21 +11,39 @@
       :disabled="loading"
     >
       <div class="upload-area">
-        <div v-if="imageUrl && !loading" class="image-preview">
-          <img :src="imageUrl" alt="预览图片" />
+        <div
+          v-if="imageUrl && !loading"
+          class="image-preview"
+        >
+          <img
+            :src="imageUrl"
+            alt="预览图片"
+          >
           <div class="image-overlay">
-            <el-icon class="overlay-icon"><Plus /></el-icon>
+            <el-icon class="overlay-icon">
+              <Plus />
+            </el-icon>
             <span>更换图片</span>
           </div>
         </div>
         
-        <div v-else-if="loading" class="upload-loading">
-          <el-icon class="is-loading"><Loading /></el-icon>
+        <div
+          v-else-if="loading"
+          class="upload-loading"
+        >
+          <el-icon class="is-loading">
+            <Loading />
+          </el-icon>
           <span>上传中...</span>
         </div>
         
-        <div v-else class="upload-placeholder">
-          <el-icon class="placeholder-icon"><Plus /></el-icon>
+        <div
+          v-else
+          class="upload-placeholder"
+        >
+          <el-icon class="placeholder-icon">
+            <Plus />
+          </el-icon>
           <div class="placeholder-text">
             <span class="text-main">点击上传图片</span>
             <span class="text-hint">支持 JPG、PNG 格式</span>
@@ -35,7 +53,10 @@
       </div>
     </el-upload>
     
-    <div v-if="tips" class="upload-tips">
+    <div
+      v-if="tips"
+      class="upload-tips"
+    >
       <el-icon><InfoFilled /></el-icon>
       <span>{{ tips }}</span>
     </div>

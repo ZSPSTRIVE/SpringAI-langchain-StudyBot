@@ -8,8 +8,14 @@
       :breadcrumbs="[{ label: '查重与降重配置' }]"
     />
 
-    <el-row :gutter="24" class="config-row">
-      <el-col :xs="24" :md="12">
+    <el-row
+      :gutter="24"
+      class="config-row"
+    >
+      <el-col
+        :xs="24"
+        :md="12"
+      >
         <el-card class="config-card">
           <template #header>
             <div class="card-header">
@@ -18,7 +24,10 @@
             </div>
           </template>
 
-          <el-form :model="similarity" label-width="140px">
+          <el-form
+            :model="similarity"
+            label-width="140px"
+          >
             <el-form-item label="MinHash 阈值">
               <el-input-number
                 v-model="similarity.minhashThreshold"
@@ -63,7 +72,10 @@
         </el-card>
       </el-col>
 
-      <el-col :xs="24" :md="12">
+      <el-col
+        :xs="24"
+        :md="12"
+      >
         <el-card class="config-card">
           <template #header>
             <div class="card-header">
@@ -72,32 +84,80 @@
             </div>
           </template>
 
-          <el-form :model="ai" label-width="140px">
+          <el-form
+            :model="ai"
+            label-width="140px"
+          >
             <el-form-item label="模型名称">
-              <el-select v-model="ai.model" placeholder="选择 AI 模型">
+              <el-select
+                v-model="ai.model"
+                placeholder="选择 AI 模型"
+              >
                 <el-option-group label="硅基流动 · 通义千问 / DeepSeek">
-                  <el-option label="Qwen2.5-7B-Instruct" value="Qwen/Qwen2.5-7B-Instruct" />
-                  <el-option label="Qwen2-72B-Instruct" value="Qwen/Qwen2-72B-Instruct" />
-                  <el-option label="DeepSeek-V2.5" value="deepseek-ai/DeepSeek-V2.5" />
+                  <el-option
+                    label="Qwen2.5-7B-Instruct"
+                    value="Qwen/Qwen2.5-7B-Instruct"
+                  />
+                  <el-option
+                    label="Qwen2-72B-Instruct"
+                    value="Qwen/Qwen2-72B-Instruct"
+                  />
+                  <el-option
+                    label="DeepSeek-V2.5"
+                    value="deepseek-ai/DeepSeek-V2.5"
+                  />
                 </el-option-group>
                 <el-option-group label="阿里通义千问">
-                  <el-option label="qwen-turbo" value="qwen-turbo" />
-                  <el-option label="qwen-plus" value="qwen-plus" />
-                  <el-option label="qwen-max" value="qwen-max" />
+                  <el-option
+                    label="qwen-turbo"
+                    value="qwen-turbo"
+                  />
+                  <el-option
+                    label="qwen-plus"
+                    value="qwen-plus"
+                  />
+                  <el-option
+                    label="qwen-max"
+                    value="qwen-max"
+                  />
                 </el-option-group>
                 <el-option-group label="智谱 GLM">
-                  <el-option label="GLM-4" value="glm-4" />
-                  <el-option label="GLM-4-Flash" value="glm-4-flash" />
-                  <el-option label="GLM-3-Turbo" value="glm-3-turbo" />
+                  <el-option
+                    label="GLM-4"
+                    value="glm-4"
+                  />
+                  <el-option
+                    label="GLM-4-Flash"
+                    value="glm-4-flash"
+                  />
+                  <el-option
+                    label="GLM-3-Turbo"
+                    value="glm-3-turbo"
+                  />
                 </el-option-group>
                 <el-option-group label="MiniMax">
-                  <el-option label="abab5.5-chat" value="abab5.5-chat" />
-                  <el-option label="abab6-chat" value="abab6-chat" />
+                  <el-option
+                    label="abab5.5-chat"
+                    value="abab5.5-chat"
+                  />
+                  <el-option
+                    label="abab6-chat"
+                    value="abab6-chat"
+                  />
                 </el-option-group>
                 <el-option-group label="Kimi / Moonshot">
-                  <el-option label="moonshot-v1-8k" value="moonshot-v1-8k" />
-                  <el-option label="moonshot-v1-32k" value="moonshot-v1-32k" />
-                  <el-option label="moonshot-v1-128k" value="moonshot-v1-128k" />
+                  <el-option
+                    label="moonshot-v1-8k"
+                    value="moonshot-v1-8k"
+                  />
+                  <el-option
+                    label="moonshot-v1-32k"
+                    value="moonshot-v1-32k"
+                  />
+                  <el-option
+                    label="moonshot-v1-128k"
+                    value="moonshot-v1-128k"
+                  />
                 </el-option-group>
               </el-select>
             </el-form-item>
@@ -121,11 +181,26 @@
               />
             </el-form-item>
             <el-form-item label="默认降重风格">
-              <el-select v-model="ai.defaultStyle" placeholder="选择默认风格">
-                <el-option label="学术降重" value="ACADEMIC" />
-                <el-option label="通顺化" value="FLUENCY" />
-                <el-option label="扩写" value="EXPAND" />
-                <el-option label="逻辑强化" value="LOGIC_ENHANCE" />
+              <el-select
+                v-model="ai.defaultStyle"
+                placeholder="选择默认风格"
+              >
+                <el-option
+                  label="学术降重"
+                  value="ACADEMIC"
+                />
+                <el-option
+                  label="通顺化"
+                  value="FLUENCY"
+                />
+                <el-option
+                  label="扩写"
+                  value="EXPAND"
+                />
+                <el-option
+                  label="逻辑强化"
+                  value="LOGIC_ENHANCE"
+                />
               </el-select>
             </el-form-item>
           </el-form>
@@ -135,10 +210,17 @@
 
     <el-card class="actions-card">
       <div class="actions">
-        <el-button type="primary" :loading="saving" @click="handleSave">
+        <el-button
+          type="primary"
+          :loading="saving"
+          @click="handleSave"
+        >
           保存配置
         </el-button>
-        <el-button :loading="loading" @click="loadConfig">
+        <el-button
+          :loading="loading"
+          @click="loadConfig"
+        >
           重新加载
         </el-button>
       </div>

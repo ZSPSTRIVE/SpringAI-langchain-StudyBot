@@ -1,11 +1,19 @@
 <template>
-  <div class="loading-state" :class="sizeClass">
+  <div
+    class="loading-state"
+    :class="sizeClass"
+  >
     <div class="loading-icon">
       <el-icon class="is-loading">
         <Loading />
       </el-icon>
     </div>
-    <p v-if="text" class="loading-text">{{ text }}</p>
+    <p
+      v-if="text"
+      class="loading-text"
+    >
+      {{ text }}
+    </p>
   </div>
 </template>
 

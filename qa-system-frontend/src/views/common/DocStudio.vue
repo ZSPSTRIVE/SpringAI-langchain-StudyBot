@@ -15,7 +15,11 @@
           :show-file-list="false"
           :before-upload="handleBeforeUpload"
         >
-          <el-button type="primary" :icon="Upload" :loading="uploading">
+          <el-button
+            type="primary"
+            :icon="Upload"
+            :loading="uploading"
+          >
             选择 Word 文档 (.doc / .docx)
           </el-button>
         </el-upload>
@@ -28,15 +32,25 @@
         >
           开始查重
         </el-button>
-        <el-tag v-if="overallSimilarity !== null" :type="similarityTagType" class="overall-tag">
+        <el-tag
+          v-if="overallSimilarity !== null"
+          :type="similarityTagType"
+          class="overall-tag"
+        >
           整体查重率：{{ overallSimilarity.toFixed(1) }}%
         </el-tag>
       </div>
     </el-card>
 
-    <el-row :gutter="16" class="studio-main">
+    <el-row
+      :gutter="16"
+      class="studio-main"
+    >
       <!-- 左侧：段落列表 -->
-      <el-col :xs="24" :md="6">
+      <el-col
+        :xs="24"
+        :md="6"
+      >
         <el-card class="paragraph-card">
           <template #header>
             <div class="card-header">
@@ -45,7 +59,10 @@
                 <span>段落列表</span>
               </div>
               <div class="right">
-                <el-checkbox v-model="multiSelectMode" @change="toggleMultiSelectMode">
+                <el-checkbox
+                  v-model="multiSelectMode"
+                  @change="toggleMultiSelectMode"
+                >
                   多选
                 </el-checkbox>
                 <el-button
@@ -77,17 +94,25 @@
                 <el-checkbox
                   v-if="multiSelectMode"
                   :model-value="isSelected(p.paragraphIndex)"
-                  @click.stop="toggleSelection(p.paragraphIndex)"
                   class="paragraph-checkbox"
+                  @click.stop="toggleSelection(p.paragraphIndex)"
                 />
                 <span class="index">#{{ p.paragraphIndex }}</span>
-                <el-tag :type="getSimilarityType(p.similarity)" size="small">
+                <el-tag
+                  :type="getSimilarityType(p.similarity)"
+                  size="small"
+                >
                   {{ formatSimilarity(p.similarity) }}
                 </el-tag>
               </div>
-              <div class="paragraph-preview">{{ p.originalText }}</div>
+              <div class="paragraph-preview">
+                {{ p.originalText }}
+              </div>
             </div>
-            <div v-if="!paragraphs.length" class="empty-hint">
+            <div
+              v-if="!paragraphs.length"
+              class="empty-hint"
+            >
               请先上传并查重文档
             </div>
           </el-scrollbar>
@@ -95,7 +120,10 @@
       </el-col>
 
       <!-- 右侧：编辑器 + Diff -->
-      <el-col :xs="24" :md="18">
+      <el-col
+        :xs="24"
+        :md="18"
+      >
         <el-card class="editor-card">
           <template #header>
             <div class="card-header editor-header">
@@ -132,7 +160,10 @@
           </template>
 
           <div class="full-editor-container">
-            <div ref="fullEditorRef" class="full-monaco-editor"></div>
+            <div
+              ref="fullEditorRef"
+              class="full-monaco-editor"
+            />
           </div>
         </el-card>
       </el-col>
@@ -148,28 +179,71 @@
     >
       <el-form>
         <el-form-item label="原文">
-          <el-input v-model="selectedText" type="textarea" :rows="4" readonly />
+          <el-input
+            v-model="selectedText"
+            type="textarea"
+            :rows="4"
+            readonly
+          />
         </el-form-item>
         <el-form-item label="降重风格">
-          <el-select v-model="rewriteStyle" style="width: 100%">
-            <el-option label="学术降重" value="ACADEMIC" />
-            <el-option label="通顺化" value="FLUENCY" />
-            <el-option label="扩写" value="EXPAND" />
-            <el-option label="逻辑强化" value="LOGIC_ENHANCE" />
+          <el-select
+            v-model="rewriteStyle"
+            style="width: 100%"
+          >
+            <el-option
+              label="学术降重"
+              value="ACADEMIC"
+            />
+            <el-option
+              label="通顺化"
+              value="FLUENCY"
+            />
+            <el-option
+              label="扩写"
+              value="EXPAND"
+            />
+            <el-option
+              label="逻辑强化"
+              value="LOGIC_ENHANCE"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="改写结果">
-          <el-input v-model="rewrittenText" type="textarea" :rows="6" />
-          <div v-if="rewriting" class="rewriting-hint">
-            <el-icon class="is-loading"><Loading /></el-icon>
+          <el-input
+            v-model="rewrittenText"
+            type="textarea"
+            :rows="6"
+          />
+          <div
+            v-if="rewriting"
+            class="rewriting-hint"
+          >
+            <el-icon class="is-loading">
+              <Loading />
+            </el-icon>
             正在改写中...
           </div>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="rewriteDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="startRewrite" :loading="rewriting">开始降重</el-button>
-        <el-button type="success" @click="applyRewrite" :disabled="!rewrittenText">应用到文档</el-button>
+        <el-button @click="rewriteDialogVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="rewriting"
+          @click="startRewrite"
+        >
+          开始降重
+        </el-button>
+        <el-button
+          type="success"
+          :disabled="!rewrittenText"
+          @click="applyRewrite"
+        >
+          应用到文档
+        </el-button>
       </template>
     </el-dialog>
   </div>

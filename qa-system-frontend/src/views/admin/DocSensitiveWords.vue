@@ -8,7 +8,11 @@
       :breadcrumbs="[{ label: '敏感词配置' }]"
     >
       <template #extra>
-        <el-button type="primary" :icon="Plus" @click="handleAdd">
+        <el-button
+          type="primary"
+          :icon="Plus"
+          @click="handleAdd"
+        >
           新增敏感词
         </el-button>
       </template>
@@ -16,7 +20,11 @@
 
     <!-- 搜索条件 -->
     <el-card class="search-card">
-      <el-form :inline="true" :model="searchForm" class="search-form">
+      <el-form
+        :inline="true"
+        :model="searchForm"
+        class="search-form"
+      >
         <el-form-item label="关键词">
           <el-input
             v-model="searchForm.keyword"
@@ -39,12 +47,30 @@
             style="width: 180px"
             @change="handleSearch"
           >
-            <el-option label="默认" value="DEFAULT" />
-            <el-option label="政治" value="POLITICS" />
-            <el-option label="暴力" value="VIOLENCE" />
-            <el-option label="色情" value="PORN" />
-            <el-option label="违法" value="ILLEGAL" />
-            <el-option label="其他" value="OTHER" />
+            <el-option
+              label="默认"
+              value="DEFAULT"
+            />
+            <el-option
+              label="政治"
+              value="POLITICS"
+            />
+            <el-option
+              label="暴力"
+              value="VIOLENCE"
+            />
+            <el-option
+              label="色情"
+              value="PORN"
+            />
+            <el-option
+              label="违法"
+              value="ILLEGAL"
+            />
+            <el-option
+              label="其他"
+              value="OTHER"
+            />
           </el-select>
         </el-form-item>
 
@@ -56,14 +82,31 @@
             style="width: 160px"
             @change="handleSearch"
           >
-            <el-option label="启用" value="true" />
-            <el-option label="禁用" value="false" />
+            <el-option
+              label="启用"
+              value="true"
+            />
+            <el-option
+              label="禁用"
+              value="false"
+            />
           </el-select>
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
-          <el-button :icon="Refresh" @click="handleReset">重置</el-button>
+          <el-button
+            type="primary"
+            :icon="Search"
+            @click="handleSearch"
+          >
+            搜索
+          </el-button>
+          <el-button
+            :icon="Refresh"
+            @click="handleReset"
+          >
+            重置
+          </el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -76,46 +119,94 @@
         stripe
         style="width: 100%"
       >
-        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column
+          prop="id"
+          label="ID"
+          width="80"
+        />
 
-        <el-table-column prop="word" label="敏感词" min-width="180" show-overflow-tooltip />
+        <el-table-column
+          prop="word"
+          label="敏感词"
+          min-width="180"
+          show-overflow-tooltip
+        />
 
-        <el-table-column label="分类" width="120">
+        <el-table-column
+          label="分类"
+          width="120"
+        >
           <template #default="{ row }">
-            <el-tag size="small">{{ formatCategory(row.category) }}</el-tag>
+            <el-tag size="small">
+              {{ formatCategory(row.category) }}
+            </el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column label="风险等级" width="120">
+        <el-table-column
+          label="风险等级"
+          width="120"
+        >
           <template #default="{ row }">
-            <el-tag :type="getLevelType(row.level)" size="small">
+            <el-tag
+              :type="getLevelType(row.level)"
+              size="small"
+            >
               {{ formatLevel(row.level) }}
             </el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column label="是否启用" width="100">
+        <el-table-column
+          label="是否启用"
+          width="100"
+        >
           <template #default="{ row }">
-            <el-tag :type="row.enabled ? 'success' : 'info'" size="small">
+            <el-tag
+              :type="row.enabled ? 'success' : 'info'"
+              size="small"
+            >
               {{ row.enabled ? '启用' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column prop="description" label="说明" min-width="220" show-overflow-tooltip />
+        <el-table-column
+          prop="description"
+          label="说明"
+          min-width="220"
+          show-overflow-tooltip
+        />
 
-        <el-table-column label="创建时间" width="180">
+        <el-table-column
+          label="创建时间"
+          width="180"
+        >
           <template #default="{ row }">
             {{ formatDate(row.createdAt || row.created_at) }}
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column
+          label="操作"
+          width="180"
+          fixed="right"
+        >
           <template #default="{ row }">
-            <el-button type="primary" size="small" link @click="handleEdit(row)">
+            <el-button
+              type="primary"
+              size="small"
+              link
+              @click="handleEdit(row)"
+            >
               编辑
             </el-button>
-            <el-button type="danger" size="small" link @click="handleDelete(row)">
+            <el-button
+              type="danger"
+              size="small"
+              link
+              @click="handleDelete(row)"
+            >
               删除
             </el-button>
           </template>
@@ -148,30 +239,78 @@
         :rules="rules"
         label-width="90px"
       >
-        <el-form-item label="敏感词" prop="word">
-          <el-input v-model="form.word" placeholder="请输入敏感词内容" />
+        <el-form-item
+          label="敏感词"
+          prop="word"
+        >
+          <el-input
+            v-model="form.word"
+            placeholder="请输入敏感词内容"
+          />
         </el-form-item>
 
-        <el-form-item label="分类" prop="category">
-          <el-select v-model="form.category" placeholder="请选择分类">
-            <el-option label="默认" value="DEFAULT" />
-            <el-option label="政治" value="POLITICS" />
-            <el-option label="暴力" value="VIOLENCE" />
-            <el-option label="色情" value="PORN" />
-            <el-option label="违法" value="ILLEGAL" />
-            <el-option label="其他" value="OTHER" />
+        <el-form-item
+          label="分类"
+          prop="category"
+        >
+          <el-select
+            v-model="form.category"
+            placeholder="请选择分类"
+          >
+            <el-option
+              label="默认"
+              value="DEFAULT"
+            />
+            <el-option
+              label="政治"
+              value="POLITICS"
+            />
+            <el-option
+              label="暴力"
+              value="VIOLENCE"
+            />
+            <el-option
+              label="色情"
+              value="PORN"
+            />
+            <el-option
+              label="违法"
+              value="ILLEGAL"
+            />
+            <el-option
+              label="其他"
+              value="OTHER"
+            />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="风险等级" prop="level">
-          <el-select v-model="form.level" placeholder="请选择风险等级">
-            <el-option label="高" value="HIGH" />
-            <el-option label="中" value="MEDIUM" />
-            <el-option label="低" value="LOW" />
+        <el-form-item
+          label="风险等级"
+          prop="level"
+        >
+          <el-select
+            v-model="form.level"
+            placeholder="请选择风险等级"
+          >
+            <el-option
+              label="高"
+              value="HIGH"
+            />
+            <el-option
+              label="中"
+              value="MEDIUM"
+            />
+            <el-option
+              label="低"
+              value="LOW"
+            />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="是否启用" prop="enabled">
+        <el-form-item
+          label="是否启用"
+          prop="enabled"
+        >
           <el-switch v-model="form.enabled" />
         </el-form-item>
 
@@ -186,8 +325,14 @@
       </el-form>
 
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit">
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="submitting"
+          @click="handleSubmit"
+        >
           确定
         </el-button>
       </template>

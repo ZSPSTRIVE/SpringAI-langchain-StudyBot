@@ -1,6 +1,12 @@
 <template>
-  <div class="formula-backdrop" aria-hidden="true">
-    <canvas ref="canvasRef" class="formula-canvas" />
+  <div
+    class="formula-backdrop"
+    aria-hidden="true"
+  >
+    <canvas
+      ref="canvasRef"
+      class="formula-canvas"
+    />
     <div class="formula-grain" />
   </div>
 </template>

@@ -55,8 +55,13 @@
     </div>
 
     <!-- 最近使用 -->
-    <div v-if="recentEmojis.length > 0" class="recent-section">
-      <div class="recent-title">最近使用</div>
+    <div
+      v-if="recentEmojis.length > 0"
+      class="recent-section"
+    >
+      <div class="recent-title">
+        最近使用
+      </div>
       <div class="recent-grid">
         <div
           v-for="emoji in recentEmojis"

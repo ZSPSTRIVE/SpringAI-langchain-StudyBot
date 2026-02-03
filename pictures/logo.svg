@@ -1,31 +1,41 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
   <defs>
-    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="2" dy="4" stdDeviation="4" flood-opacity="0.3"/>
+    <filter id="glassShadow" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#000000" flood-opacity="0.12" />
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.08" />
+    </filter>
+
+    <filter id="glassBlur" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="2.2" />
     </filter>
   </defs>
   
   <!-- 背景圆角方块 -->
-  <rect x="10" y="10" width="100" height="100" rx="24" ry="24" fill="url(#grad1)" filter="url(#shadow)" stroke="#333" stroke-width="3"/>
+  <rect width="120" height="120" fill="#FFFFFF" />
+  <rect x="10" y="10" width="100" height="100" rx="26" ry="26" fill="#FFFFFF" fill-opacity="0.78" stroke="#111111" stroke-opacity="0.10" stroke-width="1.2" filter="url(#glassShadow)" />
+  <path d="M20 26 C42 16, 70 16, 100 30" fill="none" stroke="#FFFFFF" stroke-opacity="0.8" stroke-width="6" stroke-linecap="round" filter="url(#glassBlur)" />
   
   <!-- 书本图标 -->
-  <g transform="translate(25, 28)">
-    <!-- 书本主体 -->
-    <path d="M35 0 L35 50 L0 40 L0 10 Z" fill="#fff" stroke="#333" stroke-width="2.5"/>
-    <path d="M35 0 L35 50 L70 40 L70 10 Z" fill="#f5f5f5" stroke="#333" stroke-width="2.5"/>
-    
-    <!-- 书脊 -->
-    <line x1="35" y1="0" x2="35" y2="50" stroke="#333" stroke-width="3"/>
-    
-    <!-- 问号 -->
-    <text x="35" y="38" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#FF6B35" text-anchor="middle">?</text>
+  <g fill="none" stroke="#111111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M58 46 C49 42 39 42 30 46 L30 84 C39 80 49 80 58 84" />
+    <path d="M58 46 C67 42 77 42 86 46 L86 84 C77 80 67 80 58 84" />
+    <path d="M58 46 L58 84" />
+    <path d="M36 56 C43 54 49 54 54 56" />
+    <path d="M62 56 C67 54 73 54 80 56" />
   </g>
-  
+
   <!-- 对话气泡 -->
-  <circle cx="85" cy="28" r="14" fill="#4CAF50" stroke="#333" stroke-width="2"/>
-  <text x="85" y="33" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#fff" text-anchor="middle">AI</text>
+  <g fill="none" stroke="#111111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="88" cy="34" r="10" />
+    <path d="M84 44 H92" />
+    <path d="M85 47 H91" />
+    <path d="M84 34 C86 31 90 31 92 34" stroke-width="2.2" />
+    <path d="M86 34 L86 38" stroke-width="2.2" />
+    <path d="M90 34 L90 38" stroke-width="2.2" />
+    <path d="M88 18 L88 14" stroke-width="2.2" />
+    <path d="M76 26 L72 23" stroke-width="2.2" />
+    <path d="M100 26 L104 23" stroke-width="2.2" />
+    <path d="M78 42 L74 44" stroke-width="2.2" />
+    <path d="M98 42 L102 44" stroke-width="2.2" />
+  </g>
 </svg>

@@ -10,7 +10,11 @@
 
     <!-- 搜索和操作栏 -->
     <el-card class="search-card">
-      <el-form :inline="true" :model="searchForm" class="search-form">
+      <el-form
+        :inline="true"
+        :model="searchForm"
+        class="search-form"
+      >
         <el-form-item label="搜索">
           <el-input
             v-model="searchForm.keyword"
@@ -33,18 +37,40 @@
             style="width: 150px"
             @change="handleSearch"
           >
-            <el-option label="正常" value="ACTIVE" />
-            <el-option label="禁用" value="DISABLED" />
-            <el-option label="锁定" value="LOCKED" />
+            <el-option
+              label="正常"
+              value="ACTIVE"
+            />
+            <el-option
+              label="禁用"
+              value="DISABLED"
+            />
+            <el-option
+              label="锁定"
+              value="LOCKED"
+            />
           </el-select>
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" :icon="Search" @click="handleSearch">
+          <el-button
+            type="primary"
+            :icon="Search"
+            @click="handleSearch"
+          >
             搜索
           </el-button>
-          <el-button :icon="Refresh" @click="handleReset">重置</el-button>
-          <el-button type="success" :icon="Plus" @click="handleAddTeacher">
+          <el-button
+            :icon="Refresh"
+            @click="handleReset"
+          >
+            重置
+          </el-button>
+          <el-button
+            type="success"
+            :icon="Plus"
+            @click="handleAddTeacher"
+          >
             新增教师
           </el-button>
         </el-form-item>
@@ -60,61 +86,146 @@
         style="width: 100%"
         @selection-change="handleSelectionChange"
       >
-        <el-table-column type="selection" width="55" />
+        <el-table-column
+          type="selection"
+          width="55"
+        />
         
-        <el-table-column prop="userId" label="ID" width="80" />
+        <el-table-column
+          prop="userId"
+          label="ID"
+          width="80"
+        />
         
-        <el-table-column label="头像" width="80">
+        <el-table-column
+          label="头像"
+          width="80"
+        >
           <template #default="{ row }">
-            <el-avatar :size="40" :src="row.avatar">
+            <el-avatar
+              :size="40"
+              :src="row.avatar"
+            >
               {{ row.realName?.[0] || '教' }}
             </el-avatar>
           </template>
         </el-table-column>
 
-        <el-table-column prop="realName" label="姓名" width="120" />
+        <el-table-column
+          prop="realName"
+          label="姓名"
+          width="120"
+        />
         
-        <el-table-column prop="teacherNo" label="工号" width="120" />
+        <el-table-column
+          prop="teacherNo"
+          label="工号"
+          width="120"
+        />
         
-        <el-table-column prop="username" label="用户名" width="120" />
+        <el-table-column
+          prop="username"
+          label="用户名"
+          width="120"
+        />
         
-        <el-table-column prop="gender" label="性别" width="80">
+        <el-table-column
+          prop="gender"
+          label="性别"
+          width="80"
+        >
           <template #default="{ row }">
-            <el-tag v-if="row.gender === 'M'" type="primary" size="small">男</el-tag>
-            <el-tag v-else-if="row.gender === 'F'" type="danger" size="small">女</el-tag>
-            <el-tag v-else type="info" size="small">保密</el-tag>
+            <el-tag
+              v-if="row.gender === 'M'"
+              type="primary"
+              size="small"
+            >
+              男
+            </el-tag>
+            <el-tag
+              v-else-if="row.gender === 'F'"
+              type="danger"
+              size="small"
+            >
+              女
+            </el-tag>
+            <el-tag
+              v-else
+              type="info"
+              size="small"
+            >
+              保密
+            </el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column prop="college" label="学院" min-width="120" />
+        <el-table-column
+          prop="college"
+          label="学院"
+          min-width="120"
+        />
         
-        <el-table-column prop="title" label="职称" width="120" />
+        <el-table-column
+          prop="title"
+          label="职称"
+          width="120"
+        />
         
-        <el-table-column prop="office" label="办公室" width="120" />
+        <el-table-column
+          prop="office"
+          label="办公室"
+          width="120"
+        />
         
-        <el-table-column prop="email" label="邮箱" min-width="150" />
+        <el-table-column
+          prop="email"
+          label="邮箱"
+          min-width="150"
+        />
 
-        <el-table-column label="状态" width="100">
+        <el-table-column
+          label="状态"
+          width="100"
+        >
           <template #default="{ row }">
-            <el-tag v-if="row.status === 'ACTIVE'" type="success" size="small">
+            <el-tag
+              v-if="row.status === 'ACTIVE'"
+              type="success"
+              size="small"
+            >
               正常
             </el-tag>
-            <el-tag v-else-if="row.status === 'DISABLED'" type="warning" size="small">
+            <el-tag
+              v-else-if="row.status === 'DISABLED'"
+              type="warning"
+              size="small"
+            >
               禁用
             </el-tag>
-            <el-tag v-else-if="row.status === 'LOCKED'" type="danger" size="small">
+            <el-tag
+              v-else-if="row.status === 'LOCKED'"
+              type="danger"
+              size="small"
+            >
               锁定
             </el-tag>
           </template>
         </el-table-column>
 
-        <el-table-column label="注册时间" width="180">
+        <el-table-column
+          label="注册时间"
+          width="180"
+        >
           <template #default="{ row }">
             {{ formatDate(row.createTime) }}
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="240" fixed="right">
+        <el-table-column
+          label="操作"
+          width="240"
+          fixed="right"
+        >
           <template #default="{ row }">
             <el-button
               type="info"
@@ -190,85 +301,190 @@
         label-width="100px"
         class="add-teacher-form"
       >
-        <el-divider content-position="left">基本信息</el-divider>
+        <el-divider content-position="left">
+          基本信息
+        </el-divider>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="用户名" prop="username">
-              <el-input v-model="addForm.username" placeholder="请输入登录用户名" />
+            <el-form-item
+              label="用户名"
+              prop="username"
+            >
+              <el-input
+                v-model="addForm.username"
+                placeholder="请输入登录用户名"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="密码" prop="password">
-              <el-input v-model="addForm.password" type="password" show-password placeholder="请输入初始密码" />
+            <el-form-item
+              label="密码"
+              prop="password"
+            >
+              <el-input
+                v-model="addForm.password"
+                type="password"
+                show-password
+                placeholder="请输入初始密码"
+              />
             </el-form-item>
           </el-col>
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="姓名" prop="realName">
-              <el-input v-model="addForm.realName" placeholder="请输入真实姓名" />
+            <el-form-item
+              label="姓名"
+              prop="realName"
+            >
+              <el-input
+                v-model="addForm.realName"
+                placeholder="请输入真实姓名"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="性别" prop="gender">
-              <el-select v-model="addForm.gender" placeholder="请选择性别" style="width: 100%">
-                <el-option label="男" value="M" />
-                <el-option label="女" value="F" />
-                <el-option label="保密" value="U" />
+            <el-form-item
+              label="性别"
+              prop="gender"
+            >
+              <el-select
+                v-model="addForm.gender"
+                placeholder="请选择性别"
+                style="width: 100%"
+              >
+                <el-option
+                  label="男"
+                  value="M"
+                />
+                <el-option
+                  label="女"
+                  value="F"
+                />
+                <el-option
+                  label="保密"
+                  value="U"
+                />
               </el-select>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="邮箱" prop="email">
-              <el-input v-model="addForm.email" placeholder="请输入邮箱" />
+            <el-form-item
+              label="邮箱"
+              prop="email"
+            >
+              <el-input
+                v-model="addForm.email"
+                placeholder="请输入邮箱"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="手机号" prop="phone">
-              <el-input v-model="addForm.phone" placeholder="请输入手机号" />
+            <el-form-item
+              label="手机号"
+              prop="phone"
+            >
+              <el-input
+                v-model="addForm.phone"
+                placeholder="请输入手机号"
+              />
             </el-form-item>
           </el-col>
         </el-row>
 
-        <el-divider content-position="left">教师信息</el-divider>
+        <el-divider content-position="left">
+          教师信息
+        </el-divider>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="工号" prop="teacherNo">
-              <el-input v-model="addForm.teacherNo" placeholder="请输入工号" />
+            <el-form-item
+              label="工号"
+              prop="teacherNo"
+            >
+              <el-input
+                v-model="addForm.teacherNo"
+                placeholder="请输入工号"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="职称" prop="title">
-              <el-select v-model="addForm.title" placeholder="请选择职称" style="width: 100%" allow-create filterable>
-                <el-option label="助教" value="助教" />
-                <el-option label="讲师" value="讲师" />
-                <el-option label="副教授" value="副教授" />
-                <el-option label="教授" value="教授" />
+            <el-form-item
+              label="职称"
+              prop="title"
+            >
+              <el-select
+                v-model="addForm.title"
+                placeholder="请选择职称"
+                style="width: 100%"
+                allow-create
+                filterable
+              >
+                <el-option
+                  label="助教"
+                  value="助教"
+                />
+                <el-option
+                  label="讲师"
+                  value="讲师"
+                />
+                <el-option
+                  label="副教授"
+                  value="副教授"
+                />
+                <el-option
+                  label="教授"
+                  value="教授"
+                />
               </el-select>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="学院" prop="college">
-              <el-input v-model="addForm.college" placeholder="请输入所属学院" />
+            <el-form-item
+              label="学院"
+              prop="college"
+            >
+              <el-input
+                v-model="addForm.college"
+                placeholder="请输入所属学院"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="办公室" prop="office">
-              <el-input v-model="addForm.office" placeholder="请输入办公室位置" />
+            <el-form-item
+              label="办公室"
+              prop="office"
+            >
+              <el-input
+                v-model="addForm.office"
+                placeholder="请输入办公室位置"
+              />
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item label="研究方向" prop="research">
-          <el-input v-model="addForm.research" type="textarea" :rows="2" placeholder="请输入研究方向" />
+        <el-form-item
+          label="研究方向"
+          prop="research"
+        >
+          <el-input
+            v-model="addForm.research"
+            type="textarea"
+            :rows="2"
+            placeholder="请输入研究方向"
+          />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="addDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="addLoading" @click="handleSubmitAdd">
+        <el-button @click="addDialogVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="addLoading"
+          @click="handleSubmitAdd"
+        >
           确认创建
         </el-button>
       </template>
@@ -280,8 +496,14 @@
       title="教师详情"
       width="600px"
     >
-      <div v-if="currentTeacher" class="teacher-detail">
-        <el-descriptions :column="2" border>
+      <div
+        v-if="currentTeacher"
+        class="teacher-detail"
+      >
+        <el-descriptions
+          :column="2"
+          border
+        >
           <el-descriptions-item label="姓名">
             {{ currentTeacher.realName }}
           </el-descriptions-item>
@@ -292,9 +514,27 @@
             {{ currentTeacher.username }}
           </el-descriptions-item>
           <el-descriptions-item label="性别">
-            <el-tag v-if="currentTeacher.gender === 'M'" type="primary" size="small">男</el-tag>
-            <el-tag v-else-if="currentTeacher.gender === 'F'" type="danger" size="small">女</el-tag>
-            <el-tag v-else type="info" size="small">保密</el-tag>
+            <el-tag
+              v-if="currentTeacher.gender === 'M'"
+              type="primary"
+              size="small"
+            >
+              男
+            </el-tag>
+            <el-tag
+              v-else-if="currentTeacher.gender === 'F'"
+              type="danger"
+              size="small"
+            >
+              女
+            </el-tag>
+            <el-tag
+              v-else
+              type="info"
+              size="small"
+            >
+              保密
+            </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="邮箱">
             {{ currentTeacher.email || '-' }}
@@ -311,19 +551,30 @@
           <el-descriptions-item label="办公室">
             {{ currentTeacher.office || '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="研究方向" :span="2">
+          <el-descriptions-item
+            label="研究方向"
+            :span="2"
+          >
             {{ currentTeacher.research || '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="个人简介" :span="2">
+          <el-descriptions-item
+            label="个人简介"
+            :span="2"
+          >
             {{ currentTeacher.bio || '-' }}
           </el-descriptions-item>
-          <el-descriptions-item label="注册时间" :span="2">
+          <el-descriptions-item
+            label="注册时间"
+            :span="2"
+          >
             {{ formatDate(currentTeacher.createTime) }}
           </el-descriptions-item>
         </el-descriptions>
       </div>
       <template #footer>
-        <el-button @click="detailDialogVisible = false">关闭</el-button>
+        <el-button @click="detailDialogVisible = false">
+          关闭
+        </el-button>
       </template>
     </el-dialog>
   </div>

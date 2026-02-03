@@ -1,361 +1,486 @@
 <template>
-  <div class="home-container">
-    <!-- 动态背景 -->
-    <div class="neo-bg-animated">
-      <div class="floating-shapes">
-        <div class="shape shape-1"></div>
-        <div class="shape shape-2"></div>
-        <div class="shape shape-3"></div>
-        <div class="shape shape-4"></div>
-        <div class="shape shape-5"></div>
-        <div class="shape shape-6"></div>
-        <div class="shape shape-7"></div>
-        <div class="shape shape-8"></div>
+  <div class="landing">
+    <div
+      v-if="themeStore.backgroundMode === 'dynamic'"
+      class="glow-bg"
+      style="--glow-color-1: var(--theme-glow-1); --glow-color-2: var(--theme-glow-2);"
+    />
+    <div
+      v-else
+      class="pure-bg"
+    />
+    <FormulaBackdrop v-if="themeStore.backgroundMode === 'dynamic'" />
+
+    <header class="landing-header">
+      <div class="header-surface">
+        <div
+          class="brand"
+          @click="router.push('/home')"
+        >
+          <div class="brand-mark">
+            <el-icon><School /></el-icon>
+          </div>
+          <div class="brand-text">
+            <div class="brand-name">
+              师生答疑系统
+            </div>
+            <div class="brand-sub">
+              Student • Teacher • AI
+            </div>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <a
+            class="nav-link is-active"
+            href="#"
+            @click.prevent="scrollToTop"
+          >首页</a>
+          <a
+            class="nav-link"
+            href="#features"
+            @click.prevent="scrollTo('features')"
+          >功能</a>
+          <a
+            class="nav-link"
+            href="#howto"
+            @click.prevent="scrollTo('howto')"
+          >使用</a>
+          <a
+            class="nav-link"
+            href="#"
+            @click.prevent="router.push('/forum')"
+          >交流区</a>
+        </nav>
+
+        <div class="actions">
+          <button
+            class="icon-btn"
+            :title="themeStore.backgroundMode === 'dynamic' ? '切换到纯色背景' : '切换到动态背景'"
+            @click="themeStore.toggleBackground"
+          >
+            <el-icon><Monitor /></el-icon>
+          </button>
+          <button
+            class="icon-btn"
+            title="切换背景色"
+            @click="themeStore.nextPalette"
+          >
+            <el-icon><MagicStick /></el-icon>
+          </button>
+
+          <template v-if="userStore.isAuthenticated">
+            <el-dropdown
+              trigger="click"
+              @command="handleCommand"
+            >
+              <div class="user-pill">
+                <el-avatar
+                  :size="28"
+                  :src="userStore.userInfo?.avatar"
+                  class="user-avatar"
+                >
+                  {{ userStore.userInfo?.realName?.[0] || 'U' }}
+                </el-avatar>
+                <span class="user-name">{{ userStore.userInfo?.realName }}</span>
+                <el-icon><ArrowDown /></el-icon>
+              </div>
+              <template #dropdown>
+                <el-dropdown-menu class="glass-dropdown">
+                  <el-dropdown-item command="profile">
+                    个人中心
+                  </el-dropdown-item>
+                  <el-dropdown-item command="dashboard">
+                    工作台
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    divided
+                    command="logout"
+                  >
+                    退出登录
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </template>
+          <template v-else>
+            <el-button
+              plain
+              @click="router.push('/login')"
+            >
+              登录
+            </el-button>
+            <el-button
+              type="primary"
+              @click="router.push('/register')"
+            >
+              注册
+            </el-button>
+          </template>
+        </div>
       </div>
-    </div>
+    </header>
 
-    <el-container>
-      <!-- 顶部导航 -->
-      <el-header class="neo-header">
-        <div class="header-content">
-          <div class="logo" @click="router.push('/home')">
-            <div class="logo-icon">
-              <el-icon><School /></el-icon>
-            </div>
-            <span class="logo-text">Q&A</span>
+    <main class="landing-main">
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="hero-badge">
+            <span class="dot" />
+            SMART LEARNING PLATFORM
           </div>
-          
-          <nav class="nav-menu">
-            <a href="#" class="nav-item active" @click.prevent="scrollToTop">首页</a>
-            <a href="#features" class="nav-item">功能</a>
-            <a href="#" class="nav-item" @click.prevent="router.push('/forum')">交流区</a>
-          </nav>
-          
-          <div class="user-actions">
-            <template v-if="userStore.isAuthenticated">
-              <el-dropdown @command="handleCommand" trigger="click">
-                <div class="user-badge">
-                  <el-avatar :size="36" :src="userStore.userInfo?.avatar" class="user-avatar">
-                    {{ userStore.userInfo?.realName?.[0] }}
-                  </el-avatar>
-                  <span class="username">{{ userStore.userInfo?.realName }}</span>
-                  <el-icon><ArrowDown /></el-icon>
+
+          <h1 class="hero-title">
+            让每一个问题都得到
+            <span class="hero-highlight">专业解答</span>
+          </h1>
+
+          <p class="hero-subtitle">
+            面向师生的问答与学习平台：提问、解答、沉淀知识，并用 AI 加速学习与写作。
+          </p>
+
+          <div class="hero-cta">
+            <el-button
+              type="primary"
+              size="large"
+              @click="handleGetStarted"
+            >
+              开始使用
+            </el-button>
+            <el-button
+              size="large"
+              @click="router.push('/forum')"
+            >
+              进入交流区
+            </el-button>
+          </div>
+
+          <div class="metrics">
+            <div class="metric glass-card">
+              <div class="metric-value">
+                {{ stats.users }}+
+              </div>
+              <div class="metric-label">
+                活跃用户
+              </div>
+            </div>
+            <div class="metric glass-card">
+              <div class="metric-value">
+                {{ stats.questions }}+
+              </div>
+              <div class="metric-label">
+                问题总数
+              </div>
+            </div>
+            <div class="metric glass-card">
+              <div class="metric-value">
+                {{ stats.answers }}+
+              </div>
+              <div class="metric-label">
+                优质解答
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-panel glass-card">
+          <div class="panel-title">
+            即刻提升学习效率
+          </div>
+          <div class="panel-sub">
+            更快提问、更快得到答案、更好沉淀知识。
+          </div>
+
+          <div class="panel-items">
+            <div class="panel-item">
+              <div class="panel-icon">
+                AI
+              </div>
+              <div class="panel-text">
+                <div class="panel-item-title">
+                  智能问答
                 </div>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item command="profile">
-                      <el-icon><User /></el-icon>个人中心
-                    </el-dropdown-item>
-                    <el-dropdown-item command="dashboard">
-                      <el-icon><Monitor /></el-icon>工作台
-                    </el-dropdown-item>
-                    <el-dropdown-item divided command="logout">
-                      <el-icon><SwitchButton /></el-icon>退出登录
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </template>
-            <template v-else>
-              <button class="neo-btn neo-btn--outline" @click="router.push('/login')">登录</button>
-              <button class="neo-btn neo-btn--primary" @click="router.push('/register')">注册</button>
-            </template>
+                <div class="panel-item-desc">
+                  多轮对话 + 流式输出，支持资料检索。
+                </div>
+              </div>
+            </div>
+            <div class="panel-item">
+              <div class="panel-icon">
+                Doc
+              </div>
+              <div class="panel-text">
+                <div class="panel-item-title">
+                  文档工作台
+                </div>
+                <div class="panel-item-desc">
+                  查重、改写、结构优化，一站式完成。
+                </div>
+              </div>
+            </div>
+            <div class="panel-item">
+              <div class="panel-icon">
+                ∞
+              </div>
+              <div class="panel-text">
+                <div class="panel-item-title">
+                  知识沉淀
+                </div>
+                <div class="panel-item-desc">
+                  问题与答案长期保存，可检索复用。
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </el-header>
 
-      <el-main class="home-main">
-        <!-- Hero区域 - Neo-Brutalism -->
-        <div class="hero-section">
-          <div class="hero-content">
-            <div class="hero-badge">
-              <el-icon><Star /></el-icon>
-              <span>SMART LEARNING PLATFORM</span>
-            </div>
-            
-            <h1 class="hero-title">
-              <span class="title-line">师生</span>
-              <span class="title-line highlight">答疑</span>
-              <span class="title-line">系统</span>
-            </h1>
-            
-            <p class="hero-subtitle">连接师生智慧 · 构建知识桥梁 · 让每一个问题都能得到专业解答</p>
-            
-            <div class="hero-stats">
-              <div class="stat-card stat-card--yellow">
-                <div class="stat-number">{{ stats.users }}+</div>
-                <div class="stat-label">活跃用户</div>
-              </div>
-              <div class="stat-card stat-card--blue">
-                <div class="stat-number">{{ stats.questions }}+</div>
-                <div class="stat-label">问题总数</div>
-              </div>
-              <div class="stat-card stat-card--green">
-                <div class="stat-number">{{ stats.answers }}+</div>
-                <div class="stat-label">优质解答</div>
-              </div>
-            </div>
-            
-            <div class="hero-actions">
-              <button class="neo-hero-btn neo-hero-btn--primary" @click="handleGetStarted">
-                <span>开始使用</span>
-                <el-icon><Promotion /></el-icon>
-              </button>
-              <button class="neo-hero-btn neo-hero-btn--secondary" @click="router.push('/forum')">
-                <span>进入交流区</span>
-                <el-icon><ChatLineSquare /></el-icon>
-              </button>
-            </div>
-          </div>
-          
-          <!-- Hero装饰 -->
-          <div class="hero-deco">
-            <div class="deco-card deco-card--1">
-              <el-icon :size="32"><ChatDotRound /></el-icon>
-              <span>即时问答</span>
-            </div>
-            <div class="deco-card deco-card--2">
-              <el-icon :size="32"><TrendCharts /></el-icon>
-              <span>数据分析</span>
-            </div>
-            <div class="deco-card deco-card--3">
-              <el-icon :size="32"><Collection /></el-icon>
-              <span>知识库</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 功能特色区域 - Neo-Brutalism -->
-        <div id="features" class="features-section">
-          <div class="section-header">
-            <span class="section-tag">FEATURES</span>
-            <h2 class="section-title">核心功能</h2>
-            <p class="section-subtitle">为师生打造的全方位学习辅助平台</p>
-          </div>
-          
-          <div class="features-grid">
-            <div 
-              class="neo-feature-card" 
-              v-for="(feature, index) in features" 
-              :key="index"
-              :class="`neo-feature-card--${feature.colorClass}`"
-              :style="{ animationDelay: `${index * 0.1}s` }"
+          <div class="panel-footer">
+            <el-button
+              class="panel-ghost"
+              @click="scrollTo('features')"
             >
-              <div class="feature-number">0{{ index + 1 }}</div>
+              查看核心功能
+              <el-icon class="ml-6">
+                <Right />
+              </el-icon>
+            </el-button>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="features"
+        class="section"
+      >
+        <div class="section-head">
+          <div class="section-kicker">
+            FEATURES
+          </div>
+          <h2 class="section-title">
+            核心能力
+          </h2>
+          <p class="section-desc">
+            简洁的信息层级 + 玻璃质感，让内容更聚焦。
+          </p>
+        </div>
+
+        <div class="feature-grid">
+          <div
+            v-for="(feature, index) in features"
+            :key="index"
+            class="feature-card glass-card"
+          >
+            <div class="feature-top">
               <div class="feature-icon">
-                <el-icon :size="40"><component :is="feature.icon" /></el-icon>
+                <el-icon :size="22">
+                  <component :is="feature.icon" />
+                </el-icon>
               </div>
-              <h3 class="feature-title">{{ feature.title }}</h3>
-              <p class="feature-desc">{{ feature.desc }}</p>
-              <div class="feature-tags">
-                <span class="neo-tag" v-for="tag in feature.tags" :key="tag">{{ tag }}</span>
+              <div class="feature-title">
+                {{ feature.title }}
               </div>
+            </div>
+            <div class="feature-desc">
+              {{ feature.desc }}
+            </div>
+            <div class="feature-tags">
+              <span
+                v-for="tag in feature.tags"
+                :key="tag"
+                class="tag"
+              >{{ tag }}</span>
             </div>
           </div>
         </div>
+      </section>
 
-        <!-- 如何使用区域 - Neo-Brutalism -->
-        <div class="howto-section">
-          <div class="section-header">
-            <span class="section-tag">HOW TO USE</span>
-            <h2 class="section-title">如何使用</h2>
-            <p class="section-subtitle">三步开启你的学习之旅</p>
+      <section
+        id="howto"
+        class="section"
+      >
+        <div class="section-head">
+          <div class="section-kicker">
+            HOW TO USE
           </div>
-          
-          <div class="steps-container">
-            <div 
-              class="neo-step" 
-              v-for="(step, index) in steps" 
-              :key="index"
-              :class="[`neo-step--${['yellow', 'blue', 'pink'][index]}`]"
+          <h2 class="section-title">
+            三步开始
+          </h2>
+          <p class="section-desc">
+            从注册到沉淀，只需更少的操作。
+          </p>
+        </div>
+
+        <div class="steps">
+          <div
+            v-for="(step, index) in steps"
+            :key="index"
+            class="step glass-card"
+          >
+            <div class="step-no">
+              0{{ index + 1 }}
+            </div>
+            <div class="step-title">
+              <el-icon :size="18">
+                <component :is="step.icon" />
+              </el-icon>
+              <span>{{ step.title }}</span>
+            </div>
+            <div class="step-desc">
+              {{ step.desc }}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta">
+        <div class="cta-card glass-card">
+          <div class="cta-title">
+            准备好开始了吗？
+          </div>
+          <div class="cta-desc">
+            加入我们，与更多师生一起学习与成长。
+          </div>
+          <div class="cta-actions">
+            <el-button
+              type="primary"
+              size="large"
+              @click="handleGetStarted"
             >
-              <div class="step-number">{{ index + 1 }}</div>
-              <div class="step-icon">
-                <el-icon :size="36"><component :is="step.icon" /></el-icon>
-              </div>
-              <h3>{{ step.title }}</h3>
-              <p>{{ step.desc }}</p>
-              <div v-if="index < steps.length - 1" class="step-arrow">
-                <span>→</span>
-              </div>
-            </div>
+              立即开始
+            </el-button>
+            <el-button
+              size="large"
+              @click="router.push('/login')"
+            >
+              先登录
+            </el-button>
           </div>
         </div>
+      </section>
+    </main>
 
-        <!-- CTA区域 -->
-        <div class="cta-section">
-          <div class="cta-content">
-            <h2>准备好开始了吗？</h2>
-            <p>加入我们，与千万师生一起学习成长</p>
-            <div class="cta-actions">
-              <button class="neo-cta-btn" @click="handleGetStarted">
-                <span>立即开始</span>
-                <el-icon><Right /></el-icon>
-              </button>
-            </div>
-          </div>
-          <div class="cta-deco">
-            <div class="cta-shape cta-shape--1"></div>
-            <div class="cta-shape cta-shape--2"></div>
-            <div class="cta-shape cta-shape--3"></div>
-          </div>
+    <footer class="landing-footer">
+      <div class="footer-inner">
+        <div class="footer-left">
+          © 2025 师生答疑系统
         </div>
-      </el-main>
-
-      <!-- 页脚 -->
-      <el-footer class="neo-footer">
-        <div class="footer-content">
-          <div class="footer-brand">
-            <div class="footer-logo">
-              <el-icon><School /></el-icon>
-              <span>师生答疑系统</span>
-            </div>
-            <p>连接师生 · 分享知识 · 共同成长</p>
-          </div>
-          <div class="footer-links">
-            <a href="#">关于我们</a>
-            <a href="#">使用帮助</a>
-            <a href="#">隐私政策</a>
-            <a href="#">联系我们</a>
-          </div>
-          <div class="footer-copyright">
-            <p>&copy; 2025 师生答疑系统. All rights reserved.</p>
-          </div>
+        <div class="footer-links">
+          <a
+            href="#"
+            @click.prevent="scrollToTop"
+          >回到顶部</a>
+          <a
+            href="#"
+            @click.prevent="router.push('/forum')"
+          >交流区</a>
+          <a
+            href="#"
+            @click.prevent="router.push('/login')"
+          >登录</a>
         </div>
-        <div class="footer-bars">
-          <div class="bar bar--yellow"></div>
-          <div class="bar bar--blue"></div>
-          <div class="bar bar--pink"></div>
-          <div class="bar bar--green"></div>
-        </div>
-      </el-footer>
-    </el-container>
+      </div>
+    </footer>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { 
-  ChatDotRound, 
-  Collection, 
-  ChatLineSquare,
-  Star,
-  UserFilled,
-  Select,
-  Promotion,
+import {
+  ArrowDown,
+  School,
+  Monitor,
+  MagicStick,
+  Right,
+  ChatDotRound,
+  Collection,
   TrendCharts,
   Medal,
-  User,
-  Clock,
-  Top,
-  Bottom,
-  ArrowRight,
-  Checked,
+  Star,
+  UserFilled,
   Reading,
-  School,
-  ArrowDown,
-  Monitor,
-  SwitchButton,
-  Right
+  Checked,
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
+import { useThemeStore } from '@/stores/theme'
 import { logout as logoutApi } from '@/api/auth'
+import FormulaBackdrop from '@/components/background/FormulaBackdrop.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
+const themeStore = useThemeStore()
 
 const stats = reactive({
   users: 500,
   questions: 1000,
   answers: 850,
-  totalQuestions: 1234,
-  solvedQuestions: 987,
-  activeUsers: 456,
-  avgResponseTime: '2.5h'
 })
 
 const features = [
   {
-    icon: 'ChatDotRound',
+    icon: ChatDotRound,
     title: '智能问答',
-    desc: '学生提问，教师及时响应，构建高效的师生互动平台',
-    colorClass: 'yellow',
-    tags: ['实时', '高效', '专业']
+    desc: '学生提问，教师即时响应，构建高效的师生互动与知识桥梁。',
+    tags: ['实时', '高效', '专业'],
   },
   {
-    icon: 'Collection',
+    icon: Collection,
     title: '知识沉淀',
-    desc: '问题答案长期保存，形成可检索的知识库',
-    colorClass: 'blue',
-    tags: ['知识库', '可检索', '可复用']
+    desc: '问题与答案长期保存，形成可检索、可复用的知识库。',
+    tags: ['知识库', '可检索', '可复用'],
   },
   {
-    icon: 'ChatLineSquare',
-    title: '社区交流',
-    desc: '开放式论坛，师生自由讨论，促进知识共享',
-    colorClass: 'pink',
-    tags: ['开放', '互动', '共享']
-  },
-  {
-    icon: 'TrendCharts',
+    icon: TrendCharts,
     title: '数据分析',
-    desc: '统计学习数据，分析问题趋势，数据驱动教学',
-    colorClass: 'green',
-    tags: ['数据', '分析', '洞察']
+    desc: '统计学习数据，洞察问题趋势，用数据驱动教学与自我提升。',
+    tags: ['统计', '洞察', '趋势'],
   },
   {
-    icon: 'Medal',
+    icon: Medal,
     title: '成就体系',
-    desc: '激励机制，认可贡献，提升参与积极性',
-    colorClass: 'orange',
-    tags: ['激励', '成长', '认可']
+    desc: '用认可与激励鼓励贡献，让学习与答疑更有成就感。',
+    tags: ['激励', '成长', '认可'],
   },
   {
-    icon: 'Star',
+    icon: Star,
     title: '精选推荐',
-    desc: '智能推荐优质内容，个性化学习路径',
-    colorClass: 'purple',
-    tags: ['智能', '推荐', '个性化']
-  }
+    desc: '智能推荐优质内容，帮助你更快定位到高价值解答。',
+    tags: ['智能', '推荐', '个性化'],
+  },
 ]
-
-const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
 
 const steps = [
   {
-    icon: 'UserFilled',
+    icon: UserFilled,
     title: '注册登录',
-    desc: '创建账号，选择身份（学生/教师），完善个人信息'
+    desc: '创建账号并选择身份（学生/教师/管理员），完善基础信息。',
   },
   {
-    icon: 'Reading',
+    icon: Reading,
     title: '提问/解答',
-    desc: '学生发布问题，教师专业解答，互动交流'
+    desc: '发布问题、回答问题，支持交流区讨论与内容沉淀。',
   },
   {
-    icon: 'Checked',
-    title: '知识沉淀',
-    desc: '优质内容沉淀成知识库，持续学习成长'
-  }
+    icon: Checked,
+    title: '沉淀复用',
+    desc: '将优质内容沉淀为知识库，持续积累与复用。',
+  },
 ]
+
+const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+const scrollTo = (id) => {
+  const el = document.getElementById(id)
+  if (!el) return
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 
 const handleGetStarted = () => {
   if (userStore.isAuthenticated) {
     const role = userStore.userInfo?.role
-    if (role === 'ADMIN') {
-      router.push('/admin')
-    } else if (role === 'TEACHER') {
-      router.push('/teacher')
-    } else if (role === 'STUDENT') {
-      router.push('/student')
-    }
-  } else {
-    router.push('/login')
+    if (role === 'ADMIN') return router.push('/admin')
+    if (role === 'TEACHER') return router.push('/teacher')
+    if (role === 'STUDENT') return router.push('/student')
   }
+  router.push('/login')
 }
 
 const handleCommand = async (command) => {
@@ -366,893 +491,609 @@ const handleCommand = async (command) => {
       ElMessage.success('退出登录成功')
       router.push('/login')
     } catch (error) {
-      console.error('退出失败:', error)
+      console.error('退出登录失败', error)
+      ElMessage.error('退出登录失败')
     }
-  } else if (command === 'profile') {
+    return
+  }
+
+  if (command === 'profile') {
     const role = userStore.userInfo?.role
-    if (role === 'STUDENT') {
-      router.push('/student/profile')
-    } else if (role === 'TEACHER') {
-      router.push('/teacher/profile')
-    }
-  } else if (command === 'dashboard') {
+    if (role === 'STUDENT') return router.push('/student/profile')
+    if (role === 'TEACHER') return router.push('/teacher/profile')
+    return router.push('/home')
+  }
+
+  if (command === 'dashboard') {
     const role = userStore.userInfo?.role
-    if (role === 'ADMIN') {
-      router.push('/admin')
-    } else if (role === 'TEACHER') {
-      router.push('/teacher')
-    } else if (role === 'STUDENT') {
-      router.push('/student')
-    }
+    if (role === 'ADMIN') return router.push('/admin')
+    if (role === 'TEACHER') return router.push('/teacher')
+    if (role === 'STUDENT') return router.push('/student')
   }
 }
 </script>
 
 <style scoped lang="scss">
-@import '@/assets/styles/variables.scss';
-
-.home-container {
+.landing {
   min-height: 100vh;
-  background: $neo-cream;
   position: relative;
+  background: transparent;
 }
 
-// ==================== 动态背景 ====================
-.neo-bg-animated {
-  position: fixed;
+.landing-header {
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image: radial-gradient(circle, rgba($neo-black, 0.06) 2px, transparent 2px);
-  background-size: 24px 24px;
-  
-  .floating-shapes {
-    .shape {
-      position: absolute;
-      border: 3px solid $neo-black;
-      animation: floatShape 10s ease-in-out infinite;
-      
-      &.shape-1 { width: 80px; height: 80px; background: $neo-yellow; top: 5%; left: 5%; border-radius: 50%; animation-delay: 0s; box-shadow: 4px 4px 0 0 $neo-black; }
-      &.shape-2 { width: 60px; height: 60px; background: $neo-blue; top: 20%; right: 10%; animation-delay: 1s; box-shadow: 4px 4px 0 0 $neo-black; }
-      &.shape-3 { width: 50px; height: 50px; background: $neo-pink; top: 60%; left: 8%; border-radius: 50%; animation-delay: 2s; box-shadow: 3px 3px 0 0 $neo-black; }
-      &.shape-4 { width: 70px; height: 70px; background: $neo-green; bottom: 15%; right: 5%; animation-delay: 3s; box-shadow: 4px 4px 0 0 $neo-black; }
-      &.shape-5 { width: 40px; height: 40px; background: $neo-purple; top: 40%; left: 3%; animation-delay: 4s; box-shadow: 3px 3px 0 0 $neo-black; }
-      &.shape-6 { width: 55px; height: 55px; background: $neo-orange; top: 80%; left: 15%; border-radius: 50%; animation-delay: 5s; box-shadow: 3px 3px 0 0 $neo-black; }
-      &.shape-7 { width: 45px; height: 45px; background: $neo-cyan; top: 10%; left: 40%; animation-delay: 6s; box-shadow: 3px 3px 0 0 $neo-black; }
-      &.shape-8 { width: 65px; height: 65px; background: $neo-lime; bottom: 30%; right: 15%; border-radius: 50%; animation-delay: 7s; box-shadow: 4px 4px 0 0 $neo-black; }
-    }
+  z-index: $z-index-sticky;
+  padding: 14px $spacing-lg;
+}
+
+.header-surface {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  background: $glass-floating;
+  border: 1px solid $glass-border-light;
+  border-radius: 999px;
+  box-shadow: $shadow-glass-md;
+  backdrop-filter: blur($blur-md) saturate(180%);
+  -webkit-backdrop-filter: blur($blur-md) saturate(180%);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: linear-gradient(135deg, $color-primary, $re-purple);
+  box-shadow: 0 10px 24px rgba(0, 122, 255, 0.22);
+}
+
+.brand-text {
+  min-width: 0;
+}
+
+.brand-name {
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  @include text-ellipsis;
+}
+
+.brand-sub {
+  font-size: 11px;
+  color: $text-tertiary;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.nav {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+  align-items: center;
+}
+
+.nav-link {
+  height: 38px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  color: $text-secondary;
+  font-size: 13px;
+  transition: all $transition-base;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.55);
+    color: $re-purple;
+    text-decoration: none;
+  }
+
+  &.is-active {
+    background: rgba(255, 255, 255, 0.8);
+    color: $text-primary;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: $shadow-glass-sm;
   }
 }
 
-@keyframes floatShape {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-15px) rotate(5deg); }
-  50% { transform: translateY(-8px) rotate(-3deg); }
-  75% { transform: translateY(-20px) rotate(2deg); }
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
 }
 
-// ==================== 顶部导航 ====================
-.neo-header {
-  background: $neo-white;
-  border-bottom: 4px solid $neo-black;
-  padding: 0;
-  height: 80px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.5);
+  color: $text-secondary;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-base;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.72);
+    color: $re-purple;
+    box-shadow: $shadow-glass-sm;
+  }
 }
 
-.header-content {
-  max-width: 1400px;
-  height: 100%;
+.user-pill {
+  height: 38px;
+  padding: 0 12px 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.55);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: $shadow-glass-sm;
+  }
+}
+
+.user-avatar {
+  border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.user-name {
+  max-width: 140px;
+  font-size: 13px;
+  color: $text-primary;
+  @include text-ellipsis;
+}
+
+.landing-main {
+  position: relative;
+  z-index: 1;
+  padding: 18px $spacing-lg 64px;
+}
+
+.hero {
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 32px;
+  padding: 56px 0 20px;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 22px;
+  align-items: start;
+}
+
+.hero-copy {
+  padding: 22px 6px;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.55);
+  color: $text-secondary;
+  font-size: 12px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  backdrop-filter: blur($blur-sm);
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $color-primary, $re-purple);
+    box-shadow: 0 0 0 4px rgba(139, 128, 249, 0.14);
+  }
+}
+
+.hero-title {
+  margin-top: 14px;
+  font-size: 46px;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: $text-primary;
+}
+
+.hero-highlight {
+  background: linear-gradient(135deg, $color-primary, $re-purple);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-subtitle {
+  margin-top: 16px;
+  font-size: 15px;
+  color: $text-secondary;
+  line-height: 1.7;
+  max-width: 48ch;
+}
+
+.hero-cta {
+  margin-top: 22px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.metrics {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.metric {
+  padding: 14px 14px 12px;
+  text-align: left;
+}
+
+.metric-value {
+  font-size: 20px;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+}
+
+.metric-label {
+  margin-top: 6px;
+  font-size: 12px;
+  color: $text-tertiary;
+  letter-spacing: 0.4px;
+}
+
+.hero-panel {
+  padding: 22px;
+}
+
+.panel-title {
+  font-size: 18px;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+}
+
+.panel-sub {
+  margin-top: 8px;
+  color: $text-secondary;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.panel-items {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.panel-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: $radius-lg;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.panel-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: $font-weight-bold;
+  color: $text-primary;
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.18), rgba(139, 128, 249, 0.12));
+  border: 1px solid rgba(255, 255, 255, 0.85);
+}
+
+.panel-item-title {
+  font-size: 13px;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+}
+
+.panel-item-desc {
+  margin-top: 4px;
+  font-size: 12px;
+  color: $text-secondary;
+  line-height: 1.55;
+}
+
+.panel-footer {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.panel-ghost {
+  border-radius: 999px !important;
+}
+
+.ml-6 {
+  margin-left: 6px;
+}
+
+.section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 58px 0 0;
+}
+
+.section-head {
+  max-width: 640px;
+}
+
+.section-kicker {
+  font-size: 12px;
+  letter-spacing: 0.9px;
+  color: $text-tertiary;
+}
+
+.section-title {
+  margin-top: 10px;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+  color: $text-primary;
+}
+
+.section-desc {
+  margin-top: 10px;
+  font-size: 14px;
+  color: $text-secondary;
+  line-height: 1.7;
+}
+
+.feature-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.feature-card {
+  padding: 18px;
+}
+
+.feature-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.feature-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.4));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $re-purple;
+}
+
+.feature-title {
+  font-size: 15px;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+}
+
+.feature-desc {
+  margin-top: 10px;
+  font-size: 13px;
+  color: $text-secondary;
+  line-height: 1.65;
+}
+
+.feature-tags {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: $text-secondary;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+}
+
+.steps {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.step {
+  padding: 18px;
+}
+
+.step-no {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: $text-tertiary;
+}
+
+.step-title {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+}
+
+.step-desc {
+  margin-top: 10px;
+  font-size: 13px;
+  color: $text-secondary;
+  line-height: 1.7;
+}
+
+.cta {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 64px 0 0;
+}
+
+.cta-card {
+  padding: 26px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    
-    .logo-icon {
-      width: 48px;
-      height: 48px;
-      background: $neo-yellow;
-      border: 3px solid $neo-black;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 4px 4px 0 0 $neo-black;
-      font-size: 24px;
-      transition: all 150ms $bounce-curve;
-      
-      &:hover {
-        transform: translate(-2px, -2px);
-        box-shadow: 6px 6px 0 0 $neo-black;
-      }
-    }
-    
-    .logo-text {
-      font-size: 28px;
-      font-weight: 900;
-      color: $neo-black;
-      letter-spacing: 2px;
-    }
-  }
-  
-  .nav-menu {
-    display: flex;
-    gap: 8px;
-    
-    .nav-item {
-      padding: 12px 24px;
-      font-size: 14px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: $neo-black;
-      text-decoration: none;
-      border: 3px solid transparent;
-      border-radius: 8px;
-      transition: all 150ms $bounce-curve;
-      
-      &:hover, &.active {
-        background: $neo-yellow;
-        border-color: $neo-black;
-        box-shadow: 3px 3px 0 0 $neo-black;
-      }
-      
-      &:active {
-        transform: translate(2px, 2px);
-        box-shadow: 1px 1px 0 0 $neo-black;
-      }
-    }
-  }
-  
-  .user-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  
-  .user-badge {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 16px;
-    background: $neo-yellow;
-    border: 3px solid $neo-black;
-    border-radius: 12px;
-    box-shadow: 4px 4px 0 0 $neo-black;
-    cursor: pointer;
-    transition: all 150ms $bounce-curve;
-    
-    &:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0 0 $neo-black;
-    }
-    
-    .user-avatar {
-      border: 2px solid $neo-black;
-    }
-    
-    .username {
-      font-weight: 700;
-      color: $neo-black;
-    }
-  }
+  gap: 16px;
+  border-radius: $radius-2xl;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.62)),
+    $glass-tint-student;
 }
 
-.neo-btn {
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  border: 3px solid $neo-black;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 150ms $bounce-curve;
-  box-shadow: 4px 4px 0 0 $neo-black;
-  
-  &:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 0 $neo-black;
-  }
-  
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 0 $neo-black;
-  }
-  
-  &--outline {
-    background: $neo-white;
-    color: $neo-black;
-  }
-  
-  &--primary {
-    background: $neo-blue;
-    color: $neo-white;
-  }
+.cta-title {
+  font-size: 18px;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
 }
 
-.home-main {
+.cta-desc {
+  margin-top: 6px;
+  font-size: 13px;
+  color: $text-secondary;
+}
+
+.cta-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.landing-footer {
   position: relative;
   z-index: 1;
+  padding: 26px $spacing-lg 36px;
 }
 
-// ==================== Hero区域 ====================
-.hero-section {
-  padding: 100px 60px 120px;
-  position: relative;
-  
-  .hero-content {
-    max-width: 900px;
-    margin: 0 auto;
-    text-align: center;
-    
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 20px;
-      background: $neo-blue;
-      color: $neo-white;
-      border: 3px solid $neo-black;
-      border-radius: 50px;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      box-shadow: 4px 4px 0 0 $neo-black;
-      margin-bottom: 32px;
-    }
-    
-    .hero-title {
-      margin: 0 0 32px 0;
-      
-      .title-line {
-        display: inline-block;
-        font-size: 80px;
-        font-weight: 900;
-        color: $neo-black;
-        line-height: 1.1;
-        text-transform: uppercase;
-        letter-spacing: 4px;
-        
-        &.highlight {
-          background: $neo-yellow;
-          padding: 0 20px;
-          border: 4px solid $neo-black;
-          box-shadow: 6px 6px 0 0 $neo-black;
-          margin: 0 16px;
-        }
-      }
-    }
-    
-    .hero-subtitle {
-      font-size: 20px;
-      font-weight: 500;
-      color: $neo-black;
-      opacity: 0.8;
-      margin: 0 0 48px 0;
-      letter-spacing: 2px;
-    }
-    
-    .hero-stats {
-      display: flex;
-      justify-content: center;
-      gap: 24px;
-      margin-bottom: 48px;
-      
-      .stat-card {
-        padding: 24px 32px;
-        background: $neo-white;
-        border: 3px solid $neo-black;
-        border-radius: 16px;
-        box-shadow: 6px 6px 0 0 $neo-black;
-        transition: all 200ms $bounce-curve;
-        
-        &:hover {
-          transform: translate(-3px, -3px);
-          box-shadow: 9px 9px 0 0 $neo-black;
-        }
-        
-        &--yellow { background: $neo-yellow; }
-        &--blue { background: $neo-blue; color: $neo-white; }
-        &--green { background: $neo-green; }
-        
-        .stat-number {
-          font-size: 36px;
-          font-weight: 900;
-          line-height: 1;
-        }
-        
-        .stat-label {
-          font-size: 12px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          margin-top: 8px;
-        }
-      }
-    }
-    
-    .hero-actions {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-    }
-  }
-  
-  .hero-deco {
-    position: absolute;
-    top: 50%;
-    right: 5%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    
-    .deco-card {
-      padding: 20px;
-      background: $neo-white;
-      border: 3px solid $neo-black;
-      border-radius: 12px;
-      box-shadow: 5px 5px 0 0 $neo-black;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 700;
-      font-size: 14px;
-      text-transform: uppercase;
-      animation: floatShape 6s ease-in-out infinite;
-      
-      &--1 { background: $neo-yellow; animation-delay: 0s; }
-      &--2 { background: $neo-pink; color: $neo-white; animation-delay: 2s; }
-      &--3 { background: $neo-green; animation-delay: 4s; }
-    }
-  }
-}
-
-.neo-hero-btn {
-  display: inline-flex;
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px 40px;
-  font-size: 18px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  border: 4px solid $neo-black;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 150ms $bounce-curve;
-  box-shadow: 6px 6px 0 0 $neo-black;
-  
-  &:hover {
-    transform: translate(-3px, -3px);
-    box-shadow: 9px 9px 0 0 $neo-black;
-  }
-  
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 0 $neo-black;
-  }
-  
-  &--primary {
-    background: $neo-blue;
-    color: $neo-white;
-  }
-  
-  &--secondary {
-    background: $neo-yellow;
-    color: $neo-black;
+  justify-content: space-between;
+  gap: 16px;
+  color: $text-tertiary;
+  font-size: 13px;
+}
+
+.footer-links {
+  display: flex;
+  gap: 16px;
+
+  a {
+    color: $text-tertiary;
+    text-decoration: none;
+
+    &:hover {
+      color: $text-secondary;
+      text-decoration: none;
+    }
   }
 }
 
-// ==================== 功能区域 ====================
-.features-section {
-  padding: 100px 60px;
-  background: $neo-white;
-  border-top: 4px solid $neo-black;
-  
-  .section-header {
-    text-align: center;
-    margin-bottom: 60px;
-    
-    .section-tag {
-      display: inline-block;
-      padding: 8px 20px;
-      background: $neo-pink;
-      color: $neo-white;
-      border: 3px solid $neo-black;
-      border-radius: 50px;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      box-shadow: 3px 3px 0 0 $neo-black;
-      margin-bottom: 20px;
-    }
-    
-    .section-title {
-      font-size: 56px;
-      font-weight: 900;
-      color: $neo-black;
-      margin: 0 0 16px 0;
-      text-transform: uppercase;
-      letter-spacing: 4px;
-    }
-    
-    .section-subtitle {
-      font-size: 18px;
-      color: rgba($neo-black, 0.7);
-      margin: 0;
-    }
+@media (max-width: 1100px) {
+  .header-surface {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'brand actions'
+      'nav nav';
+    border-radius: $radius-2xl;
+    padding: 12px;
   }
-  
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-}
 
-.neo-feature-card {
-  padding: 32px;
-  background: $neo-white;
-  border: 3px solid $neo-black;
-  border-radius: 16px;
-  box-shadow: 6px 6px 0 0 $neo-black;
-  position: relative;
-  transition: all 200ms $bounce-curve;
-  animation: neoPopIn 0.5s $bounce-curve backwards;
-  
-  &:hover {
-    transform: translate(-4px, -4px);
-    box-shadow: 10px 10px 0 0 $neo-black;
+  .brand {
+    grid-area: brand;
   }
-  
-  &--yellow { background: $neo-yellow; }
-  &--blue { background: $neo-blue; color: $neo-white; .feature-icon { background: $neo-white; color: $neo-blue; } .neo-tag { background: $neo-white; color: $neo-blue; } }
-  &--pink { background: $neo-pink; color: $neo-white; .feature-icon { background: $neo-white; color: $neo-pink; } .neo-tag { background: $neo-white; color: $neo-pink; } }
-  &--green { background: $neo-green; .feature-icon { background: $neo-white; color: $neo-green-dark; } }
-  &--orange { background: $neo-orange; color: $neo-white; .feature-icon { background: $neo-white; color: $neo-orange; } .neo-tag { background: $neo-white; color: $neo-orange; } }
-  &--purple { background: $neo-purple; color: $neo-white; .feature-icon { background: $neo-white; color: $neo-purple; } .neo-tag { background: $neo-white; color: $neo-purple; } }
-  
-  .feature-number {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    font-size: 48px;
-    font-weight: 900;
-    opacity: 0.2;
-    line-height: 1;
-  }
-  
-  .feature-icon {
-    width: 64px;
-    height: 64px;
-    background: $neo-yellow;
-    border: 3px solid $neo-black;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 3px 3px 0 0 $neo-black;
-    margin-bottom: 20px;
-  }
-  
-  .feature-title {
-    font-size: 22px;
-    font-weight: 800;
-    margin: 0 0 12px 0;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  
-  .feature-desc {
-    font-size: 14px;
-    line-height: 1.6;
-    margin: 0 0 20px 0;
-    opacity: 0.9;
-  }
-  
-  .feature-tags {
-    display: flex;
-    gap: 8px;
+
+  .nav {
+    grid-area: nav;
+    justify-content: flex-start;
     flex-wrap: wrap;
   }
-  
-  .neo-tag {
-    padding: 4px 12px;
-    background: $neo-black;
-    color: $neo-white;
-    border: 2px solid $neo-black;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-}
 
-@keyframes neoPopIn {
-  0% { opacity: 0; transform: scale(0.8) translateY(30px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
-}
+  .actions {
+    grid-area: actions;
+  }
 
-// ==================== 如何使用 ====================
-.howto-section {
-  padding: 100px 60px;
-  background: $neo-cream;
-  border-top: 4px solid $neo-black;
-  
-  .section-header {
-    text-align: center;
-    margin-bottom: 60px;
-    
-    .section-tag {
-      display: inline-block;
-      padding: 8px 20px;
-      background: $neo-blue;
-      color: $neo-white;
-      border: 3px solid $neo-black;
-      border-radius: 50px;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      box-shadow: 3px 3px 0 0 $neo-black;
-      margin-bottom: 20px;
-    }
-    
-    .section-title {
-      font-size: 56px;
-      font-weight: 900;
-      color: $neo-black;
-      margin: 0 0 16px 0;
-      text-transform: uppercase;
-      letter-spacing: 4px;
-    }
-    
-    .section-subtitle {
-      font-size: 18px;
-      color: rgba($neo-black, 0.7);
-      margin: 0;
-    }
-  }
-  
-  .steps-container {
-    display: flex;
-    justify-content: center;
-    gap: 32px;
-    max-width: 1000px;
-    margin: 0 auto;
-  }
-}
-
-.neo-step {
-  flex: 1;
-  padding: 40px 24px;
-  background: $neo-white;
-  border: 3px solid $neo-black;
-  border-radius: 16px;
-  box-shadow: 6px 6px 0 0 $neo-black;
-  text-align: center;
-  position: relative;
-  transition: all 200ms $bounce-curve;
-  
-  &:hover {
-    transform: translate(-4px, -4px);
-    box-shadow: 10px 10px 0 0 $neo-black;
-  }
-  
-  &--yellow { background: $neo-yellow; }
-  &--blue { background: $neo-blue; color: $neo-white; .step-icon { background: $neo-white; color: $neo-blue; } }
-  &--pink { background: $neo-pink; color: $neo-white; .step-icon { background: $neo-white; color: $neo-pink; } }
-  
-  .step-number {
-    position: absolute;
-    top: -20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 48px;
-    height: 48px;
-    background: $neo-black;
-    color: $neo-white;
-    border: 3px solid $neo-black;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    font-weight: 900;
-    box-shadow: 3px 3px 0 0 rgba($neo-black, 0.3);
-  }
-  
-  .step-icon {
-    width: 72px;
-    height: 72px;
-    margin: 16px auto 20px;
-    background: $neo-yellow;
-    border: 3px solid $neo-black;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 4px 4px 0 0 $neo-black;
-  }
-  
-  h3 {
-    font-size: 20px;
-    font-weight: 800;
-    margin: 0 0 12px 0;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  
-  p {
-    font-size: 14px;
-    line-height: 1.6;
-    margin: 0;
-    opacity: 0.9;
-  }
-  
-  .step-arrow {
-    position: absolute;
-    top: 50%;
-    right: -28px;
-    transform: translateY(-50%);
-    font-size: 32px;
-    font-weight: 900;
-    color: $neo-black;
-    z-index: 2;
-  }
-}
-
-// ==================== CTA区域 ====================
-.cta-section {
-  padding: 100px 60px;
-  background: $neo-blue;
-  border-top: 4px solid $neo-black;
-  position: relative;
-  overflow: hidden;
-  
-  .cta-content {
-    text-align: center;
-    position: relative;
-    z-index: 2;
-    
-    h2 {
-      font-size: 56px;
-      font-weight: 900;
-      color: $neo-white;
-      margin: 0 0 16px 0;
-      text-transform: uppercase;
-      letter-spacing: 4px;
-    }
-    
-    p {
-      font-size: 20px;
-      color: rgba($neo-white, 0.9);
-      margin: 0 0 40px 0;
-    }
-  }
-  
-  .cta-deco {
-    .cta-shape {
-      position: absolute;
-      border: 4px solid rgba($neo-white, 0.3);
-      animation: floatShape 8s ease-in-out infinite;
-      
-      &--1 { width: 100px; height: 100px; background: $neo-yellow; top: 10%; left: 5%; border-radius: 50%; border-color: $neo-black; box-shadow: 5px 5px 0 0 $neo-black; }
-      &--2 { width: 80px; height: 80px; background: $neo-pink; bottom: 15%; right: 10%; border-color: $neo-black; box-shadow: 4px 4px 0 0 $neo-black; animation-delay: 2s; }
-      &--3 { width: 60px; height: 60px; background: $neo-green; top: 60%; left: 10%; border-color: $neo-black; box-shadow: 3px 3px 0 0 $neo-black; animation-delay: 4s; }
-    }
-  }
-}
-
-.neo-cta-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 24px 48px;
-  background: $neo-yellow;
-  color: $neo-black;
-  font-size: 20px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  border: 4px solid $neo-black;
-  border-radius: 12px;
-  box-shadow: 8px 8px 0 0 $neo-black;
-  cursor: pointer;
-  transition: all 150ms $bounce-curve;
-  
-  &:hover {
-    transform: translate(-4px, -4px);
-    box-shadow: 12px 12px 0 0 $neo-black;
-  }
-  
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: 4px 4px 0 0 $neo-black;
-  }
-}
-
-// ==================== 页脚 ====================
-.neo-footer {
-  background: $neo-black;
-  color: $neo-white;
-  padding: 60px 60px 0;
-  height: auto;
-  position: relative;
-  
-  .footer-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 40px;
-  }
-  
-  .footer-brand {
-    .footer-logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 24px;
-      font-weight: 900;
-      margin-bottom: 12px;
-      
-      .el-icon {
-        font-size: 32px;
-        color: $neo-yellow;
-      }
-    }
-    
-    p {
-      font-size: 14px;
-      opacity: 0.7;
-      margin: 0;
-    }
-  }
-  
-  .footer-links {
-    display: flex;
-    gap: 32px;
-    
-    a {
-      color: $neo-white;
-      text-decoration: none;
-      font-weight: 600;
-      transition: color 150ms;
-      
-      &:hover {
-        color: $neo-yellow;
-      }
-    }
-  }
-  
-  .footer-copyright {
-    p {
-      font-size: 12px;
-      opacity: 0.5;
-      margin: 0;
-    }
-  }
-  
-  .footer-bars {
-    display: flex;
-    height: 8px;
-    
-    .bar {
-      flex: 1;
-      
-      &--yellow { background: $neo-yellow; }
-      &--blue { background: $neo-blue-light; }
-      &--pink { background: $neo-pink; }
-      &--green { background: $neo-green; }
-    }
-  }
-}
-
-// ==================== 响应式 ====================
-@media (max-width: 1200px) {
-  .hero-section .hero-deco {
-    display: none;
-  }
-  
-  .hero-section .hero-content .hero-title .title-line {
-    font-size: 60px;
-  }
-  
-  .features-section .features-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .neo-header {
-    height: 70px;
-  }
-  
-  .header-content {
-    padding: 0 20px;
-    
-    .nav-menu {
-      display: none;
-    }
-    
-    .logo .logo-text {
-      display: none;
-    }
-  }
-  
-  .hero-section {
-    padding: 60px 24px 80px;
-    
-    .hero-content {
-      .hero-title .title-line {
-        font-size: 36px;
-        display: block;
-        
-        &.highlight {
-          margin: 8px 0;
-        }
-      }
-      
-      .hero-stats {
-        flex-direction: column;
-        gap: 16px;
-      }
-      
-      .hero-actions {
-        flex-direction: column;
-        
-        .neo-hero-btn {
-          width: 100%;
-          justify-content: center;
-        }
-      }
-    }
-  }
-  
-  .features-section, .howto-section, .cta-section {
-    padding: 60px 24px;
-    
-    .section-header .section-title {
-      font-size: 36px;
-    }
-  }
-  
-  .features-section .features-grid {
+  .hero {
     grid-template-columns: 1fr;
   }
-  
-  .howto-section .steps-container {
-    flex-direction: column;
-    
-    .neo-step .step-arrow {
-      display: none;
-    }
+
+  .metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-  
-  .neo-footer .footer-content {
+
+  .feature-grid,
+  .steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cta-card {
     flex-direction: column;
-    gap: 24px;
-    text-align: center;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .landing-header {
+    padding: 12px 12px;
+  }
+
+  .hero-title {
+    font-size: 34px;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .feature-grid,
+  .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .user-name {
+    display: none;
   }
 }
 </style>
-
 

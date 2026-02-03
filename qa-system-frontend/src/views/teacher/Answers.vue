@@ -1,45 +1,93 @@
 <template>
   <div class="answers-page">
     <!-- 筛选区域 -->
-    <el-card shadow="never" class="filter-card">
-      <el-radio-group v-model="filterStatus" @change="handleFilterChange">
-        <el-radio-button value="">全部问题</el-radio-button>
-        <el-radio-button value="PENDING">待回答</el-radio-button>
-        <el-radio-button value="ANSWERED">已回答</el-radio-button>
+    <el-card
+      shadow="never"
+      class="filter-card"
+    >
+      <el-radio-group
+        v-model="filterStatus"
+        @change="handleFilterChange"
+      >
+        <el-radio-button value="">
+          全部问题
+        </el-radio-button>
+        <el-radio-button value="PENDING">
+          待回答
+        </el-radio-button>
+        <el-radio-button value="ANSWERED">
+          已回答
+        </el-radio-button>
       </el-radio-group>
     </el-card>
 
     <!-- 问题列表 -->
-    <el-card shadow="never" class="list-card">
+    <el-card
+      shadow="never"
+      class="list-card"
+    >
       <template #header>
         <div class="card-header">
           <span>问题列表（共 {{ pagination.total }} 个）</span>
         </div>
       </template>
 
-      <el-skeleton :loading="loading" :rows="5" animated>
-        <el-empty v-if="questionList.length === 0" description="暂无问题" />
+      <el-skeleton
+        :loading="loading"
+        :rows="5"
+        animated
+      >
+        <el-empty
+          v-if="questionList.length === 0"
+          description="暂无问题"
+        />
 
-        <div v-else class="question-list">
+        <div
+          v-else
+          class="question-list"
+        >
           <div
             v-for="question in questionList"
             :key="question.id"
             class="question-item"
           >
-            <div class="question-main" @click="router.push(`/questions/${question.id}`)">
+            <div
+              class="question-main"
+              @click="router.push(`/questions/${question.id}`)"
+            >
               <div class="question-header">
                 <div class="question-title">
-                  <el-tag v-if="question.isTop" type="danger" size="small">置顶</el-tag>
-                  <el-tag v-if="question.isFeatured" type="warning" size="small">精选</el-tag>
+                  <el-tag
+                    v-if="question.isTop"
+                    type="danger"
+                    size="small"
+                  >
+                    置顶
+                  </el-tag>
+                  <el-tag
+                    v-if="question.isFeatured"
+                    type="warning"
+                    size="small"
+                  >
+                    精选
+                  </el-tag>
                   <span>{{ question.title }}</span>
                 </div>
-                <el-tag :type="getStatusType(question.status)" size="small">
+                <el-tag
+                  :type="getStatusType(question.status)"
+                  size="small"
+                >
                   {{ getStatusText(question.status) }}
                 </el-tag>
               </div>
 
               <div class="question-meta">
-                <el-tag size="small" effect="plain">{{ question.subjectName }}</el-tag>
+                <el-tag
+                  size="small"
+                  effect="plain"
+                >
+                  {{ question.subjectName }}
+                </el-tag>
                 <span class="meta-item">
                   <el-icon><User /></el-icon>
                   {{ question.studentName }}
@@ -65,7 +113,10 @@
                 <el-icon><EditPen /></el-icon>
                 快速回答
               </el-button>
-              <el-button size="small" @click="router.push(`/questions/${question.id}`)">
+              <el-button
+                size="small"
+                @click="router.push(`/questions/${question.id}`)"
+              >
                 查看详情
               </el-button>
             </div>
@@ -94,13 +145,22 @@
       width="800px"
     >
       <div class="question-preview">
-        <div class="question-content">{{ currentQuestion?.content }}</div>
+        <div class="question-content">
+          {{ currentQuestion?.content }}
+        </div>
       </div>
 
       <el-divider />
 
-      <el-form :model="answerForm" :rules="answerRules" ref="answerFormRef">
-        <el-form-item label="回答内容" prop="content">
+      <el-form
+        ref="answerFormRef"
+        :model="answerForm"
+        :rules="answerRules"
+      >
+        <el-form-item
+          label="回答内容"
+          prop="content"
+        >
           <el-input
             v-model="answerForm.content"
             type="textarea"
@@ -113,8 +173,14 @@
       </el-form>
 
       <template #footer>
-        <el-button @click="showAnswerDialog = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmitAnswer">
+        <el-button @click="showAnswerDialog = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="submitting"
+          @click="handleSubmitAnswer"
+        >
           提交回答
         </el-button>
       </template>

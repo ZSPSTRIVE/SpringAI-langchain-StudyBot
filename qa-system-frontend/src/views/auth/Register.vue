@@ -2,24 +2,26 @@
   <div class="register-container">
     <!-- 动态背景 -->
     <div class="neo-background">
-      <div class="floating-shape shape-1"></div>
-      <div class="floating-shape shape-2"></div>
-      <div class="floating-shape shape-3"></div>
-      <div class="floating-shape shape-4"></div>
-      <div class="dots-layer"></div>
+      <div class="floating-shape shape-1" />
+      <div class="floating-shape shape-2" />
+      <div class="floating-shape shape-3" />
+      <div class="floating-shape shape-4" />
+      <div class="dots-layer" />
     </div>
 
     <div class="register-box">
       <!-- 顶部装饰条 -->
       <div class="top-bars">
-        <div class="bar bar--yellow"></div>
-        <div class="bar bar--blue"></div>
-        <div class="bar bar--pink"></div>
+        <div class="bar bar--yellow" />
+        <div class="bar bar--blue" />
+        <div class="bar bar--pink" />
       </div>
 
       <div class="register-header">
         <div class="logo-box">
-          <el-icon class="logo-icon"><School /></el-icon>
+          <el-icon class="logo-icon">
+            <School />
+          </el-icon>
         </div>
         <h2>注册</h2>
         <p>CREATE YOUR ACCOUNT</p>
@@ -41,7 +43,9 @@
               :class="{ active: registerForm.role === 'STUDENT' }"
               @click="registerForm.role = 'STUDENT'"
             >
-              <el-icon :size="32"><Reading /></el-icon>
+              <el-icon :size="32">
+                <Reading />
+              </el-icon>
               <span>学生</span>
             </div>
             <div 
@@ -49,7 +53,9 @@
               :class="{ active: registerForm.role === 'TEACHER' }"
               @click="registerForm.role = 'TEACHER'"
             >
-              <el-icon :size="32"><UserFilled /></el-icon>
+              <el-icon :size="32">
+                <UserFilled />
+              </el-icon>
               <span>教师</span>
             </div>
           </div>
@@ -63,32 +69,76 @@
           </h3>
           
           <div class="form-grid">
-            <el-form-item label="用户名" prop="username">
-              <el-input v-model="registerForm.username" placeholder="4-20位字母、数字或下划线" clearable />
+            <el-form-item
+              label="用户名"
+              prop="username"
+            >
+              <el-input
+                v-model="registerForm.username"
+                placeholder="4-20位字母、数字或下划线"
+                clearable
+              />
             </el-form-item>
 
-            <el-form-item label="真实姓名" prop="realName">
-              <el-input v-model="registerForm.realName" placeholder="请输入真实姓名" clearable />
+            <el-form-item
+              label="真实姓名"
+              prop="realName"
+            >
+              <el-input
+                v-model="registerForm.realName"
+                placeholder="请输入真实姓名"
+                clearable
+              />
             </el-form-item>
           </div>
 
           <div class="form-grid">
-            <el-form-item label="密码" prop="password">
-              <el-input v-model="registerForm.password" type="password" placeholder="6-20位，包含字母和数字" show-password />
+            <el-form-item
+              label="密码"
+              prop="password"
+            >
+              <el-input
+                v-model="registerForm.password"
+                type="password"
+                placeholder="6-20位，包含字母和数字"
+                show-password
+              />
             </el-form-item>
 
-            <el-form-item label="确认密码" prop="confirmPassword">
-              <el-input v-model="registerForm.confirmPassword" type="password" placeholder="请再次输入密码" show-password />
+            <el-form-item
+              label="确认密码"
+              prop="confirmPassword"
+            >
+              <el-input
+                v-model="registerForm.confirmPassword"
+                type="password"
+                placeholder="请再次输入密码"
+                show-password
+              />
             </el-form-item>
           </div>
 
           <div class="form-grid">
-            <el-form-item label="邮箱" prop="email">
-              <el-input v-model="registerForm.email" placeholder="请输入邮箱" clearable />
+            <el-form-item
+              label="邮箱"
+              prop="email"
+            >
+              <el-input
+                v-model="registerForm.email"
+                placeholder="请输入邮箱"
+                clearable
+              />
             </el-form-item>
 
-            <el-form-item label="手机号" prop="phone">
-              <el-input v-model="registerForm.phone" placeholder="可选" clearable />
+            <el-form-item
+              label="手机号"
+              prop="phone"
+            >
+              <el-input
+                v-model="registerForm.phone"
+                placeholder="可选"
+                clearable
+              />
             </el-form-item>
           </div>
         </div>
@@ -102,58 +152,140 @@
 
           <template v-if="registerForm.role === 'STUDENT'">
             <div class="form-grid">
-              <el-form-item label="学号" prop="studentNo">
-                <el-input v-model="registerForm.studentNo" placeholder="请输入学号" clearable />
+              <el-form-item
+                label="学号"
+                prop="studentNo"
+              >
+                <el-input
+                  v-model="registerForm.studentNo"
+                  placeholder="请输入学号"
+                  clearable
+                />
               </el-form-item>
-              <el-form-item label="学院" prop="college">
-                <el-input v-model="registerForm.college" placeholder="请输入学院" clearable />
+              <el-form-item
+                label="学院"
+                prop="college"
+              >
+                <el-input
+                  v-model="registerForm.college"
+                  placeholder="请输入学院"
+                  clearable
+                />
               </el-form-item>
             </div>
             <div class="form-grid">
-              <el-form-item label="专业" prop="major">
-                <el-input v-model="registerForm.major" placeholder="请输入专业" clearable />
+              <el-form-item
+                label="专业"
+                prop="major"
+              >
+                <el-input
+                  v-model="registerForm.major"
+                  placeholder="请输入专业"
+                  clearable
+                />
               </el-form-item>
-              <el-form-item label="班级" prop="className">
-                <el-input v-model="registerForm.className" placeholder="请输入班级" clearable />
+              <el-form-item
+                label="班级"
+                prop="className"
+              >
+                <el-input
+                  v-model="registerForm.className"
+                  placeholder="请输入班级"
+                  clearable
+                />
               </el-form-item>
             </div>
-            <el-form-item label="年级" prop="grade">
-              <el-input-number v-model="registerForm.grade" :min="2020" :max="2030" style="width: 100%" />
+            <el-form-item
+              label="年级"
+              prop="grade"
+            >
+              <el-input-number
+                v-model="registerForm.grade"
+                :min="2020"
+                :max="2030"
+                style="width: 100%"
+              />
             </el-form-item>
           </template>
 
           <template v-if="registerForm.role === 'TEACHER'">
             <div class="form-grid">
-              <el-form-item label="工号" prop="teacherNo">
-                <el-input v-model="registerForm.teacherNo" placeholder="请输入工号" clearable />
+              <el-form-item
+                label="工号"
+                prop="teacherNo"
+              >
+                <el-input
+                  v-model="registerForm.teacherNo"
+                  placeholder="请输入工号"
+                  clearable
+                />
               </el-form-item>
-              <el-form-item label="学院" prop="college">
-                <el-input v-model="registerForm.college" placeholder="请输入学院" clearable />
+              <el-form-item
+                label="学院"
+                prop="college"
+              >
+                <el-input
+                  v-model="registerForm.college"
+                  placeholder="请输入学院"
+                  clearable
+                />
               </el-form-item>
             </div>
             <div class="form-grid">
-              <el-form-item label="职称" prop="title">
-                <el-input v-model="registerForm.title" placeholder="请输入职称" clearable />
+              <el-form-item
+                label="职称"
+                prop="title"
+              >
+                <el-input
+                  v-model="registerForm.title"
+                  placeholder="请输入职称"
+                  clearable
+                />
               </el-form-item>
-              <el-form-item label="办公室" prop="office">
-                <el-input v-model="registerForm.office" placeholder="请输入办公室" clearable />
+              <el-form-item
+                label="办公室"
+                prop="office"
+              >
+                <el-input
+                  v-model="registerForm.office"
+                  placeholder="请输入办公室"
+                  clearable
+                />
               </el-form-item>
             </div>
-            <el-form-item label="研究方向" prop="research">
-              <el-input v-model="registerForm.research" type="textarea" placeholder="请输入研究方向" :rows="3" />
+            <el-form-item
+              label="研究方向"
+              prop="research"
+            >
+              <el-input
+                v-model="registerForm.research"
+                type="textarea"
+                placeholder="请输入研究方向"
+                :rows="3"
+              />
             </el-form-item>
           </template>
         </div>
 
         <!-- 提交按钮 -->
-        <button type="button" class="neo-register-btn" :disabled="loading" @click="handleRegister">
+        <button
+          type="button"
+          class="neo-register-btn"
+          :disabled="loading"
+          @click="handleRegister"
+        >
           <span v-if="!loading">立即注册</span>
           <span v-else>注册中...</span>
-          <el-icon v-if="!loading"><Right /></el-icon>
+          <el-icon v-if="!loading">
+            <Right />
+          </el-icon>
         </button>
 
         <div class="register-footer">
-          <router-link to="/login" class="login-link">
+          <router-link
+            to="/login"
+            class="login-link"
+          >
             <span>已有账号？</span>
             <strong>立即登录 →</strong>
           </router-link>

@@ -7,17 +7,37 @@
         </div>
       </template>
 
-      <el-skeleton :loading="loading" :rows="5" animated>
-        <el-empty v-if="teachers.length === 0" description="暂无关注的教师" />
+      <el-skeleton
+        :loading="loading"
+        :rows="5"
+        animated
+      >
+        <el-empty
+          v-if="teachers.length === 0"
+          description="暂无关注的教师"
+        />
 
-        <div v-else class="teacher-list">
-          <div v-for="teacher in teachers" :key="teacher.userId" class="teacher-item">
+        <div
+          v-else
+          class="teacher-list"
+        >
+          <div
+            v-for="teacher in teachers"
+            :key="teacher.userId"
+            class="teacher-item"
+          >
             <div class="teacher-info">
-              <el-avatar :size="60">{{ teacher.realName?.[0] }}</el-avatar>
+              <el-avatar :size="60">
+                {{ teacher.realName?.[0] }}
+              </el-avatar>
               <div class="teacher-detail">
                 <div class="teacher-name">
                   {{ teacher.realName }}
-                  <el-tag v-if="teacher.title" size="small" type="success">
+                  <el-tag
+                    v-if="teacher.title"
+                    size="small"
+                    type="success"
+                  >
                     {{ teacher.title }}
                   </el-tag>
                 </div>
@@ -38,7 +58,11 @@
               </div>
             </div>
             <div class="teacher-actions">
-              <el-button type="danger" plain @click="handleUnfollow(teacher.userId)">
+              <el-button
+                type="danger"
+                plain
+                @click="handleUnfollow(teacher.userId)"
+              >
                 取消关注
               </el-button>
             </div>

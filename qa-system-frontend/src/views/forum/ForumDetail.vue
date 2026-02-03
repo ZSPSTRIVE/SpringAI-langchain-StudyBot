@@ -3,28 +3,55 @@
     <div class="detail-container">
       <!-- 导航按钮 -->
       <div class="nav-buttons">
-        <el-tooltip content="返回上一页" placement="bottom">
-          <el-button circle class="nav-btn" @click="handleBack">
+        <el-tooltip
+          content="返回上一页"
+          placement="bottom"
+        >
+          <el-button
+            circle
+            class="nav-btn"
+            @click="handleBack"
+          >
             <el-icon><ArrowLeft /></el-icon>
           </el-button>
         </el-tooltip>
-        <el-tooltip content="返回工作台" placement="bottom">
-          <el-button circle class="nav-btn" @click="handleGoHome">
+        <el-tooltip
+          content="返回工作台"
+          placement="bottom"
+        >
+          <el-button
+            circle
+            class="nav-btn"
+            @click="handleGoHome"
+          >
             <el-icon><HomeFilled /></el-icon>
           </el-button>
         </el-tooltip>
       </div>
 
-      <el-skeleton :loading="loading" :rows="10" animated>
+      <el-skeleton
+        :loading="loading"
+        :rows="10"
+        animated
+      >
         <!-- 主帖内容 -->
-        <el-card v-if="post" shadow="never" class="main-post-card">
+        <el-card
+          v-if="post"
+          shadow="never"
+          class="main-post-card"
+        >
           <div class="post-header">
             <div class="author-section">
-              <el-avatar :size="56" class="author-avatar">
+              <el-avatar
+                :size="56"
+                class="author-avatar"
+              >
                 {{ post.username?.[0] || 'U' }}
               </el-avatar>
               <div class="author-info">
-                <div class="author-name">{{ post.username }}</div>
+                <div class="author-name">
+                  {{ post.username }}
+                </div>
                 <div class="post-meta">
                   <span class="meta-item">
                     <el-icon><Clock /></el-icon>
@@ -34,11 +61,20 @@
               </div>
             </div>
             <div class="post-status">
-              <el-tag v-if="post.isdone === '已解决'" type="success" size="large" effect="dark">
+              <el-tag
+                v-if="post.isdone === '已解决'"
+                type="success"
+                size="large"
+                effect="dark"
+              >
                 <el-icon><Select /></el-icon>
                 已解决
               </el-tag>
-              <el-tag v-else type="warning" size="large">
+              <el-tag
+                v-else
+                type="warning"
+                size="large"
+              >
                 <el-icon><QuestionFilled /></el-icon>
                 待解决
               </el-tag>
@@ -48,8 +84,12 @@
           <el-divider />
 
           <div class="post-content">
-            <h1 class="post-title">{{ post.title }}</h1>
-            <div class="post-text">{{ post.content }}</div>
+            <h1 class="post-title">
+              {{ post.title }}
+            </h1>
+            <div class="post-text">
+              {{ post.content }}
+            </div>
           </div>
 
           <el-divider />
@@ -69,8 +109,8 @@
               <el-button 
                 v-if="canEdit" 
                 type="warning" 
-                @click="handleToggleStatus"
                 :loading="toggling"
+                @click="handleToggleStatus"
               >
                 <el-icon><Edit /></el-icon>
                 {{ post.isdone === '已解决' ? '标记为未解决' : '标记为已解决' }}
@@ -88,11 +128,17 @@
         </el-card>
 
         <!-- 回复列表 -->
-        <el-card v-if="post" shadow="never" class="replies-card">
+        <el-card
+          v-if="post"
+          shadow="never"
+          class="replies-card"
+        >
           <template #header>
             <div class="card-header">
               <div class="header-title">
-                <el-icon class="title-icon"><ChatLineRound /></el-icon>
+                <el-icon class="title-icon">
+                  <ChatLineRound />
+                </el-icon>
                 <span>全部回复 ({{ replies.length }})</span>
               </div>
               <el-button 
@@ -106,19 +152,35 @@
             </div>
           </template>
 
-          <el-empty v-if="replies.length === 0" description="暂无回复，快来抢沙发吧！">
-            <el-button type="primary" @click="showReplyDialog = true">我来回复</el-button>
+          <el-empty
+            v-if="replies.length === 0"
+            description="暂无回复，快来抢沙发吧！"
+          >
+            <el-button
+              type="primary"
+              @click="showReplyDialog = true"
+            >
+              我来回复
+            </el-button>
           </el-empty>
 
-          <div v-else class="replies-list">
+          <div
+            v-else
+            class="replies-list"
+          >
             <div
               v-for="(reply, index) in replies"
               :key="reply.id"
               class="reply-item"
               :class="{ 'highlight-reply': reply.id === highlightReplyId }"
             >
-              <div class="reply-number">#{{ index + 1 }}</div>
-              <el-avatar :size="48" class="reply-avatar">
+              <div class="reply-number">
+                #{{ index + 1 }}
+              </div>
+              <el-avatar
+                :size="48"
+                class="reply-avatar"
+              >
                 {{ reply.username?.[0] || 'U' }}
               </el-avatar>
               <div class="reply-content">
@@ -137,24 +199,46 @@
                     <el-icon><Delete /></el-icon>
                   </el-button>
                 </div>
-                <div class="reply-text">{{ reply.content }}</div>
+                <div class="reply-text">
+                  {{ reply.content }}
+                </div>
                 <div class="reply-footer">
-                  <el-button text size="small" @click="handleReplyToReply(reply)">
+                  <el-button
+                    text
+                    size="small"
+                    @click="handleReplyToReply(reply)"
+                  >
                     <el-icon><ChatDotRound /></el-icon>
                     回复
                   </el-button>
                 </div>
                 
                 <!-- 嵌套回复 -->
-                <div v-if="reply.childs && reply.childs.length > 0" class="nested-replies">
-                  <div v-for="nested in reply.childs" :key="nested.id" class="nested-reply">
-                    <el-avatar :size="32" class="nested-avatar">
+                <div
+                  v-if="reply.childs && reply.childs.length > 0"
+                  class="nested-replies"
+                >
+                  <div
+                    v-for="nested in reply.childs"
+                    :key="nested.id"
+                    class="nested-reply"
+                  >
+                    <el-avatar
+                      :size="32"
+                      class="nested-avatar"
+                    >
                       {{ nested.username?.[0] || 'U' }}
                     </el-avatar>
                     <div class="nested-content">
-                      <div class="nested-author">{{ nested.username }}</div>
-                      <div class="nested-text">{{ nested.content }}</div>
-                      <div class="nested-time">{{ formatTime(nested.addtime) }}</div>
+                      <div class="nested-author">
+                        {{ nested.username }}
+                      </div>
+                      <div class="nested-text">
+                        {{ nested.content }}
+                      </div>
+                      <div class="nested-time">
+                        {{ formatTime(nested.addtime) }}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -172,7 +256,11 @@
       width="600px"
       :close-on-click-modal="false"
     >
-      <el-form :model="replyForm" :rules="replyRules" ref="replyFormRef">
+      <el-form
+        ref="replyFormRef"
+        :model="replyForm"
+        :rules="replyRules"
+      >
         <el-form-item prop="content">
           <el-input
             v-model="replyForm.content"
@@ -187,8 +275,14 @@
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="showReplyDialog = false">取消</el-button>
-          <el-button type="primary" :loading="submitting" @click="handleSubmitReply">
+          <el-button @click="showReplyDialog = false">
+            取消
+          </el-button>
+          <el-button
+            type="primary"
+            :loading="submitting"
+            @click="handleSubmitReply"
+          >
             <el-icon><Promotion /></el-icon>
             发布回复
           </el-button>

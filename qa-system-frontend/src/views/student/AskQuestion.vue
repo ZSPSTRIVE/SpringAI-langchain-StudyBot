@@ -14,8 +14,15 @@
         label-width="100px"
         style="max-width: 900px"
       >
-        <el-form-item label="科目" prop="subjectId">
-          <el-select v-model="questionForm.subjectId" placeholder="请选择科目" style="width: 100%">
+        <el-form-item
+          label="科目"
+          prop="subjectId"
+        >
+          <el-select
+            v-model="questionForm.subjectId"
+            placeholder="请选择科目"
+            style="width: 100%"
+          >
             <el-option
               v-for="subject in subjects"
               :key="subject.id"
@@ -25,7 +32,10 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item label="问题标题" prop="title">
+        <el-form-item
+          label="问题标题"
+          prop="title"
+        >
           <el-input
             v-model="questionForm.title"
             placeholder="请输入问题标题（简明扼要）"
@@ -34,7 +44,10 @@
           />
         </el-form-item>
 
-        <el-form-item label="问题描述" prop="content">
+        <el-form-item
+          label="问题描述"
+          prop="content"
+        >
           <el-input
             v-model="questionForm.content"
             type="textarea"
@@ -47,25 +60,52 @@
 
         <el-form-item label="图片上传">
           <div class="image-upload-area">
-            <div v-for="(image, index) in questionForm.images" :key="index" class="image-item">
-              <el-image :src="image" fit="cover" style="width: 100px; height: 100px" />
-              <el-icon class="remove-icon" @click="removeImage(index)">
+            <div
+              v-for="(image, index) in questionForm.images"
+              :key="index"
+              class="image-item"
+            >
+              <el-image
+                :src="image"
+                fit="cover"
+                style="width: 100px; height: 100px"
+              />
+              <el-icon
+                class="remove-icon"
+                @click="removeImage(index)"
+              >
                 <CircleClose />
               </el-icon>
             </div>
-            <div v-if="questionForm.images.length < 5" class="upload-btn" @click="handleUploadClick">
-              <el-icon :size="30"><Plus /></el-icon>
-              <div class="upload-text">上传图片</div>
+            <div
+              v-if="questionForm.images.length < 5"
+              class="upload-btn"
+              @click="handleUploadClick"
+            >
+              <el-icon :size="30">
+                <Plus />
+              </el-icon>
+              <div class="upload-text">
+                上传图片
+              </div>
             </div>
           </div>
-          <div class="upload-tip">支持jpg、png格式，最多5张，每张不超过2MB</div>
+          <div class="upload-tip">
+            支持jpg、png格式，最多5张，每张不超过2MB
+          </div>
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" :loading="submitting" @click="handleSubmit">
+          <el-button
+            type="primary"
+            :loading="submitting"
+            @click="handleSubmit"
+          >
             提交问题
           </el-button>
-          <el-button @click="handleCancel">取消</el-button>
+          <el-button @click="handleCancel">
+            取消
+          </el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -77,7 +117,7 @@
       accept="image/jpeg,image/png"
       style="display: none"
       @change="handleFileChange"
-    />
+    >
   </div>
 </template>
 

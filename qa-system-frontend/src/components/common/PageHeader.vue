@@ -35,13 +35,20 @@
 
       <!-- 中间：标题和描述 -->
       <div class="page-header-center">
-        <h1 class="page-title">{{ title }}</h1>
-        <p v-if="description" class="page-description">{{ description }}</p>
+        <h1 class="page-title">
+          {{ title }}
+        </h1>
+        <p
+          v-if="description"
+          class="page-description"
+        >
+          {{ description }}
+        </p>
       </div>
 
       <!-- 右侧：操作按钮 -->
       <div class="page-header-right">
-        <slot name="extra"></slot>
+        <slot name="extra" />
       </div>
     </div>
   </div>

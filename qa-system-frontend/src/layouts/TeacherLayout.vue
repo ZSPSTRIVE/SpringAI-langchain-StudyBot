@@ -1,14 +1,25 @@
 <template>
   <div class="layout-container">
     <!-- 动态/纯色背景 (基于 ThemeStore) -->
-    <div v-if="themeStore.backgroundMode === 'dynamic'" class="glow-bg" style="--glow-color-1: var(--theme-glow-1); --glow-color-2: var(--theme-glow-2);"></div>
-    <div v-else class="pure-bg"></div>
+    <div
+      v-if="themeStore.backgroundMode === 'dynamic'"
+      class="glow-bg"
+      style="--glow-color-1: var(--theme-glow-1); --glow-color-2: var(--theme-glow-2);"
+    />
+    <div
+      v-else
+      class="pure-bg"
+    />
+    <FormulaBackdrop v-if="themeStore.backgroundMode === 'dynamic'" />
 
     <!-- 顶部分离式导航 capsules -->
     <el-header class="layout-header">
       <div class="header-pills-container">
         <!-- Logo Pill (Green) -->
-        <div class="header-pill logo-pill" @click="router.push('/home')">
+        <div
+          class="header-pill logo-pill"
+          @click="router.push('/home')"
+        >
           <div class="logo-circle teacher-theme">
             <el-icon><UserFilled /></el-icon>
           </div>
@@ -49,22 +60,44 @@
         
         <!-- User & Actions Pill -->
         <div class="header-pill user-pill">
-          <button class="icon-pill-btn" @click="themeStore.toggleBackground" :title="themeStore.backgroundMode === 'dynamic' ? '切换到纯色背景' : '切换到动态背景'">
+          <button
+            class="icon-pill-btn"
+            :title="themeStore.backgroundMode === 'dynamic' ? '切换到纯色背景' : '切换到动态背景'"
+            @click="themeStore.toggleBackground"
+          >
             <el-icon><Monitor /></el-icon>
           </button>
-          <button class="icon-pill-btn" @click="themeStore.nextPalette" title="切换背景色">
+          <button
+            class="icon-pill-btn"
+            title="切换背景色"
+            @click="themeStore.nextPalette"
+          >
             <el-icon><MagicStick /></el-icon>
           </button>
-          <el-dropdown @command="handleCommand" trigger="click">
+          <el-dropdown
+            trigger="click"
+            @command="handleCommand"
+          >
             <div class="user-capsule">
-              <el-avatar :size="28" :src="userStore.userInfo?.avatar" class="mini-avatar teacher-border">
+              <el-avatar
+                :size="28"
+                :src="userStore.userInfo?.avatar"
+                class="mini-avatar teacher-border"
+              >
                 {{ userStore.userInfo?.realName?.[0] || '教' }}
               </el-avatar>
             </div>
             <template #dropdown>
               <el-dropdown-menu class="glass-dropdown">
-                <el-dropdown-item command="profile">教师档案</el-dropdown-item>
-                <el-dropdown-item divided command="logout">退出</el-dropdown-item>
+                <el-dropdown-item command="profile">
+                  教师档案
+                </el-dropdown-item>
+                <el-dropdown-item
+                  divided
+                  command="logout"
+                >
+                  退出
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -76,7 +109,10 @@
     <el-main class="layout-main">
       <div class="main-content">
         <router-view v-slot="{ Component }">
-          <transition name="page" mode="out-in">
+          <transition
+            name="page"
+            mode="out-in"
+          >
             <component :is="Component" />
           </transition>
         </router-view>
@@ -87,7 +123,6 @@
     <el-footer class="layout-footer">
       <p>&copy; 2025 答疑系统 · Teacher Elite Edition</p>
     </el-footer>
-
   </div>
 </template>
 
@@ -102,6 +137,7 @@ import {
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
 import { logout as logoutApi } from '@/api/auth'
+import FormulaBackdrop from '@/components/background/FormulaBackdrop.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -228,6 +264,8 @@ const handleCommand = async (command) => {
 // ==================== Content ====================
 .layout-main {
   flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .main-content {

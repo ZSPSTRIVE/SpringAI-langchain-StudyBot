@@ -6,14 +6,24 @@
         <el-icon><Compass /></el-icon>
         问题广场
       </h1>
-      <p class="page-subtitle">探索知识的海洋，寻找问题的答案</p>
+      <p class="page-subtitle">
+        探索知识的海洋，寻找问题的答案
+      </p>
     </div>
 
     <!-- 搜索筛选 -->
-    <el-card shadow="hover" class="search-card">
+    <el-card
+      shadow="hover"
+      class="search-card"
+    >
       <el-form :inline="true">
         <el-form-item label="科目">
-          <el-select v-model="searchForm.subjectId" placeholder="全部科目" clearable style="width: 150px">
+          <el-select
+            v-model="searchForm.subjectId"
+            placeholder="全部科目"
+            clearable
+            style="width: 150px"
+          >
             <el-option
               v-for="subject in subjects"
               :key="subject.id"
@@ -24,10 +34,24 @@
         </el-form-item>
 
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="全部状态" clearable style="width: 120px">
-            <el-option label="待回答" value="PENDING" />
-            <el-option label="已回答" value="ANSWERED" />
-            <el-option label="已关闭" value="CLOSED" />
+          <el-select
+            v-model="searchForm.status"
+            placeholder="全部状态"
+            clearable
+            style="width: 120px"
+          >
+            <el-option
+              label="待回答"
+              value="PENDING"
+            />
+            <el-option
+              label="已回答"
+              value="ANSWERED"
+            />
+            <el-option
+              label="已关闭"
+              value="CLOSED"
+            />
           </el-select>
         </el-form-item>
 
@@ -42,31 +66,55 @@
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
+          <el-button
+            type="primary"
+            @click="handleSearch"
+          >
+            搜索
+          </el-button>
+          <el-button @click="handleReset">
+            重置
+          </el-button>
         </el-form-item>
       </el-form>
     </el-card>
 
     <!-- 问题列表 -->
-    <el-card shadow="hover" class="list-card">
+    <el-card
+      shadow="hover"
+      class="list-card"
+    >
       <template #header>
         <div class="card-header">
           <span>
             <el-icon><List /></el-icon>
             问题列表
           </span>
-          <el-button v-if="userStore.isStudent" type="primary" @click="router.push('/student/ask')">
+          <el-button
+            v-if="userStore.isStudent"
+            type="primary"
+            @click="router.push('/student/ask')"
+          >
             <el-icon><Plus /></el-icon>
             我要提问
           </el-button>
         </div>
       </template>
 
-      <el-skeleton :loading="loading" :rows="5" animated>
-        <el-empty v-if="questionList.length === 0" description="暂无问题" />
+      <el-skeleton
+        :loading="loading"
+        :rows="5"
+        animated
+      >
+        <el-empty
+          v-if="questionList.length === 0"
+          description="暂无问题"
+        />
         
-        <div v-else class="question-list">
+        <div
+          v-else
+          class="question-list"
+        >
           <div
             v-for="question in questionList"
             :key="question.id"
@@ -76,17 +124,37 @@
           >
             <div class="question-header">
               <div class="question-title">
-                <el-tag v-if="question.isTop" type="danger" size="small">置顶</el-tag>
-                <el-tag v-if="question.isFeatured" type="warning" size="small">精选</el-tag>
+                <el-tag
+                  v-if="question.isTop"
+                  type="danger"
+                  size="small"
+                >
+                  置顶
+                </el-tag>
+                <el-tag
+                  v-if="question.isFeatured"
+                  type="warning"
+                  size="small"
+                >
+                  精选
+                </el-tag>
                 <span>{{ question.title }}</span>
               </div>
-              <el-tag :type="getStatusType(question.status)" size="small">
+              <el-tag
+                :type="getStatusType(question.status)"
+                size="small"
+              >
                 {{ getStatusText(question.status) }}
               </el-tag>
             </div>
 
             <div class="question-meta">
-              <el-tag size="small" effect="plain">{{ question.subjectName }}</el-tag>
+              <el-tag
+                size="small"
+                effect="plain"
+              >
+                {{ question.subjectName }}
+              </el-tag>
               <span class="meta-item">
                 <el-icon><User /></el-icon>
                 {{ question.studentName }}

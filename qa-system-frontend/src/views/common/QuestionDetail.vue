@@ -1,18 +1,46 @@
 <template>
   <div class="question-detail-page">
     <div class="page-toolbar">
-      <el-button :icon="ArrowLeft" @click="handleBack">返回</el-button>
+      <el-button
+        :icon="ArrowLeft"
+        @click="handleBack"
+      >
+        返回
+      </el-button>
     </div>
-    <el-skeleton :loading="loading" :rows="10" animated>
+    <el-skeleton
+      :loading="loading"
+      :rows="10"
+      animated
+    >
       <!-- 问题详情 -->
-      <el-card v-if="question" shadow="never" class="question-card">
+      <el-card
+        v-if="question"
+        shadow="never"
+        class="question-card"
+      >
         <div class="question-header">
           <div class="question-title">
-            <el-tag v-if="question.isTop" type="danger" size="small">置顶</el-tag>
-            <el-tag v-if="question.isFeatured" type="warning" size="small">精选</el-tag>
+            <el-tag
+              v-if="question.isTop"
+              type="danger"
+              size="small"
+            >
+              置顶
+            </el-tag>
+            <el-tag
+              v-if="question.isFeatured"
+              type="warning"
+              size="small"
+            >
+              精选
+            </el-tag>
             <h2>{{ question.title }}</h2>
           </div>
-          <el-tag :type="getStatusType(question.status)" size="large">
+          <el-tag
+            :type="getStatusType(question.status)"
+            size="large"
+          >
             {{ getStatusText(question.status) }}
           </el-tag>
         </div>
@@ -35,9 +63,15 @@
 
         <el-divider />
 
-        <div class="question-content" v-html="question.content"></div>
+        <div
+          class="question-content"
+          v-html="question.content"
+        />
 
-        <div v-if="questionPreviewList.length > 0" class="question-images">
+        <div
+          v-if="questionPreviewList.length > 0"
+          class="question-images"
+        >
           <el-image
             v-for="(image, index) in questionPreviewList"
             :key="image"
@@ -52,31 +86,57 @@
         </div>
 
         <!-- 操作按钮 -->
-        <div v-if="canManageQuestion" class="question-actions">
-          <el-button v-if="question.status === 'PENDING'" type="warning" size="small" @click="handleCloseQuestion">
+        <div
+          v-if="canManageQuestion"
+          class="question-actions"
+        >
+          <el-button
+            v-if="question.status === 'PENDING'"
+            type="warning"
+            size="small"
+            @click="handleCloseQuestion"
+          >
             关闭问题
           </el-button>
-          <el-button type="danger" size="small" @click="handleDeleteQuestion">
+          <el-button
+            type="danger"
+            size="small"
+            @click="handleDeleteQuestion"
+          >
             删除问题
           </el-button>
         </div>
       </el-card>
 
       <!-- 回答列表 -->
-      <el-card v-if="question" shadow="never" class="answers-card">
+      <el-card
+        v-if="question"
+        shadow="never"
+        class="answers-card"
+      >
         <template #header>
           <div class="card-header">
             <span>{{ answers.length }} 个回答</span>
-            <el-button v-if="userStore.isTeacher && question.status !== 'CLOSED'" type="primary" @click="showAnswerDialog = true">
+            <el-button
+              v-if="userStore.isTeacher && question.status !== 'CLOSED'"
+              type="primary"
+              @click="showAnswerDialog = true"
+            >
               <el-icon><EditPen /></el-icon>
               我来回答
             </el-button>
           </div>
         </template>
 
-        <el-empty v-if="answers.length === 0" description="暂无回答" />
+        <el-empty
+          v-if="answers.length === 0"
+          description="暂无回答"
+        />
 
-        <div v-else class="answers-list">
+        <div
+          v-else
+          class="answers-list"
+        >
           <div
             v-for="answer in answers"
             :key="answer.id"
@@ -85,28 +145,46 @@
           >
             <div class="answer-header">
               <div class="teacher-info">
-                <el-avatar :size="40">{{ answer.teacherName?.[0] }}</el-avatar>
+                <el-avatar :size="40">
+                  {{ answer.teacherName?.[0] }}
+                </el-avatar>
                 <div class="teacher-detail">
                   <div class="teacher-name">
                     {{ answer.teacherName }}
-                    <el-tag v-if="answer.teacherTitle" size="small" type="success">
+                    <el-tag
+                      v-if="answer.teacherTitle"
+                      size="small"
+                      type="success"
+                    >
                       {{ answer.teacherTitle }}
                     </el-tag>
                   </div>
-                  <div class="answer-time">{{ formatTime(answer.createTime) }}</div>
+                  <div class="answer-time">
+                    {{ formatTime(answer.createTime) }}
+                  </div>
                 </div>
               </div>
               <div class="answer-badge">
-                <el-tag v-if="answer.isAccepted" type="success" effect="dark">
+                <el-tag
+                  v-if="answer.isAccepted"
+                  type="success"
+                  effect="dark"
+                >
                   <el-icon><Select /></el-icon>
                   已采纳
                 </el-tag>
               </div>
             </div>
 
-            <div class="answer-content" v-html="answer.content"></div>
+            <div
+              class="answer-content"
+              v-html="answer.content"
+            />
 
-            <div v-if="(answerPreviewMap[answer.id] || []).length > 0" class="answer-images">
+            <div
+              v-if="(answerPreviewMap[answer.id] || []).length > 0"
+              class="answer-images"
+            >
               <el-image
                 v-for="(image, index) in answerPreviewMap[answer.id]"
                 :key="image"
@@ -121,7 +199,10 @@
             </div>
 
             <div class="answer-actions">
-              <el-button text :icon="answer.isAccepted ? 'Check' : ''">
+              <el-button
+                text
+                :icon="answer.isAccepted ? 'Check' : ''"
+              >
                 <el-icon><Promotion /></el-icon>
                 {{ answer.likeCount }} 点赞
               </el-button>
@@ -141,8 +222,16 @@
     </el-skeleton>
 
     <!-- 回答对话框 -->
-    <el-dialog v-model="showAnswerDialog" title="回答问题" width="700px">
-      <el-form :model="answerForm" :rules="answerRules" ref="answerFormRef">
+    <el-dialog
+      v-model="showAnswerDialog"
+      title="回答问题"
+      width="700px"
+    >
+      <el-form
+        ref="answerFormRef"
+        :model="answerForm"
+        :rules="answerRules"
+      >
         <el-form-item prop="content">
           <el-input
             v-model="answerForm.content"
@@ -156,8 +245,14 @@
       </el-form>
 
       <template #footer>
-        <el-button @click="showAnswerDialog = false">取消</el-button>
-        <el-button type="primary" :loading="submittingAnswer" @click="handleSubmitAnswer">
+        <el-button @click="showAnswerDialog = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="submittingAnswer"
+          @click="handleSubmitAnswer"
+        >
           提交回答
         </el-button>
       </template>

@@ -4,13 +4,27 @@
     <div class="forum-hero">
       <!-- 导航按钮 -->
       <div class="hero-nav">
-        <el-tooltip content="返回上一页" placement="bottom">
-          <el-button circle class="nav-btn" @click="handleBack">
+        <el-tooltip
+          content="返回上一页"
+          placement="bottom"
+        >
+          <el-button
+            circle
+            class="nav-btn"
+            @click="handleBack"
+          >
             <el-icon><ArrowLeft /></el-icon>
           </el-button>
         </el-tooltip>
-        <el-tooltip content="返回首页" placement="bottom">
-          <el-button circle class="nav-btn" @click="handleGoHome">
+        <el-tooltip
+          content="返回首页"
+          placement="bottom"
+        >
+          <el-button
+            circle
+            class="nav-btn"
+            @click="handleGoHome"
+          >
             <el-icon><HomeFilled /></el-icon>
           </el-button>
         </el-tooltip>
@@ -18,37 +32,56 @@
       
       <div class="hero-content">
         <h1 class="hero-title">
-          <el-icon class="title-icon"><ChatDotRound /></el-icon>
+          <el-icon class="title-icon">
+            <ChatDotRound />
+          </el-icon>
           师生交流广场
         </h1>
-        <p class="hero-subtitle">分享知识 · 交流学习 · 共同成长</p>
+        <p class="hero-subtitle">
+          分享知识 · 交流学习 · 共同成长
+        </p>
         <div class="hero-stats">
           <div class="stat-item">
-            <div class="stat-number">{{ stats.totalPosts }}</div>
-            <div class="stat-label">总帖子数</div>
+            <div class="stat-number">
+              {{ stats.totalPosts }}
+            </div>
+            <div class="stat-label">
+              总帖子数
+            </div>
           </div>
-          <div class="stat-divider"></div>
+          <div class="stat-divider" />
           <div class="stat-item">
-            <div class="stat-number">{{ stats.todayPosts }}</div>
-            <div class="stat-label">今日新帖</div>
+            <div class="stat-number">
+              {{ stats.todayPosts }}
+            </div>
+            <div class="stat-label">
+              今日新帖
+            </div>
           </div>
-          <div class="stat-divider"></div>
+          <div class="stat-divider" />
           <div class="stat-item">
-            <div class="stat-number">{{ stats.activeUsers }}</div>
-            <div class="stat-label">活跃用户</div>
+            <div class="stat-number">
+              {{ stats.activeUsers }}
+            </div>
+            <div class="stat-label">
+              活跃用户
+            </div>
           </div>
         </div>
       </div>
       <div class="hero-decoration">
-        <div class="decoration-circle circle-1"></div>
-        <div class="decoration-circle circle-2"></div>
-        <div class="decoration-circle circle-3"></div>
+        <div class="decoration-circle circle-1" />
+        <div class="decoration-circle circle-2" />
+        <div class="decoration-circle circle-3" />
       </div>
     </div>
 
     <div class="forum-container">
       <!-- 搜索和操作区 -->
-      <el-card shadow="never" class="search-card">
+      <el-card
+        shadow="never"
+        class="search-card"
+      >
         <div class="search-bar">
           <el-input
             v-model="searchKeyword"
@@ -62,7 +95,11 @@
               <el-icon><Search /></el-icon>
             </template>
           </el-input>
-          <el-button type="primary" size="large" @click="handleSearch">
+          <el-button
+            type="primary"
+            size="large"
+            @click="handleSearch"
+          >
             <el-icon><Search /></el-icon>
             搜索
           </el-button>
@@ -93,16 +130,31 @@
             {{ tag.label }}
           </el-tag>
         </div>
-    </el-card>
+      </el-card>
 
       <!-- 帖子列表 -->
       <div class="posts-section">
-        <el-skeleton :loading="loading" :rows="5" animated>
-          <el-empty v-if="postList.length === 0" description="暂无帖子，快来发布第一个吧！">
-            <el-button type="primary" @click="showCreateDialog = true">发布新帖</el-button>
+        <el-skeleton
+          :loading="loading"
+          :rows="5"
+          animated
+        >
+          <el-empty
+            v-if="postList.length === 0"
+            description="暂无帖子，快来发布第一个吧！"
+          >
+            <el-button
+              type="primary"
+              @click="showCreateDialog = true"
+            >
+              发布新帖
+            </el-button>
           </el-empty>
 
-          <div v-else class="posts-grid">
+          <div
+            v-else
+            class="posts-grid"
+          >
             <div
               v-for="post in postList"
               :key="post.id"
@@ -111,26 +163,39 @@
             >
               <div class="post-header">
                 <div class="author-info">
-                  <el-avatar :size="42" class="author-avatar">
+                  <el-avatar
+                    :size="42"
+                    class="author-avatar"
+                  >
                     {{ post.username?.[0] || 'U' }}
                   </el-avatar>
                   <div class="author-detail">
-                    <div class="author-name">{{ post.username }}</div>
+                    <div class="author-name">
+                      {{ post.username }}
+                    </div>
                     <div class="post-time">
                       <el-icon><Clock /></el-icon>
                       {{ formatTime(post.addtime) }}
                     </div>
                   </div>
                 </div>
-                <el-tag v-if="post.isdone === '已解决'" type="success" size="small">
+                <el-tag
+                  v-if="post.isdone === '已解决'"
+                  type="success"
+                  size="small"
+                >
                   <el-icon><Select /></el-icon>
                   已解决
                 </el-tag>
               </div>
 
               <div class="post-content">
-                <h3 class="post-title">{{ post.title }}</h3>
-                <p class="post-text">{{ truncateText(post.content, 120) }}</p>
+                <h3 class="post-title">
+                  {{ post.title }}
+                </h3>
+                <p class="post-text">
+                  {{ truncateText(post.content, 120) }}
+                </p>
               </div>
 
               <div class="post-footer">
@@ -144,7 +209,11 @@
                     {{ Math.floor(Math.random() * 200) + 50 }} 浏览
                   </span>
                 </div>
-                <el-button type="primary" text class="view-btn">
+                <el-button
+                  type="primary"
+                  text
+                  class="view-btn"
+                >
                   查看详情
                   <el-icon><ArrowRight /></el-icon>
                 </el-button>
@@ -154,7 +223,10 @@
         </el-skeleton>
 
         <!-- 分页 -->
-        <div v-if="postList.length > 0" class="pagination">
+        <div
+          v-if="postList.length > 0"
+          class="pagination"
+        >
           <el-pagination
             v-model:current-page="pagination.page"
             v-model:page-size="pagination.limit"
@@ -176,8 +248,16 @@
       width="700px"
       :close-on-click-modal="false"
     >
-      <el-form :model="postForm" :rules="postRules" ref="postFormRef" label-width="80px">
-        <el-form-item label="帖子标题" prop="title">
+      <el-form
+        ref="postFormRef"
+        :model="postForm"
+        :rules="postRules"
+        label-width="80px"
+      >
+        <el-form-item
+          label="帖子标题"
+          prop="title"
+        >
           <el-input
             v-model="postForm.title"
             placeholder="请输入标题（5-50字）"
@@ -187,7 +267,10 @@
           />
         </el-form-item>
 
-        <el-form-item label="帖子内容" prop="content">
+        <el-form-item
+          label="帖子内容"
+          prop="content"
+        >
           <el-input
             v-model="postForm.content"
             type="textarea"
@@ -201,8 +284,14 @@
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button @click="showCreateDialog = false">取消</el-button>
-          <el-button type="primary" :loading="submitting" @click="handleSubmitPost">
+          <el-button @click="showCreateDialog = false">
+            取消
+          </el-button>
+          <el-button
+            type="primary"
+            :loading="submitting"
+            @click="handleSubmitPost"
+          >
             <el-icon><Promotion /></el-icon>
             发布
           </el-button>
