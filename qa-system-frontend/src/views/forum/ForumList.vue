@@ -293,6 +293,19 @@ const handleBack = () => {
 }
 
 const handleGoHome = () => {
+  const role = userStore.userInfo?.role
+  if (role === 'ADMIN') {
+    router.push('/admin')
+    return
+  }
+  if (role === 'TEACHER') {
+    router.push('/teacher')
+    return
+  }
+  if (role === 'STUDENT') {
+    router.push('/student')
+    return
+  }
   router.push('/home')
 }
 
@@ -352,6 +365,19 @@ const handleFilterChange = (filter) => {
 
 // 查看帖子详情
 const handleViewPost = (id) => {
+  const role = userStore.userInfo?.role
+  if (role === 'ADMIN') {
+    router.push(`/admin/forum/${id}`)
+    return
+  }
+  if (role === 'TEACHER') {
+    router.push(`/teacher/forum/${id}`)
+    return
+  }
+  if (role === 'STUDENT') {
+    router.push(`/student/forum/${id}`)
+    return
+  }
   router.push(`/forum/${id}`)
 }
 
@@ -400,16 +426,13 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .forum-list-page {
-  min-height: 100vh;
-  background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+  min-height: 100%;
+  background: transparent;
 }
 
 // Hero Banner
 .forum-hero {
-  position: relative;
-  background: linear-gradient(135deg, #4f46e5 0%,rgb(8, 96, 220) 100%);
-  padding: 60px 20px;
-  overflow: hidden;
+  display: none;
   
   // 导航按钮
   .hero-nav {
@@ -430,12 +453,11 @@ onMounted(() => {
       &:hover {
         background: rgba(255, 255, 255, 0.3);
         border-color: rgba(255, 255, 255, 0.5);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
       }
       
       &:active {
-        transform: translateY(0);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
       }
       
       :deep(.el-icon) {
@@ -463,7 +485,6 @@ onMounted(() => {
       
       .title-icon {
         font-size: 52px;
-        animation: bounce 2s infinite;
       }
     }
     
@@ -542,9 +563,9 @@ onMounted(() => {
 }
 
 .forum-container {
-  max-width: 1200px;
-  margin: -30px auto 0;
-  padding: 0 20px 60px;
+  max-width: none;
+  margin: 0;
+  padding: 0;
   position: relative;
   z-index: 3;
 }
@@ -577,8 +598,7 @@ onMounted(() => {
       transition: all 0.3s;
       
       &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
       }
     }
   }
@@ -605,7 +625,6 @@ onMounted(() => {
   border: 1px solid #f0f0f0;
   
   &:hover {
-    transform: translateY(-8px);
     box-shadow: 0 12px 32px rgba(79, 70, 229, 0.15);
     border-color: #4f46e5;
     

@@ -1,18 +1,28 @@
 <template>
   <div class="login-container">
-    <!-- 动态背景 -->
-    <div class="neo-background">
-      <!-- 漂浮形状 -->
-      <div class="floating-shape shape-1"></div>
-      <div class="floating-shape shape-2"></div>
-      <div class="floating-shape shape-3"></div>
-      <div class="floating-shape shape-4"></div>
-      <div class="floating-shape shape-5"></div>
-      <div class="floating-shape shape-6"></div>
-      <!-- 波点层 -->
-      <div class="dots-layer"></div>
+    <!-- 浮动粒子背景 -->
+    <div class="particles">
+      <div class="orb orb--blue" style="top: -120px; left: -80px;"></div>
+      <div class="orb orb--teal" style="top: 18%; right: -140px;"></div>
+      <div class="orb orb--green" style="bottom: -160px; left: 12%;"></div>
+      <div class="orb orb--sky" style="bottom: 15%; right: 12%;"></div>
+      <div class="beam beam--a"></div>
+      <div class="beam beam--b"></div>
+      <div class="beam beam--c"></div>
+      <div class="particle" style="left: 10%;"></div>
+      <div class="particle" style="left: 25%;"></div>
+      <div class="particle" style="left: 40%;"></div>
+      <div class="particle" style="left: 55%;"></div>
+      <div class="particle" style="left: 70%;"></div>
+      <div class="particle" style="left: 85%;"></div>
+      <div class="particle" style="left: 15%;"></div>
+      <div class="particle" style="left: 30%;"></div>
+      <div class="particle" style="left: 45%;"></div>
+      <div class="particle" style="left: 60%;"></div>
+      <div class="particle" style="left: 75%;"></div>
+      <div class="particle" style="left: 90%;"></div>
     </div>
-
+    
     <!-- 左侧展示区 -->
     <div class="login-showcase">
       <div class="showcase-content">
@@ -21,8 +31,8 @@
           <div class="logo-box">
             <el-icon class="logo-icon"><School /></el-icon>
           </div>
-          <h1 class="system-title">师生答疑</h1>
-          <p class="system-slogan">STUDENT & TEACHER Q&A SYSTEM</p>
+          <h1 class="system-title">师生答疑系统</h1>
+          <p class="system-slogan">智能化在线答疑平台</p>
         </div>
         
         <!-- 特性卡片 -->
@@ -31,24 +41,15 @@
             class="feature-card" 
             v-for="(feature, index) in features" 
             :key="index"
-            :class="`feature-card--${feature.color}`"
-            :style="{ animationDelay: `${index * 0.1}s` }"
           >
-            <div class="feature-icon">
-              <el-icon :size="28"><component :is="feature.icon" /></el-icon>
+            <div class="feature-icon" :class="`feature-icon--${feature.color}`">
+              <el-icon :size="24"><component :is="feature.icon" /></el-icon>
             </div>
-            <h3>{{ feature.title }}</h3>
-            <p>{{ feature.desc }}</p>
+            <div class="feature-text">
+              <h3>{{ feature.title }}</h3>
+              <p>{{ feature.desc }}</p>
+            </div>
           </div>
-        </div>
-
-        <!-- 装饰文字 -->
-        <div class="deco-text">
-          <span>LEARN</span>
-          <span>·</span>
-          <span>SHARE</span>
-          <span>·</span>
-          <span>GROW</span>
         </div>
       </div>
     </div>
@@ -56,9 +57,19 @@
     <!-- 右侧登录区 -->
     <div class="login-box">
       <div class="login-card">
+        <div class="brand-header">
+          <div class="brand-mark">
+            <el-icon><School /></el-icon>
+          </div>
+          <div class="brand-text">
+            <div class="brand-title">师生答疑系统</div>
+            <div class="brand-subtitle">安全登录 · 工作台体验</div>
+          </div>
+        </div>
+
         <div class="login-header">
-          <h2>登录</h2>
-          <p>LOGIN TO YOUR ACCOUNT</p>
+          <h2>欢迎回来</h2>
+          <p>登录您的账号继续</p>
         </div>
 
         <el-form
@@ -68,67 +79,53 @@
           class="login-form"
         >
           <el-form-item prop="username">
-            <div class="neo-input-wrapper">
-              <label>用户名</label>
-              <el-input
-                v-model="loginForm.username"
-                placeholder="请输入用户名"
-                size="large"
-                clearable
-              >
-                <template #prefix>
-                  <el-icon><User /></el-icon>
-                </template>
-              </el-input>
-            </div>
+            <el-input
+              v-model="loginForm.username"
+              placeholder="请输入用户名"
+              size="large"
+              clearable
+            >
+              <template #prefix>
+                <el-icon><User /></el-icon>
+              </template>
+            </el-input>
           </el-form-item>
 
           <el-form-item prop="password">
-            <div class="neo-input-wrapper">
-              <label>密码</label>
-              <el-input
-                v-model="loginForm.password"
-                type="password"
-                placeholder="请输入密码"
-                size="large"
-                show-password
-                @keyup.enter="handleLogin"
-              >
-                <template #prefix>
-                  <el-icon><Lock /></el-icon>
-                </template>
-              </el-input>
-            </div>
+            <el-input
+              v-model="loginForm.password"
+              type="password"
+              placeholder="请输入密码"
+              size="large"
+              show-password
+              @keyup.enter="handleLogin"
+            >
+              <template #prefix>
+                <el-icon><Lock /></el-icon>
+              </template>
+            </el-input>
           </el-form-item>
 
           <el-form-item>
-            <button
-              type="button"
-              class="neo-login-btn"
-              :disabled="loading"
+            <el-button
+              type="primary"
+              size="large"
+              class="login-btn"
+              :loading="loading"
               @click="handleLogin"
             >
-              <span v-if="!loading">立即登录</span>
-              <span v-else>登录中...</span>
-              <el-icon v-if="!loading"><Right /></el-icon>
-            </button>
+              {{ loading ? '登录中...' : '登录' }}
+            </el-button>
           </el-form-item>
 
           <div class="login-footer">
-            <router-link to="/register" class="register-link">
-              <span>没有账号？</span>
-              <strong>立即注册 →</strong>
-            </router-link>
+            <span class="footer-text">还没有账号？</span>
+            <router-link to="/register" class="register-link">立即注册</router-link>
           </div>
         </el-form>
       </div>
-
-      <!-- 底部装饰 -->
-      <div class="bottom-deco">
-        <div class="deco-bar deco-bar--yellow"></div>
-        <div class="deco-bar deco-bar--blue"></div>
-        <div class="deco-bar deco-bar--pink"></div>
-      </div>
+      
+      <p class="copyright">© 2025 师生答疑系统</p>
     </div>
   </div>
 </template>
@@ -143,8 +140,6 @@ import {
   School,
   ChatDotRound,
   TrendCharts,
-  Right,
-  Promotion,
   Star
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
@@ -250,280 +245,224 @@ const getDefaultRoute = (role) => {
 .login-container {
   display: flex;
   min-height: 100vh;
-  background: $neo-cream;
+  background: #f2f4f8;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
   position: relative;
   overflow: hidden;
+  z-index: 0;
 }
 
-// ==================== 动态背景 ====================
-.neo-background {
+.login-container::before,
+.login-container::after {
+  content: '';
   position: absolute;
+  width: 640px;
+  height: 640px;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(160px);
+  opacity: 0.85;
+  z-index: 0;
+}
+
+.login-container::before {
+  top: -200px;
+  left: -200px;
+  background: rgba(0, 122, 255, 0.45);
+  animation: float 16s ease-in-out infinite;
+}
+
+.login-container::after {
+  bottom: -220px;
+  right: -220px;
+  background: rgba(52, 199, 89, 0.4);
+  animation: float 20s ease-in-out infinite reverse;
+}
+
+// 浮动粒子
+.login-container .particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
   pointer-events: none;
-  z-index: 0;
-  
-  .dots-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: radial-gradient(circle, rgba($neo-black, 0.08) 2px, transparent 2px);
-    background-size: 24px 24px;
-    animation: dotsMove 30s linear infinite;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.login-container .orb {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.9;
+  mix-blend-mode: screen;
+  animation: orb-float 22s ease-in-out infinite;
+}
+
+.login-container .orb--blue {
+  background: rgba(0, 122, 255, 0.7);
+}
+
+.login-container .orb--teal {
+  background: rgba(90, 200, 250, 0.6);
+  animation-duration: 26s;
+}
+
+.login-container .orb--green {
+  background: rgba(52, 199, 89, 0.6);
+  animation-duration: 24s;
+}
+
+.login-container .orb--sky {
+  background: rgba(94, 92, 230, 0.45);
+  animation-duration: 28s;
+}
+
+.login-container .beam {
+  position: absolute;
+  width: 560px;
+  height: 140px;
+  border-radius: 999px;
+  background: rgba(0, 122, 255, 0.2);
+  filter: blur(45px);
+  opacity: 0.7;
+  mix-blend-mode: screen;
+  animation: beam-sweep 18s ease-in-out infinite;
+}
+
+.login-container .beam--a {
+  top: -6%;
+  left: -18%;
+  transform: rotate(-12deg);
+}
+
+.login-container .beam--b {
+  top: 28%;
+  right: -24%;
+  transform: rotate(18deg);
+  background: rgba(90, 200, 250, 0.22);
+  animation-delay: -6s;
+  animation-duration: 20s;
+}
+
+.login-container .beam--c {
+  bottom: -12%;
+  left: 18%;
+  transform: rotate(-8deg);
+  background: rgba(52, 199, 89, 0.22);
+  animation-delay: -10s;
+  animation-duration: 22s;
+}
+
+.login-container .particle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: rgba(0, 122, 255, 0.55);
+  border-radius: 50%;
+  animation: particle-float 10s linear infinite;
+  filter: blur(0.6px);
+  opacity: 0.9;
+  box-shadow: 0 0 16px rgba(0, 122, 255, 0.35);
+}
+
+.login-container .particle:nth-child(2n) {
+  background: rgba(4, 127, 179, 0.5);
+  animation-duration: 12s;
+  animation-delay: -8s;
+  box-shadow: 0 0 16px rgba(4, 127, 179, 0.35);
+}
+
+.login-container .particle:nth-child(3n) {
+  background: rgba(90, 200, 250, 0.55);
+  animation-duration: 16s;
+  animation-delay: -12s;
+  box-shadow: 0 0 18px rgba(90, 200, 250, 0.35);
+}
+
+.login-container .particle:nth-child(1) { left: 6%; animation-delay: -2s; }
+.login-container .particle:nth-child(2) { left: 14%; animation-delay: -6s; width: 4px; height: 4px; }
+.login-container .particle:nth-child(3) { left: 22%; animation-delay: -9s; }
+.login-container .particle:nth-child(4) { left: 32%; animation-delay: -3s; width: 5px; height: 5px; }
+.login-container .particle:nth-child(5) { left: 44%; animation-delay: -7s; }
+.login-container .particle:nth-child(6) { left: 56%; animation-delay: -11s; width: 4px; height: 4px; }
+.login-container .particle:nth-child(7) { left: 64%; animation-delay: -5s; }
+.login-container .particle:nth-child(8) { left: 72%; animation-delay: -12s; width: 5px; height: 5px; }
+.login-container .particle:nth-child(9) { left: 80%; animation-delay: -8s; }
+.login-container .particle:nth-child(10) { left: 88%; animation-delay: -10s; width: 4px; height: 4px; }
+.login-container .particle:nth-child(11) { left: 18%; animation-delay: -13s; }
+.login-container .particle:nth-child(12) { left: 92%; animation-delay: -15s; }
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
   }
-  
-  .floating-shape {
-    position: absolute;
-    border: 4px solid $neo-black;
-    animation: floatShape 8s ease-in-out infinite;
-    
-    &.shape-1 {
-      width: 120px;
-      height: 120px;
-      background: $neo-yellow;
-      top: 10%;
-      left: 5%;
-      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
-      animation-delay: 0s;
-      box-shadow: 8px 8px 0 0 $neo-black;
-    }
-    
-    &.shape-2 {
-      width: 80px;
-      height: 80px;
-      background: $neo-blue;
-      top: 60%;
-      left: 15%;
-      border-radius: 50%;
-      animation-delay: 1s;
-      box-shadow: 6px 6px 0 0 $neo-black;
-    }
-    
-    &.shape-3 {
-      width: 100px;
-      height: 100px;
-      background: $neo-pink;
-      top: 25%;
-      left: 35%;
-      animation-delay: 2s;
-      box-shadow: 6px 6px 0 0 $neo-black;
-    }
-    
-    &.shape-4 {
-      width: 60px;
-      height: 60px;
-      background: $neo-green;
-      top: 75%;
-      left: 40%;
-      border-radius: 50%;
-      animation-delay: 3s;
-      box-shadow: 4px 4px 0 0 $neo-black;
-    }
-    
-    &.shape-5 {
-      width: 90px;
-      height: 90px;
-      background: $neo-purple;
-      top: 15%;
-      left: 50%;
-      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-      animation-delay: 4s;
-      box-shadow: 6px 6px 0 0 $neo-black;
-    }
-    
-    &.shape-6 {
-      width: 70px;
-      height: 70px;
-      background: $neo-orange;
-      top: 50%;
-      left: 25%;
-      animation-delay: 5s;
-      box-shadow: 5px 5px 0 0 $neo-black;
-    }
+  33% {
+    transform: translate(30px, -30px) scale(1.05);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.95);
   }
 }
 
-@keyframes dotsMove {
-  0% { background-position: 0 0; }
-  100% { background-position: 48px 48px; }
+@keyframes particle-float {
+  0% {
+    transform: translateY(100vh) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) rotate(360deg);
+    opacity: 0;
+  }
 }
 
-@keyframes floatShape {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-20px) rotate(5deg); }
-  50% { transform: translateY(-10px) rotate(-3deg); }
-  75% { transform: translateY(-25px) rotate(2deg); }
+@keyframes beam-sweep {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(-8deg);
+  }
+  45% {
+    transform: translate(60px, -40px) scale(1.08) rotate(6deg);
+  }
+  70% {
+    transform: translate(-40px, 30px) scale(0.98) rotate(-4deg);
+  }
+}
+
+@keyframes orb-float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  40% {
+    transform: translate(40px, -30px) scale(1.05);
+  }
+  70% {
+    transform: translate(-30px, 20px) scale(0.96);
+  }
 }
 
 // ==================== 左侧展示区 ====================
 .login-showcase {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 60px;
-  position: relative;
-  z-index: 1;
-  
-  .showcase-content {
-    max-width: 560px;
-    
-    .logo-section {
-      text-align: center;
-      margin-bottom: 48px;
-      
-      .logo-box {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 100px;
-        height: 100px;
-        background: $neo-yellow;
-        border: 4px solid $neo-black;
-        border-radius: 24px;
-        box-shadow: 8px 8px 0 0 $neo-black;
-        margin-bottom: 24px;
-        animation: wobble 3s ease-in-out infinite;
-        
-        .logo-icon {
-          font-size: 56px;
-          color: $neo-black;
-        }
-      }
-      
-      .system-title {
-        font-size: 56px;
-        font-weight: 900;
-        margin: 0 0 12px 0;
-        color: $neo-black;
-        text-transform: uppercase;
-        letter-spacing: 4px;
-        text-shadow: 4px 4px 0 $neo-yellow;
-      }
-      
-      .system-slogan {
-        font-size: 14px;
-        font-weight: 700;
-        letter-spacing: 3px;
-        color: $neo-black;
-        opacity: 0.7;
-        margin: 0;
-      }
-    }
-    
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      margin-bottom: 48px;
-      
-      .feature-card {
-        padding: 24px 16px;
-        background: $neo-white;
-        border: 3px solid $neo-black;
-        border-radius: 16px;
-        text-align: center;
-        box-shadow: 6px 6px 0 0 $neo-black;
-        transition: all 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
-        animation: neoPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-        
-        &:hover {
-          transform: translate(-4px, -4px);
-          box-shadow: 10px 10px 0 0 $neo-black;
-        }
-        
-        &--yellow {
-          background: $neo-yellow;
-          .feature-icon { background: $neo-white; }
-        }
-        
-        &--blue {
-          background: $neo-blue;
-          color: $neo-white;
-          .feature-icon { background: $neo-white; color: $neo-blue; }
-          h3, p { color: $neo-white; }
-        }
-        
-        &--pink {
-          background: $neo-pink;
-          color: $neo-white;
-          .feature-icon { background: $neo-white; color: $neo-pink; }
-          h3, p { color: $neo-white; }
-        }
-        
-        .feature-icon {
-          width: 56px;
-          height: 56px;
-          margin: 0 auto 16px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: $neo-yellow;
-          border: 3px solid $neo-black;
-          border-radius: 12px;
-          box-shadow: 3px 3px 0 0 $neo-black;
-        }
-        
-        h3 {
-          font-size: 16px;
-          font-weight: 800;
-          margin: 0 0 8px 0;
-          color: $neo-black;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-        }
-        
-        p {
-          font-size: 12px;
-          color: rgba($neo-black, 0.8);
-          margin: 0;
-          line-height: 1.4;
-        }
-      }
-    }
-    
-    .deco-text {
-      text-align: center;
-      font-size: 24px;
-      font-weight: 900;
-      letter-spacing: 8px;
-      color: $neo-black;
-      opacity: 0.15;
-      
-      span {
-        margin: 0 8px;
-      }
-    }
-  }
-}
-
-@keyframes wobble {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(3deg); }
-  75% { transform: rotate(-3deg); }
-}
-
-@keyframes neoPopIn {
-  0% {
-    opacity: 0;
-    transform: scale(0) translateY(50px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  display: none;
 }
 
 // ==================== 右侧登录区 ====================
 .login-box {
-  width: 500px;
-  padding: 60px 48px;
-  background: $neo-white;
-  border-left: 4px solid $neo-black;
+  width: 100%;
+  max-width: 420px;
+  padding: 0;
+  background: transparent;
+  border-left: none;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -532,196 +471,183 @@ const getDefaultRoute = (role) => {
 }
 
 .login-card {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 20px;
+  padding: 44px 40px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.12);
+  position: relative;
+
+  .brand-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 22px;
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba($color-primary, 0.16) 0%, rgba($color-primary, 0.08) 100%);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      color: $color-primary;
+
+      :deep(.el-icon) {
+        font-size: 22px;
+      }
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .brand-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: $text-primary;
+        letter-spacing: -0.01em;
+      }
+
+      .brand-subtitle {
+        font-size: 12px;
+        color: $text-tertiary;
+      }
+    }
+  }
+
   .login-header {
-    text-align: center;
-    margin-bottom: 40px;
-    
+    margin-bottom: 32px;
+
     h2 {
       margin: 0;
-      font-size: 48px;
-      color: $neo-black;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 4px;
+      font-size: 28px;
+      color: $text-primary;
+      font-weight: 600;
+      letter-spacing: -0.02em;
     }
-    
+
     p {
       margin: 8px 0 0;
-      color: $neo-black;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      opacity: 0.5;
+      color: $text-tertiary;
+      font-size: 14px;
     }
   }
 }
 
 .login-form {
   :deep(.el-form-item) {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
-  
-  .neo-input-wrapper {
-    width: 100%;
-    
-    label {
-      display: block;
-      font-size: 12px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: $neo-black;
-      margin-bottom: 8px;
+
+  :deep(.el-input) {
+    .el-input__wrapper {
+      padding: 4px 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: none;
+      border: 1px solid $border-color;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: $color-gray-300;
+      }
+
+      &.is-focus {
+        border-color: rgba($color-primary, 0.55);
+        box-shadow: 0 10px 26px rgba($color-primary, 0.10);
+      }
+    }
+
+    .el-input__inner {
+      height: 44px;
+      font-size: 15px;
+    }
+
+    .el-input__prefix {
+      color: $text-tertiary;
     }
   }
-}
 
-.neo-login-btn {
-  width: 100%;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  font-size: 18px;
-  font-weight: 900;
-  font-family: inherit;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  background: $neo-blue;
-  color: $neo-white;
-  border: 4px solid $neo-black;
-  border-radius: 12px;
-  box-shadow: 6px 6px 0 0 $neo-black;
-  cursor: pointer;
-  transition: all 150ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  
-  &:hover:not(:disabled) {
-    transform: translate(-3px, -3px);
-    box-shadow: 9px 9px 0 0 $neo-black;
-    background: $neo-blue-dark;
-  }
-  
-  &:active:not(:disabled) {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 0 $neo-black;
-  }
-  
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
+  .login-btn {
+    width: 100%;
+    height: 48px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(180deg, lighten($color-primary, 4%) 0%, $color-primary 100%);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: linear-gradient(180deg, lighten($color-primary, 2%) 0%, darken($color-primary, 6%) 100%);
+      box-shadow: 0 14px 32px rgba($color-primary, 0.20);
+    }
+
+    &:active {
+      box-shadow: 0 10px 22px rgba($color-primary, 0.16);
+    }
   }
 }
 
 .login-footer {
   text-align: center;
-  margin-top: 32px;
-  
-  .register-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    background: $neo-yellow;
-    border: 3px solid $neo-black;
-    border-radius: 8px;
-    box-shadow: 4px 4px 0 0 $neo-black;
+  margin-top: 24px;
+
+  .footer-text {
+    color: $text-tertiary;
     font-size: 14px;
-    color: $neo-black;
+  }
+
+  .register-link {
+    color: $color-primary;
+    font-size: 14px;
+    font-weight: 600;
     text-decoration: none;
-    transition: all 150ms cubic-bezier(0.34, 1.56, 0.64, 1);
-    
-    span {
-      font-weight: 500;
-    }
-    
-    strong {
-      font-weight: 800;
-    }
-    
+    margin-left: 6px;
+    transition: color 0.2s ease;
+
     &:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0 0 $neo-black;
-      background: $neo-yellow-dark;
+      color: darken($color-primary, 8%);
     }
   }
 }
 
-.bottom-deco {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  height: 12px;
-  
-  .deco-bar {
-    flex: 1;
-    
-    &--yellow { background: $neo-yellow; }
-    &--blue { background: $neo-blue; }
-    &--pink { background: $neo-pink; }
-  }
+.copyright {
+  position: static;
+  text-align: center;
+  font-size: 13px;
+  color: $text-placeholder;
+  margin: 16px 0 0;
 }
 
 // ==================== 响应式 ====================
-@media (max-width: 1200px) {
-  .login-showcase {
-    padding: 40px;
-    
-    .showcase-content {
-      .system-title {
-        font-size: 42px;
-      }
-      
-      .feature-grid {
-        gap: 16px;
-        
-        .feature-card {
-          padding: 20px 12px;
-        }
-      }
-    }
-  }
-}
-
 @media (max-width: 1024px) {
-  .login-showcase {
-    display: none;
-  }
-  
   .login-box {
-    width: 100%;
-    max-width: 480px;
-    margin: 0 auto;
-    border-left: none;
-    border-top: 4px solid $neo-black;
-  }
-  
-  .neo-background {
-    .floating-shape {
-      &.shape-1 { left: 10%; top: 5%; }
-      &.shape-2 { left: auto; right: 10%; top: 15%; }
-      &.shape-3 { left: 50%; top: auto; bottom: 20%; }
-      &.shape-4 { display: none; }
-      &.shape-5 { display: none; }
-      &.shape-6 { display: none; }
+    max-width: 420px;
+    padding: 0;
+
+    .login-card {
+      padding: 40px;
     }
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 480px) {
   .login-box {
-    padding: 48px 24px;
+    padding: 0;
+
+    .login-card {
+      padding: 32px 24px;
+    }
   }
   
   .login-card .login-header h2 {
-    font-size: 36px;
-  }
-  
-  .neo-login-btn {
-    height: 52px;
-    font-size: 16px;
+    font-size: 24px;
   }
 }
 </style>

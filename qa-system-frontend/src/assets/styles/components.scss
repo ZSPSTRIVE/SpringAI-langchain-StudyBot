@@ -1,363 +1,745 @@
-// ==================== NEO-BRUTALISM 组件样式库 ====================
-// 超大胆设计：粗边框、硬阴影、高饱和色
+// ==================== Apple Minimalist + Education Community Components ====================
+// 教育问答社区风格组件，灵感来源于 Stack Overflow / GitHub Discussions
 
 @import './variables.scss';
 
-// ==================== NEO 卡片组件 ====================
+// Card - clean surface with subtle accent
 .modern-card {
-  background: $neo-white;
+  background: $card-bg;
   border-radius: $radius-lg;
-  border: $border-width solid $neo-black;
-  box-shadow: $shadow-neo-md;
+  border: $border-width solid $border-color;
+  box-shadow: $shadow-sm;
   padding: $spacing-lg;
-  transition: all 200ms $bounce-curve;
+  transition: transform $transition-base, box-shadow $transition-base, border-color $transition-base;
   position: relative;
-  overflow: visible;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 8px;
-    background: $neo-yellow;
-    border-bottom: $border-width solid $neo-black;
-    border-radius: $radius-lg $radius-lg 0 0;
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 200ms $bounce-curve;
-  }
-  
+
   &:hover {
-    transform: translate(-4px, -4px);
-    box-shadow: $shadow-neo-lg;
-    
-    &::before {
-      transform: scaleX(1);
-    }
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+    border-color: $border-color-focus;
   }
-  
+
   &.clickable {
     cursor: pointer;
-    
-    &:active {
-      transform: translate(2px, 2px);
-      box-shadow: $shadow-neo-active;
-    }
   }
 }
 
-// NEO 玻璃卡片（带波点）
+.dialog-resize-handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+}
+
+.dialog-resize-handle[data-corner='nw'] {
+  left: -6px;
+  top: -6px;
+  cursor: nwse-resize;
+}
+
+.dialog-resize-handle[data-corner='ne'] {
+  right: -6px;
+  top: -6px;
+  cursor: nesw-resize;
+}
+
+.dialog-resize-handle[data-corner='sw'] {
+  left: -6px;
+  bottom: -6px;
+  cursor: nesw-resize;
+}
+
+.dialog-resize-handle[data-corner='se'] {
+  right: -6px;
+  bottom: -6px;
+  cursor: nwse-resize;
+}
+
+.dialog-resize-handle[data-edge='n'],
+.dialog-resize-handle[data-edge='s'] {
+  height: 10px;
+  width: 44px;
+  border-radius: 999px;
+}
+
+.dialog-resize-handle[data-edge='e'],
+.dialog-resize-handle[data-edge='w'] {
+  width: 10px;
+  height: 44px;
+  border-radius: 999px;
+}
+
+.dialog-resize-handle[data-edge='n'] {
+  left: 50%;
+  top: -6px;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.dialog-resize-handle[data-edge='s'] {
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.dialog-resize-handle[data-edge='w'] {
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+
+.dialog-resize-handle[data-edge='e'] {
+  right: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+
+// Global floating AI assistant widget
+.floating-bubble {
+  position: fixed;
+  width: 58px;
+  height: 58px;
+  background: linear-gradient(135deg, #ffd66b 0%, #f6a937 100%);
+  color: #111;
+  border-radius: 50%;
+  border: 2px solid rgba(17, 17, 17, 0.9);
+  box-shadow: 0 10px 28px rgba(245, 166, 35, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: grab;
+  z-index: 2500;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  user-select: none;
+  touch-action: none;
+
+  .ai-text {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    font-family: 'Manrope', 'Noto Sans SC', sans-serif;
+    color: transparent;
+    -webkit-text-stroke: 2px #111;
+    text-shadow: 0 0 1px #111;
+  }
+
+  &:hover {
+    transform: scale(1.06);
+    box-shadow: 0 14px 34px rgba(245, 166, 35, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.75);
+  }
+
+  &.dragging {
+    cursor: grabbing;
+    transform: scale(1.02);
+  }
+}
+
+.floating-bubble.teacher-orange {
+  background: $re-orange;
+  box-shadow: 0 8px 24px rgba($re-orange, 0.4);
+}
+
+.floating-bubble.admin-bubble {
+  background: linear-gradient(135deg, rgba(255, 149, 0, 0.95), rgba(255, 82, 82, 0.85));
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 28px rgba(255, 149, 0, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.75);
+}
+
+.el-dialog.ai-assistant-dialog {
+  background: linear-gradient(135deg, rgba(19, 23, 34, 0.82), rgba(47, 54, 78, 0.72)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur($blur-xl) saturate(140%) !important;
+  box-shadow: 0 30px 60px rgba(12, 18, 34, 0.45) !important;
+  width: 680px;
+  max-width: 92vw;
+  min-width: 520px;
+  height: 44vh;
+  max-height: 90vh;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  resize: both;
+  overflow: visible !important;
+  box-sizing: border-box;
+}
+
+.el-dialog.ai-assistant-dialog .el-dialog__body {
+  flex: 1;
+  padding: 0 !important;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.el-dialog.ai-assistant-dialog .el-dialog__header {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.el-dialog.ai-assistant-dialog .el-dialog__title {
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+// Glass card - Clean, layered, depth-aware
 .glass-card {
-  background: $neo-white;
-  border: $border-width solid $neo-black;
+  background: $glass-card;
+  border: 1px solid $glass-border-light;
   border-radius: $radius-xl;
-  box-shadow: $shadow-neo-lg;
-  padding: $spacing-xl;
-  transition: all 200ms $bounce-curve;
+  box-shadow: $shadow-glass-sm;
+  backdrop-filter: blur($blur-lg);
+  -webkit-backdrop-filter: blur($blur-lg);
+  transition: all $transition-base;
   position: relative;
   overflow: hidden;
-  
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-glass-md;
+    border-color: $glass-border-strong;
+  }
+}
+
+// Glass Panel (Sidebar/Drawer) - High blur, solid feel
+.glass-panel {
+  background: $glass-surface;
+  backdrop-filter: blur($blur-xl) saturate(180%);
+  -webkit-backdrop-filter: blur($blur-xl) saturate(180%);
+  border: 1px solid $glass-border-light;
+  box-shadow: $shadow-glass-lg;
+}
+
+// Glass Header (Capsule) - Enhanced for 1:1 style
+.glass-header-capsule {
+  background: $glass-floating;
+  backdrop-filter: blur($blur-md) saturate(180%);
+  -webkit-backdrop-filter: blur($blur-md) saturate(180%);
+  border: 1px solid $glass-border-light;
+  border-radius: 999px;
+  box-shadow: $shadow-glass-md;
+}
+
+// Independent Floating Pill (Reference style)
+.header-pill {
+  background: $glass-floating;
+  backdrop-filter: blur($blur-md) saturate(180%);
+  -webkit-backdrop-filter: blur($blur-md) saturate(180%);
+  border: 1px solid $glass-border-light;
+  border-radius: 999px;
+  height: 48px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  box-shadow: $shadow-glass-md;
+  transition: all $transition-base;
+
+  &:hover {
+    border-color: $glass-border-strong;
+    box-shadow: $shadow-glass-lg;
+  }
+}
+
+// Glass Dropdowns (More / Avatar menus)
+.glass-dropdown {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(236, 241, 255, 0.52));
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: $radius-lg;
+  backdrop-filter: blur($blur-xl) saturate(180%);
+  -webkit-backdrop-filter: blur($blur-xl) saturate(180%);
+  box-shadow: 0 18px 46px rgba(15, 23, 42, 0.14),
+    inset 0 1px 1px rgba(255, 255, 255, 0.95),
+    0 0 0 1px rgba(120, 152, 255, 0.12);
+  padding: $spacing-2 0;
+  overflow: hidden;
+
+  .el-dropdown-menu,
+  .el-menu {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .el-dropdown-menu__item,
+  .el-menu-item {
+    color: $text-primary !important;
+    font-weight: $font-weight-medium;
+    border-radius: $radius-md;
+    margin: 4px 8px;
+    transition: all $transition-fast;
+    background: rgba(255, 255, 255, 0.52) !important;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur($blur-sm) saturate(160%);
+    -webkit-backdrop-filter: blur($blur-sm) saturate(160%);
+
+    &:hover,
+    &.is-active {
+      background: rgba(255, 255, 255, 0.78) !important;
+      color: $color-primary !important;
+      border-color: rgba(139, 128, 249, 0.35);
+    }
+  }
+
+  .el-menu-item {
+    height: 36px;
+    line-height: 36px;
+  }
+}
+
+// Glass Button (Action icons)
+.glass-btn {
+  background: $glass-floating;
+  border: 1px solid $glass-border-light;
+  border-radius: $radius-full;
+  color: $text-secondary;
+  backdrop-filter: blur($blur-sm);
+  transition: all $transition-fast;
+  box-shadow: $shadow-glass-sm;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: $glass-accent;
+    color: $color-primary;
+    border-color: $color-primary-light;
+    box-shadow: $shadow-glass-md;
+    transform: translateY(-1px);
+  }
+
+  &.active-pill {
+    background: $re-purple;
+    color: white !important;
+    border-color: $re-purple;
+    box-shadow: 0 4px 15px rgba(139, 128, 249, 0.4);
+  }
+
+  &.orange-btn {
+    background: $re-orange;
+    color: white !important;
+    border-color: $re-orange;
+    box-shadow: 0 4px 15px rgba(245, 166, 35, 0.4);
+  }
+}
+
+// Glow Background Container
+.glow-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background: $re-bg-dark; // Dark underlying theme
+
+  &::before,
   &::after {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: radial-gradient(circle, rgba($neo-black, 0.04) 2px, transparent 2px);
-    background-size: 20px 20px;
-    pointer-events: none;
+    width: 60vw;
+    height: 60vw;
+    border-radius: 50%;
+    filter: blur($blur-vxl);
+    opacity: 0.5;
+    animation: float-glow 10s ease-in-out infinite alternate;
   }
-  
-  &:hover {
-    transform: translate(-6px, -6px);
-    box-shadow: $shadow-neo-xl;
+
+  &::before {
+    top: -20%;
+    left: -10%;
+    background: radial-gradient(circle, var(--glow-color-1, $color-primary-light), transparent 70%);
+  }
+
+  &::after {
+    bottom: -20%;
+    right: -10%;
+    background: radial-gradient(circle, var(--glow-color-2, $color-info), transparent 70%);
+    animation-delay: -5s;
+  }
+
+  // Hidden state for pure background mode
+  &.hidden {
+    display: none;
   }
 }
 
-// ==================== NEO 按钮组件 ====================
+// Pure Background (Clean, minimal mode)
+.pure-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(145deg, var(--theme-pure-1, #f0f2f5), var(--theme-pure-2, #e8ecef));
+}
+
+@keyframes float-glow {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate(30px, 50px) scale(1.1);
+  }
+}
+
+// ==================== Universal Glass Inputs ====================
+.el-input__wrapper,
+.el-textarea__inner,
+.el-select .el-input__wrapper {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.34)) !important;
+  backdrop-filter: blur($blur-md) saturate(180%);
+  -webkit-backdrop-filter: blur($blur-md) saturate(180%);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.65) !important;
+  border-radius: $radius-md !important;
+  transition: all $transition-base;
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.45)) !important;
+    border-color: rgba(255, 255, 255, 0.8) !important;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.75) !important;
+  }
+
+  &:focus-within,
+  &.is-focus {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.55)) !important;
+    border-color: rgba(139, 128, 249, 0.7) !important;
+    box-shadow: 0 0 0 4px rgba(139, 128, 249, 0.16), 0 12px 30px rgba(15, 23, 42, 0.12) !important;
+  }
+}
+
+// El-Card Glass Adaptation
+.el-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.5)) !important;
+  backdrop-filter: blur($blur-xl) saturate(170%);
+  -webkit-backdrop-filter: blur($blur-xl) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.65) !important;
+  border-radius: $radius-xl !important;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  }
+
+  &:hover {
+    box-shadow: 0 24px 50px rgba(15, 23, 42, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.85) !important;
+  }
+}
+
+// El-Dialog Glass Adaptation
+.el-dialog {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.55)) !important;
+  backdrop-filter: blur($blur-vxl) saturate(180%);
+  -webkit-backdrop-filter: blur($blur-vxl) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.7) !important;
+  border-radius: $radius-2xl !important;
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+}
+
+.el-message-box {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.62)) !important;
+  backdrop-filter: blur($blur-vxl) saturate(180%);
+  -webkit-backdrop-filter: blur($blur-vxl) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.75) !important;
+  border-radius: $radius-xl !important;
+  box-shadow: 0 26px 54px rgba(15, 23, 42, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.85) !important;
+
+  .el-message-box__header,
+  .el-message-box__btns {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+
+  .el-message-box__title,
+  .el-message-box__content {
+    color: $text-primary;
+    font-weight: $font-weight-medium;
+  }
+}
+
+// El-Table Glass Adaptation
+.el-table {
+  background: transparent !important;
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+
+  th.el-table__cell {
+    background: rgba(255, 255, 255, 0.55) !important;
+    backdrop-filter: blur($blur-md);
+  }
+
+  tr {
+    background: rgba(255, 255, 255, 0.38) !important;
+
+    &:hover>td {
+      background: rgba(255, 255, 255, 0.7) !important;
+    }
+  }
+}
+
+// Buttons
 .modern-button {
   display: inline-flex;
   align-items: center;
   gap: $spacing-sm;
-  padding: $spacing-md $spacing-xl;
+  padding: $spacing-sm $spacing-lg;
   border-radius: $radius-md;
-  border: $border-width solid $neo-black;
-  font-weight: $font-weight-black;
-  font-size: $font-size-md;
+  border: $border-width solid transparent;
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
   font-family: $font-family;
-  text-transform: uppercase;
-  letter-spacing: 1px;
   cursor: pointer;
-  transition: all 150ms $bounce-curve;
-  position: relative;
-  box-shadow: $shadow-neo-md;
-  
+  transition: transform $transition-fast, box-shadow $transition-fast, background $transition-fast, color $transition-fast;
+  box-shadow: $shadow-btn;
+
   &:hover {
-    transform: translate(-3px, -3px);
-    box-shadow: $shadow-neo-lg;
+    transform: translateY(-1px);
+    box-shadow: $shadow-md;
   }
-  
+
   &:active {
-    transform: translate(2px, 2px);
-    box-shadow: $shadow-neo-active;
+    transform: translateY(0);
+    box-shadow: $shadow-sm;
   }
-  
+
   &.btn-primary {
-    background: $neo-blue;
-    color: $neo-white;
-    
-    &:hover {
-      background: $neo-blue-dark;
-    }
+    background: $color-primary;
+    color: $text-inverse;
   }
-  
+
   &.btn-success {
-    background: $neo-green;
-    color: $neo-black;
-    
-    &:hover {
-      background: $neo-green-dark;
-    }
+    background: $color-success;
+    color: $text-inverse;
   }
-  
+
   &.btn-warning {
-    background: $neo-yellow;
-    color: $neo-black;
-    
-    &:hover {
-      background: $neo-yellow-dark;
-    }
+    background: $color-warning;
+    color: $text-inverse;
   }
-  
+
   &.btn-danger {
-    background: $neo-red;
-    color: $neo-white;
-    
-    &:hover {
-      background: $neo-red-dark;
-    }
+    background: $color-danger;
+    color: $text-inverse;
   }
-  
+
   &.btn-outline {
-    background: $neo-white;
-    color: $neo-black;
-    
+    background: $bg-primary;
+    color: $text-primary;
+    border-color: $border-color;
+
     &:hover {
-      background: $neo-yellow;
+      border-color: $border-color-focus;
+      color: $color-primary;
     }
   }
 }
 
-// ==================== NEO 标签组件 ====================
+// Tags
 .modern-tag {
   display: inline-flex;
   align-items: center;
   gap: $spacing-xs;
-  padding: $spacing-xs $spacing-md;
+  padding: 2px $spacing-sm;
   border-radius: $radius-sm;
   font-size: $font-size-sm;
-  font-weight: $font-weight-bold;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: 2px solid $neo-black;
-  box-shadow: 2px 2px 0 0 $neo-black;
-  transition: all 150ms $bounce-curve;
-  
-  &:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 4px 4px 0 0 $neo-black;
-  }
-  
+  font-weight: $font-weight-medium;
+  border: 1px solid transparent;
+  background: $bg-secondary;
+  color: $text-secondary;
+
   &.tag-primary {
-    background: $neo-blue;
-    color: $neo-white;
+    background: $color-primary-bg;
+    color: $color-primary;
   }
-  
+
   &.tag-success {
-    background: $neo-green;
-    color: $neo-black;
+    background: $color-success-bg;
+    color: $color-success;
   }
-  
+
   &.tag-warning {
-    background: $neo-yellow;
-    color: $neo-black;
+    background: $color-warning-bg;
+    color: $color-warning;
   }
-  
+
   &.tag-danger {
-    background: $neo-red;
-    color: $neo-white;
+    background: $color-danger-bg;
+    color: $color-danger;
   }
-  
+
   &.tag-purple {
-    background: $neo-purple;
-    color: $neo-white;
+    background: $role-student-bg;
+    color: $role-student;
   }
-  
+
   &.tag-pink {
-    background: $neo-pink;
-    color: $neo-white;
+    background: rgba(244, 168, 184, 0.2);
+    color: #C0425C;
   }
-  
+
   &.tag-orange {
-    background: $neo-orange;
-    color: $neo-white;
+    background: $color-warning-bg;
+    color: $color-warning;
   }
 }
 
-// ==================== NEO 输入框组件 ====================
+// Input
 .modern-input {
   width: 100%;
-  padding: $spacing-md $spacing-lg;
-  border: $border-width solid $neo-black;
+  padding: $spacing-sm $spacing-lg;
+  border: $border-width solid $border-color;
   border-radius: $radius-md;
   font-size: $font-size-md;
   font-family: $font-family;
-  font-weight: $font-weight-medium;
-  transition: all 150ms $bounce-curve;
-  background: $neo-white;
-  box-shadow: $shadow-neo-sm;
-  
+  font-weight: $font-weight-regular;
+  transition: border-color $transition-fast, box-shadow $transition-fast;
+  background: $bg-primary;
+
   &:focus {
     outline: none;
-    border-color: $neo-blue;
-    box-shadow: 4px 4px 0 0 $neo-blue;
-    transform: translate(-2px, -2px);
-  }
-  
-  &:hover:not(:focus) {
-    transform: translate(-1px, -1px);
-    box-shadow: $shadow-neo-md;
-  }
-  
-  &::placeholder {
-    color: $text-placeholder;
+    border-color: $color-primary;
+    box-shadow: 0 0 0 4px $color-primary-bg;
   }
 }
 
-// ==================== NEO 问题卡片 ====================
+// Question card - community list
 .question-card-modern {
-  background: $neo-white;
+  background: $bg-primary;
   border-radius: $radius-lg;
-  border: $border-width solid $neo-black;
+  border: $border-width solid $border-color;
   padding: $spacing-lg;
   margin-bottom: $spacing-md;
   cursor: pointer;
   position: relative;
-  transition: all 200ms $bounce-curve;
-  box-shadow: $shadow-neo-md;
-  
+  transition: transform $transition-base, box-shadow $transition-base, border-color $transition-base;
+  box-shadow: $shadow-sm;
+
   &::before {
     content: '';
     position: absolute;
     left: 0;
     top: 0;
     bottom: 0;
-    width: 8px;
-    background: $neo-yellow;
-    border-right: $border-width solid $neo-black;
+    width: 4px;
+    background: $color-primary;
     border-radius: $radius-lg 0 0 $radius-lg;
-    transition: all 150ms $bounce-curve;
   }
-  
+
   &:hover {
-    transform: translate(-4px, -4px);
-    box-shadow: $shadow-neo-lg;
-    
-    &::before {
-      width: 12px;
-      background: $neo-blue;
-    }
-  }
-  
-  &:active {
-    transform: translate(2px, 2px);
-    box-shadow: $shadow-neo-active;
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+    border-color: $border-color-focus;
   }
 }
 
-// ==================== NEO 头像组件 ====================
+// Avatar
 .modern-avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: $neo-yellow;
-  color: $neo-black;
-  font-weight: $font-weight-black;
-  border: $border-width solid $neo-black;
-  box-shadow: $shadow-neo-sm;
-  transition: all 150ms $bounce-curve;
-  
+  background: $bg-secondary;
+  color: $text-secondary;
+  font-weight: $font-weight-semibold;
+  border: $border-width solid $border-color;
+  box-shadow: $shadow-sm;
+  transition: transform $transition-fast;
+
   &:hover {
-    transform: scale(1.1) rotate(5deg);
-    box-shadow: $shadow-neo-md;
+    transform: translateY(-1px);
   }
-  
-  &--blue { background: $neo-blue; color: $neo-white; }
-  &--green { background: $neo-green; color: $neo-black; }
-  &--purple { background: $neo-purple; color: $neo-white; }
-  &--pink { background: $neo-pink; color: $neo-white; }
+
+  &--blue {
+    background: $color-primary-bg;
+    color: $color-primary;
+  }
+
+  &--green {
+    background: $color-success-bg;
+    color: $color-success;
+  }
+
+  &--purple {
+    background: $role-student-bg;
+    color: $role-student;
+  }
+
+  &--pink {
+    background: rgba(244, 168, 184, 0.2);
+    color: #C0425C;
+  }
 }
 
-// ==================== NEO 徽章组件 ====================
+// Badge
 .modern-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 8px;
-  background: $neo-red;
-  color: $neo-white;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: $color-danger;
+  color: $text-inverse;
   border-radius: $radius-full;
   font-size: $font-size-xs;
-  font-weight: $font-weight-black;
-  border: 2px solid $neo-black;
-  box-shadow: 2px 2px 0 0 $neo-black;
-  animation: scalePop 2s ease-in-out infinite;
+  font-weight: $font-weight-semibold;
 }
 
-// ==================== 分割线 ====================
+// Divider
 .modern-divider {
   height: 1px;
   background: $border-color;
   margin: $spacing-lg 0;
   position: relative;
-  
+
   &::before {
     content: '';
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 60px;
-    height: 3px;
-    background: $primary-color;
-    border-radius: $radius-sm;
+    width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, $color-primary, transparent);
   }
 }
 
-// ==================== 加载状态 ====================
+// Loading
 .modern-loading {
   display: flex;
   justify-content: center;
   align-items: center;
   padding: $spacing-3xl;
-  
+
   .spinner {
-    width: 48px;
-    height: 48px;
-    border: 4px solid $border-color;
+    width: 40px;
+    height: 40px;
+    border: 3px solid $border-color;
     border-top-color: $primary-color;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
 }
 
-// ==================== 空状态 ====================
+// Empty state
 .modern-empty {
   display: flex;
   flex-direction: column;
@@ -365,98 +747,102 @@
   justify-content: center;
   padding: $spacing-3xl;
   color: $text-secondary;
-  
+
   .empty-icon {
-    font-size: 64px;
-    color: $text-disabled;
+    font-size: 56px;
+    color: $text-tertiary;
     margin-bottom: $spacing-lg;
     animation: float 3s ease-in-out infinite;
   }
-  
+
   .empty-text {
     font-size: $font-size-lg;
     margin-bottom: $spacing-md;
   }
-  
+
   .empty-description {
     font-size: $font-size-sm;
     color: $text-placeholder;
   }
 }
 
-// ==================== 悬浮操作按钮 ====================
+// Floating action button
 .fab {
   position: fixed;
   bottom: $spacing-2xl;
   right: $spacing-2xl;
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: $primary-color;
-  color: white;
+  color: $text-inverse;
   border: none;
   box-shadow: $shadow-xl;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: $font-size-2xl;
-  transition: all $transition-base;
+  font-size: $font-size-xl;
+  transition: transform $transition-fast, box-shadow $transition-fast;
   z-index: $z-index-fixed;
-  
+
   &:hover {
-    transform: scale(1.1) rotate(90deg);
+    transform: translateY(-2px);
     box-shadow: $shadow-primary;
-  }
-  
-  &:active {
-    transform: scale(1.05) rotate(90deg);
   }
 }
 
-// ==================== 统计卡片 ====================
+// Stat card
 .stat-card {
   background: $bg-primary;
   border-radius: $radius-xl;
-  border: 1px solid $border-color;
+  border: 1px solid $border-color-light;
   padding: $spacing-xl;
   text-align: center;
-  transition: all $transition-base;
-  
+  transition: transform $transition-base, box-shadow $transition-base, border-color $transition-base;
+
   .stat-icon {
-    font-size: 48px;
+    font-size: 44px;
     margin-bottom: $spacing-md;
     display: inline-block;
-    transition: all $transition-base;
+    color: $text-tertiary;
   }
-  
+
   .stat-value {
     font-size: $font-size-3xl;
     font-weight: $font-weight-bold;
-    color: $primary-color;
+    color: $text-primary;
     margin-bottom: $spacing-sm;
   }
-  
+
   .stat-label {
     font-size: $font-size-sm;
     color: $text-secondary;
   }
-  
+
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: $shadow-xl;
-    border-color: $primary-light;
-    
-    .stat-icon {
-      transform: scale(1.2) rotate(10deg);
-    }
+    transform: translateY(-3px);
+    box-shadow: $shadow-lg;
+    border-color: $border-color-focus;
+  }
+
+  &--yellow {
+    border-top: 3px solid $color-warning;
+  }
+
+  &--blue {
+    border-top: 3px solid $color-primary;
+  }
+
+  &--green {
+    border-top: 3px solid $color-success;
   }
 }
 
-// ==================== 提示框 ====================
+// Tooltip
 .modern-tooltip {
   position: relative;
-  
+
   &::before {
     content: attr(data-tooltip);
     position: absolute;
@@ -465,7 +851,7 @@
     transform: translateX(-50%) translateY(-8px);
     padding: $spacing-sm $spacing-md;
     background: rgba($text-primary, 0.9);
-    color: white;
+    color: $text-inverse;
     border-radius: $radius-md;
     font-size: $font-size-sm;
     white-space: nowrap;
@@ -474,30 +860,28 @@
     transition: all $transition-fast;
     z-index: $z-index-tooltip;
   }
-  
+
   &:hover::before {
     opacity: 1;
     transform: translateX(-50%) translateY(-4px);
   }
 }
 
-// ==================== 进度条 ====================
+// Progress
 .modern-progress {
   width: 100%;
   height: 8px;
   background: $bg-tertiary;
   border-radius: $radius-full;
   overflow: hidden;
-  position: relative;
-  
+
   .progress-bar {
     height: 100%;
     background: $primary-color;
     border-radius: $radius-full;
     transition: width $transition-slow;
     position: relative;
-    overflow: hidden;
-    
+
     &::after {
       content: '';
       position: absolute;
@@ -505,12 +889,7 @@
       left: 0;
       bottom: 0;
       right: 0;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.3),
-        transparent
-      );
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
       animation: shimmer 1.5s infinite;
     }
   }
@@ -520,34 +899,35 @@
   0% {
     transform: translateX(-100%);
   }
+
   100% {
     transform: translateX(100%);
   }
 }
 
-// ==================== 面包屑 ====================
+// Breadcrumb
 .modern-breadcrumb {
   display: flex;
   align-items: center;
   gap: $spacing-sm;
   font-size: $font-size-sm;
-  
+
   .breadcrumb-item {
     display: flex;
     align-items: center;
     gap: $spacing-sm;
     color: $text-secondary;
     transition: color $transition-fast;
-    
+
     &:hover {
       color: $primary-color;
     }
-    
+
     &.active {
       color: $text-primary;
       font-weight: $font-weight-medium;
     }
-    
+
     &:not(:last-child)::after {
       content: '/';
       margin-left: $spacing-sm;
@@ -556,25 +936,24 @@
   }
 }
 
-// ==================== 选项卡 ====================
+// Tabs
 .modern-tabs {
   display: flex;
   gap: $spacing-sm;
-  border-bottom: 2px solid $border-color;
-  
+  border-bottom: 1px solid $border-color;
+
   .tab-item {
-    padding: $spacing-md $spacing-lg;
+    padding: $spacing-sm $spacing-lg;
     cursor: pointer;
     color: $text-secondary;
     font-weight: $font-weight-medium;
     transition: all $transition-fast;
     position: relative;
-    border-radius: $radius-md $radius-md 0 0;
-    
+
     &::after {
       content: '';
       position: absolute;
-      bottom: -2px;
+      bottom: -1px;
       left: 0;
       right: 0;
       height: 2px;
@@ -582,15 +961,16 @@
       transform: scaleX(0);
       transition: transform $transition-base;
     }
-    
+
     &:hover {
       color: $primary-color;
       background: $bg-hover;
+      border-radius: $radius-sm $radius-sm 0 0;
     }
-    
+
     &.active {
       color: $primary-color;
-      
+
       &::after {
         transform: scaleX(1);
       }
@@ -598,7 +978,7 @@
   }
 }
 
-// ==================== 通知点 ====================
+// Notification dot
 .notification-dot {
   width: 8px;
   height: 8px;
@@ -611,16 +991,301 @@
   animation: pulse 2s ease-in-out infinite;
 }
 
-// ==================== 图片悬停效果 ====================
+// Image hover
 .image-hover {
   overflow: hidden;
   border-radius: $radius-lg;
-  
+
   img {
     transition: transform $transition-slow;
   }
-  
+
   &:hover img {
-    transform: scale(1.1) rotate(2deg);
+    transform: scale(1.04);
+  }
+}
+
+// ==================== 教育社区风格组件 ====================
+
+// Q&A 问答卡片 - Stack Overflow 风格
+.qa-card {
+  display: flex;
+  background: $bg-primary;
+  border: 1px solid $border-color-light;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  transition: all $transition-base;
+  position: relative;
+  box-shadow: $shadow-card;
+
+  &:hover {
+    border-color: $border-color;
+    box-shadow: $shadow-card-hover;
+    transform: translateY(-2px);
+  }
+
+  // 左侧统计区
+  .qa-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-md;
+    min-width: 80px;
+    padding-right: $spacing-lg;
+    border-right: 1px solid $border-color-light;
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: $spacing-xs;
+
+      .stat-value {
+        font-size: $font-size-lg;
+        font-weight: $font-weight-bold;
+        color: $text-primary;
+      }
+
+      .stat-label {
+        font-size: $font-size-xs;
+        color: $text-secondary;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      &.answered {
+        .stat-value {
+          color: $color-success;
+        }
+      }
+
+      &.views {
+        .stat-value {
+          color: $text-secondary;
+        }
+      }
+    }
+  }
+
+  // 右侧内容区
+  .qa-content {
+    flex: 1;
+    padding-left: $spacing-lg;
+
+    .qa-title {
+      font-size: $font-size-lg;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
+      margin-bottom: $spacing-sm;
+      line-height: 1.4;
+      transition: color $transition-fast;
+
+      &:hover {
+        color: $color-primary;
+      }
+    }
+
+    .qa-excerpt {
+      font-size: $font-size-sm;
+      color: $text-secondary;
+      line-height: 1.6;
+      margin-bottom: $spacing-md;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .qa-meta {
+      display: flex;
+      align-items: center;
+      gap: $spacing-lg;
+      flex-wrap: wrap;
+      font-size: $font-size-sm;
+      color: $text-secondary;
+
+      .qa-tags {
+        display: flex;
+        gap: $spacing-xs;
+        flex-wrap: wrap;
+      }
+
+      .qa-author {
+        display: flex;
+        align-items: center;
+        gap: $spacing-xs;
+        margin-left: auto;
+      }
+    }
+  }
+
+  // 已解决标识
+  &.solved::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: $color-success;
+    border-radius: $radius-lg 0 0 $radius-lg;
+  }
+
+  // 待回答标识
+  &.pending::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: $color-warning;
+    border-radius: $radius-lg 0 0 $radius-lg;
+  }
+}
+
+// 状态徽章 - 教育社区风格
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: 2px $spacing-sm;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.solved {
+    background: $color-success-bg;
+    color: $color-success;
+
+    &::before {
+      content: '✓';
+      font-weight: $font-weight-bold;
+    }
+  }
+
+  &.pending {
+    background: $color-warning-bg;
+    color: $color-warning;
+
+    &::before {
+      content: '⏳';
+    }
+  }
+
+  &.closed {
+    background: rgba($text-secondary, 0.1);
+    color: $text-secondary;
+
+    &::before {
+      content: '✖';
+    }
+  }
+}
+
+// 投票框 - Stack Overflow 风格
+.vote-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm;
+
+  .vote-button {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid $border-color;
+    border-radius: $radius-md;
+    background: $bg-primary;
+    color: $text-secondary;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      background: $bg-secondary;
+      border-color: $color-primary;
+      color: $color-primary;
+      transform: scale(1.1);
+    }
+
+    &.active {
+      background: $color-primary-bg;
+      border-color: $color-primary;
+      color: $color-primary;
+    }
+  }
+
+  .vote-count {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+    min-width: 32px;
+    text-align: center;
+
+    &.positive {
+      color: $color-success;
+    }
+
+    &.negative {
+      color: $color-danger;
+    }
+  }
+}
+
+// 用户信息胶囊 - GitHub 风格
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  background: $bg-secondary;
+  border: 1px solid $border-color-light;
+  border-radius: $radius-full;
+  font-size: $font-size-sm;
+  color: $text-primary;
+  transition: all $transition-fast;
+  cursor: pointer;
+
+  &:hover {
+    background: $bg-primary;
+    border-color: $border-color;
+    box-shadow: $shadow-sm;
+  }
+
+  .user-avatar-mini {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: $color-gray-300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-bold;
+    color: $text-inverse;
+  }
+
+  .user-name {
+    font-weight: $font-weight-medium;
+  }
+
+  .user-role {
+    font-size: $font-size-xs;
+    color: $text-tertiary;
+
+    &.teacher {
+      color: $role-teacher;
+    }
+
+    &.student {
+      color: $role-student;
+    }
   }
 }

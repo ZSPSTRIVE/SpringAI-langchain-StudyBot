@@ -3,14 +3,16 @@
     <div class="detail-container">
       <!-- 导航按钮 -->
       <div class="nav-buttons">
-        <el-button @click="handleBack" class="nav-btn">
-          <el-icon><ArrowLeft /></el-icon>
-          返回上一页
-        </el-button>
-        <el-button @click="handleGoHome" class="nav-btn">
-          <el-icon><HomeFilled /></el-icon>
-          返回首页
-        </el-button>
+        <el-tooltip content="返回上一页" placement="bottom">
+          <el-button circle class="nav-btn" @click="handleBack">
+            <el-icon><ArrowLeft /></el-icon>
+          </el-button>
+        </el-tooltip>
+        <el-tooltip content="返回工作台" placement="bottom">
+          <el-button circle class="nav-btn" @click="handleGoHome">
+            <el-icon><HomeFilled /></el-icon>
+          </el-button>
+        </el-tooltip>
       </div>
 
       <el-skeleton :loading="loading" :rows="10" animated>
@@ -233,7 +235,37 @@ const handleBack = () => {
 }
 
 const handleGoHome = () => {
+  const role = userStore.userInfo?.role
+  if (role === 'ADMIN') {
+    router.push('/admin')
+    return
+  }
+  if (role === 'TEACHER') {
+    router.push('/teacher')
+    return
+  }
+  if (role === 'STUDENT') {
+    router.push('/student')
+    return
+  }
   router.push('/home')
+}
+
+const goForumList = () => {
+  const role = userStore.userInfo?.role
+  if (role === 'ADMIN') {
+    router.push('/admin/forum')
+    return
+  }
+  if (role === 'TEACHER') {
+    router.push('/teacher/forum')
+    return
+  }
+  if (role === 'STUDENT') {
+    router.push('/student/forum')
+    return
+  }
+  router.push('/forum')
 }
 
 const loading = ref(false)
@@ -288,7 +320,7 @@ const loadPost = async () => {
   } catch (error) {
     console.error('加载帖子详情失败:', error)
     ElMessage.error('帖子不存在或已被删除')
-    router.push('/forum')
+    goForumList()
   } finally {
     loading.value = false
   }
@@ -324,7 +356,7 @@ const handleDelete = async () => {
 
     await deleteForum([post.value.id])
     ElMessage.success('删除成功')
-    router.push('/forum')
+    goForumList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除失败:', error)
@@ -410,14 +442,14 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .forum-detail-page {
-  min-height: 100vh;
-  background: #f5f7fa;
-  padding: 20px;
+  min-height: 100%;
+  background: transparent;
+  padding: 0;
 }
 
 .detail-container {
-  max-width: 1000px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
 }
 
 .nav-buttons {
@@ -426,23 +458,16 @@ onMounted(() => {
   gap: 12px;
   
   .nav-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 20px;
+    background: #fff;
     border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    background: white;
     color: #374151;
-    font-weight: 500;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     
     &:hover {
       background: #f9fafb;
       border-color: #4f46e5;
       color: #4f46e5;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+      box-shadow: 0 10px 26px rgba(79, 70, 229, 0.14);
     }
     
     :deep(.el-icon) {

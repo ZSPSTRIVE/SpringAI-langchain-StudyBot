@@ -1,5 +1,8 @@
 <template>
   <div class="question-detail-page">
+    <div class="page-toolbar">
+      <el-button :icon="ArrowLeft" @click="handleBack">返回</el-button>
+    </div>
     <el-skeleton :loading="loading" :rows="10" animated>
       <!-- 问题详情 -->
       <el-card v-if="question" shadow="never" class="question-card">
@@ -34,14 +37,17 @@
 
         <div class="question-content" v-html="question.content"></div>
 
-        <div v-if="question.images && question.images.length > 0" class="question-images">
+        <div v-if="questionPreviewList.length > 0" class="question-images">
           <el-image
-            v-for="(image, index) in question.images"
-            :key="index"
+            v-for="(image, index) in questionPreviewList"
+            :key="image"
             :src="image"
-            :preview-src-list="question.images"
+            :preview-src-list="questionPreviewList"
+            :initial-index="index"
+            :preview-teleported="true"
+            lazy
             fit="cover"
-            style="width: 200px; height: 200px; margin-right: 10px"
+            class="thumb-image"
           />
         </div>
 
@@ -100,14 +106,17 @@
 
             <div class="answer-content" v-html="answer.content"></div>
 
-            <div v-if="answer.images && answer.images.length > 0" class="answer-images">
+            <div v-if="(answerPreviewMap[answer.id] || []).length > 0" class="answer-images">
               <el-image
-                v-for="(image, index) in answer.images"
-                :key="index"
+                v-for="(image, index) in answerPreviewMap[answer.id]"
+                :key="image"
                 :src="image"
-                :preview-src-list="answer.images"
+                :preview-src-list="answerPreviewMap[answer.id]"
+                :initial-index="index"
+                :preview-teleported="true"
+                lazy
                 fit="cover"
-                style="width: 150px; height: 150px; margin-right: 10px"
+                class="thumb-image thumb-image--sm"
               />
             </div>
 
@@ -160,7 +169,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { User, View, Clock, EditPen, Select, Promotion } from '@element-plus/icons-vue'
+import { ArrowLeft, User, View, Clock, EditPen, Select, Promotion } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { getQuestionById, deleteQuestion, closeQuestion } from '@/api/question'
 import { getAnswersByQuestionId, createAnswer, acceptAnswer } from '@/api/answer'
@@ -173,6 +182,8 @@ const userStore = useUserStore()
 const loading = ref(false)
 const question = ref(null)
 const answers = ref([])
+const questionPreviewList = ref([])
+const answerPreviewMap = ref({})
 const showAnswerDialog = ref(false)
 const answerFormRef = ref()
 const submittingAnswer = ref(false)
@@ -200,11 +211,29 @@ const canAcceptAnswer = computed(() => {
   return question.value.studentId === userStore.userInfo.userId && question.value.status !== 'CLOSED'
 })
 
+const getBackFallbackPath = () => {
+  const role = userStore.userInfo?.role
+  if (role === 'ADMIN') return '/admin/questions'
+  if (role === 'TEACHER') return '/teacher/questions'
+  if (role === 'STUDENT') return '/student/questions'
+  return '/home'
+}
+
+const handleBack = () => {
+  // When opened directly in a new tab, there may be no meaningful history entry.
+  if (window.history.length > 1) {
+    router.back()
+    return
+  }
+  router.push(getBackFallbackPath())
+}
+
 const loadQuestion = async () => {
   loading.value = true
   try {
     const res = await getQuestionById(route.params.id)
     question.value = res.data
+    questionPreviewList.value = (res.data?.images || []).slice()
     answerForm.questionId = res.data.id
   } catch (error) {
     console.error('加载问题失败:', error)
@@ -219,6 +248,11 @@ const loadAnswers = async () => {
   try {
     const res = await getAnswersByQuestionId(route.params.id)
     answers.value = res.data
+    const map = {}
+    ;(res.data || []).forEach((a) => {
+      map[a.id] = (a.images || []).slice()
+    })
+    answerPreviewMap.value = map
   } catch (error) {
     console.error('加载回答失败:', error)
   }
@@ -336,6 +370,12 @@ onMounted(() => {
   max-width: 1200px;
   margin: 0 auto;
   animation: fadeIn 0.5s ease-out;
+
+  .page-toolbar {
+    display: flex;
+    align-items: center;
+    margin-bottom: $spacing-lg;
+  }
 }
 
 .question-card {
@@ -346,7 +386,7 @@ onMounted(() => {
   transition: all $transition-base;
   animation: slideInUp 0.4s ease-out;
   overflow: hidden;
-  
+
   &:hover {
     box-shadow: $shadow-2xl;
   }
@@ -469,11 +509,10 @@ onMounted(() => {
       border-radius: $radius-lg;
       overflow: hidden;
       box-shadow: $shadow-md;
-      transition: all $transition-base;
+      transition: box-shadow $transition-base;
       cursor: pointer;
       
       &:hover {
-        transform: scale(1.05) rotate(2deg);
         box-shadow: $shadow-xl;
       }
     }

@@ -17,29 +17,29 @@ export const useUserStore = defineStore('user', () => {
   const isAdmin = computed(() => userInfo.value?.role === 'ADMIN')
 
   function setToken(accessToken, refreshTokenValue) {
-    console.log('✅ setToken被调用')
+    console.log(' setToken被调用')
     token.value = accessToken
     refreshToken.value = refreshTokenValue
   }
 
   function setUserInfo(info) {
-    console.log('✅ setUserInfo被调用:', info)
+    console.log(' setUserInfo被调用:', info)
     userInfo.value = info
   }
 
   function clearAuth() {
-    console.log('🔴 clearAuth被调用')
+    console.log(' clearAuth被调用')
     token.value = ''
     refreshToken.value = ''
     userInfo.value = null
   }
 
   function login(loginData) {
-    console.log('🚀 store.login被调用:', loginData)
+    console.log(' store.login被调用:', loginData)
     token.value = loginData.accessToken
     refreshToken.value = loginData.refreshToken
     userInfo.value = loginData.userInfo
-    console.log('✅ 登录信息已保存到store')
+    console.log(' 登录信息已保存到store')
   }
 
   function logout() {
@@ -61,7 +61,7 @@ export const useUserStore = defineStore('user', () => {
     logout
   }
 }, {
-  // 🔑 关键配置：使用Pinia持久化插件
+  //  关键配置：使用Pinia持久化插件
   persist: {
     key: 'qa-system-user',
     storage: localStorage,

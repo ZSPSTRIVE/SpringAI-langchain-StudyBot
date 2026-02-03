@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { ElMessage } from 'element-plus'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -75,6 +76,16 @@ const router = createRouter({
           path: 'chat',
           name: 'StudentChat',
           component: () => import('@/views/common/ChatRoom.vue')
+        },
+        {
+          path: 'forum',
+          name: 'StudentForum',
+          component: () => import('@/views/forum/ForumList.vue')
+        },
+        {
+          path: 'forum/:id',
+          name: 'StudentForumDetail',
+          component: () => import('@/views/forum/ForumDetail.vue')
         }
       ]
     },
@@ -117,6 +128,16 @@ const router = createRouter({
           path: 'chat',
           name: 'TeacherChat',
           component: () => import('@/views/common/ChatRoom.vue')
+        },
+        {
+          path: 'forum',
+          name: 'TeacherForum',
+          component: () => import('@/views/forum/ForumList.vue')
+        },
+        {
+          path: 'forum/:id',
+          name: 'TeacherForumDetail',
+          component: () => import('@/views/forum/ForumDetail.vue')
         }
       ]
     },
@@ -174,6 +195,16 @@ const router = createRouter({
           path: 'doc-operation-logs',
           name: 'AdminDocOperationLogs',
           component: () => import('@/views/admin/DocOperationLogs.vue')
+        },
+        {
+          path: 'forum',
+          name: 'AdminForum',
+          component: () => import('@/views/forum/ForumList.vue')
+        },
+        {
+          path: 'forum/:id',
+          name: 'AdminForumDetail',
+          component: () => import('@/views/forum/ForumDetail.vue')
         }
       ]
     },
@@ -192,12 +223,52 @@ const router = createRouter({
     {
       path: '/forum',
       name: 'Forum',
-      component: () => import('@/views/forum/ForumList.vue')
+      beforeEnter: (to, from, next) => {
+        const userStore = useUserStore()
+        if (!userStore.isAuthenticated) {
+          next({ name: 'Login', query: { redirect: to.fullPath } })
+          return
+        }
+        const role = userStore.userInfo?.role
+        if (role === 'ADMIN') {
+          next('/admin/forum')
+          return
+        }
+        if (role === 'TEACHER') {
+          next('/teacher/forum')
+          return
+        }
+        if (role === 'STUDENT') {
+          next('/student/forum')
+          return
+        }
+        next('/home')
+      }
     },
     {
       path: '/forum/:id',
       name: 'ForumDetail',
-      component: () => import('@/views/forum/ForumDetail.vue')
+      beforeEnter: (to, from, next) => {
+        const userStore = useUserStore()
+        if (!userStore.isAuthenticated) {
+          next({ name: 'Login', query: { redirect: to.fullPath } })
+          return
+        }
+        const role = userStore.userInfo?.role
+        if (role === 'ADMIN') {
+          next(`/admin/forum/${to.params.id}`)
+          return
+        }
+        if (role === 'TEACHER') {
+          next(`/teacher/forum/${to.params.id}`)
+          return
+        }
+        if (role === 'STUDENT') {
+          next(`/student/forum/${to.params.id}`)
+          return
+        }
+        next('/home')
+      }
     },
     {
       path: '/:pathMatch(.*)*',

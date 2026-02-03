@@ -1,14 +1,13 @@
 <template>
   <router-view />
+  <AiFloatingWidget />
 </template>
 
 <script setup>
-// 全局App组件
+import AiFloatingWidget from '@/components/common/AiFloatingWidget.vue'
 </script>
 
 <style lang="scss">
-@use '@/assets/styles/variables.scss' as *;
-
 // 全局字体样式
 * {
   box-sizing: border-box;

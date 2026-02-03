@@ -2898,8 +2898,9 @@ watch(showFriendRequests, (val) => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(10px);
+  background: $glass-white-light;
+  backdrop-filter: blur($blur-md) saturate(150%);
+  -webkit-backdrop-filter: blur($blur-md) saturate(150%);
 }
 
 .chat-header {
@@ -2908,7 +2909,9 @@ watch(showFriendRequests, (val) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur($blur-sm) saturate(150%);
+  -webkit-backdrop-filter: blur($blur-sm) saturate(150%);
   
   .chat-title {
     font-size: 16px;
@@ -2921,6 +2924,9 @@ watch(showFriendRequests, (val) => {
   flex: 1;
   overflow-y: auto;
   padding: $spacing-lg;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur($blur-sm) saturate(140%);
+  -webkit-backdrop-filter: blur($blur-sm) saturate(140%);
   
   .loading-more {
     text-align: center;
@@ -2947,12 +2953,13 @@ watch(showFriendRequests, (val) => {
     
     .message-bubble {
       padding: $spacing-sm $spacing-md;
-      background: $glass-white;
+      background: $glass-white-light;
       border: 1px solid $glass-border;
       border-radius: $radius-lg;
       word-break: break-word;
       box-shadow: $shadow-sm;
-      backdrop-filter: blur(5px);
+      backdrop-filter: blur($blur-sm) saturate(140%);
+      -webkit-backdrop-filter: blur($blur-sm) saturate(140%);
       color: $text-primary;
     }
   }
@@ -2965,10 +2972,12 @@ watch(showFriendRequests, (val) => {
       align-items: flex-end;
       
       .message-bubble {
-        background: $primary-color;
-        color: white;
-        border: none;
-        box-shadow: 0 2px 8px rgba($primary-color, 0.3);
+        background: rgba($primary-color, 0.2);
+        border: 1px solid rgba($primary-color, 0.35);
+        color: $text-primary;
+        box-shadow: 0 2px 12px rgba($primary-color, 0.2);
+        backdrop-filter: blur($blur-sm) saturate(160%);
+        -webkit-backdrop-filter: blur($blur-sm) saturate(160%);
       }
     }
   }

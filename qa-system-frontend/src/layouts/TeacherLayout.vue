@@ -1,91 +1,70 @@
 <template>
-  <el-container class="layout-container">
-    <!-- 顶部导航 -->
+  <div class="layout-container">
+    <!-- 动态/纯色背景 (基于 ThemeStore) -->
+    <div v-if="themeStore.backgroundMode === 'dynamic'" class="glow-bg" style="--glow-color-1: var(--theme-glow-1); --glow-color-2: var(--theme-glow-2);"></div>
+    <div v-else class="pure-bg"></div>
+
+    <!-- 顶部分离式导航 capsules -->
     <el-header class="layout-header">
-      <div class="header-content">
-        <!-- Logo 和标题 -->
-        <div class="logo-section" @click="router.push('/home')">
-          <el-icon class="logo-icon"><UserFilled /></el-icon>
-          <div class="logo-text">
-            <h2>教师工作台</h2>
-            <span class="logo-subtitle">Teacher Workspace</span>
+      <div class="header-pills-container">
+        <!-- Logo Pill (Green) -->
+        <div class="header-pill logo-pill" @click="router.push('/home')">
+          <div class="logo-circle teacher-theme">
+            <el-icon><UserFilled /></el-icon>
           </div>
+          <span class="logo-text-short">教师面板</span>
         </div>
         
-        <!-- 导航菜单 -->
-        <el-menu
-          mode="horizontal"
-          :default-active="activeMenu"
-          router
-          class="header-menu"
-          :ellipsis="false"
-        >
-          <el-menu-item index="/teacher/answers">
-            <el-icon><ChatLineSquare /></el-icon>
-            <span>答疑中心</span>
-          </el-menu-item>
-          <el-menu-item index="/teacher/questions">
-            <el-icon><QuestionFilled /></el-icon>
-            <span>问题广场</span>
-          </el-menu-item>
-          <el-menu-item index="/teacher/ai-assistant">
-            <el-icon><Opportunity /></el-icon>
-            <span>AI助手</span>
-          </el-menu-item>
-          <el-menu-item index="/teacher/doc-studio">
-            <el-icon><Document /></el-icon>
-            <span>文档工作台</span>
-          </el-menu-item>
-          <el-menu-item index="/teacher/chat">
-            <el-icon><ChatLineRound /></el-icon>
-            <span>消息</span>
-          </el-menu-item>
-          <el-menu-item index="/forum">
-            <el-icon><ChatDotSquare /></el-icon>
-            <span>交流区</span>
-          </el-menu-item>
-        </el-menu>
+        <!-- Navigation Pill -->
+        <div class="header-pill nav-pill">
+          <el-menu
+            mode="horizontal"
+            :default-active="activeMenu"
+            router
+            class="pill-menu teacher-pill-menu"
+            :ellipsis="false"
+          >
+            <el-menu-item index="/teacher/answers">
+              <el-icon><ChatLineSquare /></el-icon>
+              <span>待办</span>
+            </el-menu-item>
+            <el-menu-item index="/teacher/questions">
+              <el-icon><QuestionFilled /></el-icon>
+              <span>广场</span>
+            </el-menu-item>
+            <el-menu-item index="/teacher/ai-assistant">
+              <el-icon><Opportunity /></el-icon>
+              <span>AI资源</span>
+            </el-menu-item>
+            <el-menu-item index="/teacher/doc-studio">
+              <el-icon><Document /></el-icon>
+              <span>文档库</span>
+            </el-menu-item>
+            <el-menu-item index="/teacher-more">
+              <el-icon><MoreFilled /></el-icon>
+              <span>更多</span>
+            </el-menu-item>
+          </el-menu>
+        </div>
         
-        <!-- 右侧操作区 -->
-        <div class="header-actions">
-          <!-- 返回首页按钮 -->
-          <el-tooltip content="返回首页" placement="bottom">
-            <el-button 
-              circle 
-              class="action-btn"
-              @click="router.push('/home')"
-            >
-              <el-icon><HomeFilled /></el-icon>
-            </el-button>
-          </el-tooltip>
-          
-          <!-- 用户下拉菜单 -->
+        <!-- User & Actions Pill -->
+        <div class="header-pill user-pill">
+          <button class="icon-pill-btn" @click="themeStore.toggleBackground" :title="themeStore.backgroundMode === 'dynamic' ? '切换到纯色背景' : '切换到动态背景'">
+            <el-icon><Monitor /></el-icon>
+          </button>
+          <button class="icon-pill-btn" @click="themeStore.nextPalette" title="切换背景色">
+            <el-icon><MagicStick /></el-icon>
+          </button>
           <el-dropdown @command="handleCommand" trigger="click">
-            <div class="user-info">
-              <el-avatar 
-                :size="36" 
-                :src="userStore.userInfo?.avatar"
-                class="user-avatar"
-              >
+            <div class="user-capsule">
+              <el-avatar :size="28" :src="userStore.userInfo?.avatar" class="mini-avatar teacher-border">
                 {{ userStore.userInfo?.realName?.[0] || '教' }}
               </el-avatar>
-              <span class="username">{{ userStore.userInfo?.realName || '教师' }}</span>
-              <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
             </div>
             <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="profile">
-                  <el-icon><User /></el-icon>
-                  <span>个人中心</span>
-                </el-dropdown-item>
-                <el-dropdown-item command="home">
-                  <el-icon><HomeFilled /></el-icon>
-                  <span>返回首页</span>
-                </el-dropdown-item>
-                <el-dropdown-item divided command="logout">
-                  <el-icon><SwitchButton /></el-icon>
-                  <span>退出登录</span>
-                </el-dropdown-item>
+              <el-dropdown-menu class="glass-dropdown">
+                <el-dropdown-item command="profile">教师档案</el-dropdown-item>
+                <el-dropdown-item divided command="logout">退出</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -106,66 +85,42 @@
     
     <!-- 页脚 -->
     <el-footer class="layout-footer">
-      <div class="footer-content">
-        <p>&copy; 2025 师生答疑系统 · 教师端</p>
-        <p class="footer-links">
-          <a href="#">帮助中心</a>
-          <span>·</span>
-          <a href="#">使用指南</a>
-          <span>·</span>
-          <a href="#">联系我们</a>
-        </p>
-      </div>
+      <p>&copy; 2025 答疑系统 · Teacher Elite Edition</p>
     </el-footer>
-  </el-container>
+
+  </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
-  UserFilled, QuestionFilled, ChatLineSquare, ChatDotSquare, ChatLineRound,
-  HomeFilled, User, SwitchButton, ArrowDown, Document, Opportunity
+  UserFilled, QuestionFilled, ChatLineSquare, ChatLineRound, Document, Opportunity,
+  MoreFilled, Edit, Check, Warning, DataLine, Monitor, MagicStick
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
+import { useThemeStore } from '@/stores/theme'
 import { logout as logoutApi } from '@/api/auth'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const themeStore = useThemeStore()
 
-// 当前激活的菜单项
 const activeMenu = computed(() => route.path)
 
-// 处理用户下拉菜单命令
+
 const handleCommand = async (command) => {
   if (command === 'logout') {
     try {
-      await ElMessageBox.confirm(
-        '确定要退出登录吗？',
-        '退出确认',
-        {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      )
-      
+      await ElMessageBox.confirm('确定要退出吗？', '确认', { type: 'warning' })
       await logoutApi()
       userStore.logout()
-      ElMessage.success('退出登录成功')
       router.push('/login')
-    } catch (error) {
-      if (error !== 'cancel') {
-        console.error('退出失败:', error)
-        ElMessage.error('退出失败，请重试')
-      }
-    }
+    } catch {}
   } else if (command === 'profile') {
     router.push('/profile')
-  } else if (command === 'home') {
-    router.push('/home')
   }
 }
 </script>
@@ -173,330 +128,134 @@ const handleCommand = async (command) => {
 <style scoped lang="scss">
 @import '@/assets/styles/variables.scss';
 
-// ==================== 整体布局 ====================
 .layout-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: $neo-cream;
   position: relative;
-  
-  &::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: radial-gradient(circle, rgba($neo-black, 0.04) 2px, transparent 2px);
-    background-size: 24px 24px;
-    pointer-events: none;
-    z-index: 0;
-  }
+  background: transparent;
 }
 
-// ==================== 顶部导航栏 ====================
+// ==================== modular Header ====================
 .layout-header {
-  background: $neo-white;
-  border-bottom: 4px solid $neo-black;
-  padding: 0;
-  z-index: $z-index-sticky;
+  height: auto;
+  padding: $spacing-lg 0;
   position: sticky;
   top: 0;
-  height: 72px;
+  z-index: $z-index-sticky;
 }
 
-.header-content {
-  max-width: 1600px;
-  height: 100%;
+.header-pills-container {
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 $spacing-xl;
   display: flex;
-  align-items: center;
-  gap: $spacing-xl;
-}
-
-// Logo 区域 - 使用教师绿色
-.logo-section {
-  display: flex;
+  justify-content: center;
   align-items: center;
   gap: $spacing-md;
+}
+
+// Pills styling
+.logo-pill {
   cursor: pointer;
-  transition: all 150ms $bounce-curve;
+  gap: $spacing-sm;
+  padding: 0 $spacing-md;
   
-  &:hover {
-    transform: translate(-2px, -2px);
-  }
-  
-  .logo-icon {
-    width: 48px;
-    height: 48px;
+  .logo-circle.teacher-theme {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, $color-success, #00BFA5);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
-    background: $neo-green;
-    color: $neo-black;
-    border: 3px solid $neo-black;
-    border-radius: 12px;
-    box-shadow: 4px 4px 0 0 $neo-black;
+    color: white;
+    font-size: 16px;
   }
   
-  .logo-text {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    
-    h2 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 900;
-      color: $neo-black;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    
-    .logo-subtitle {
-      font-size: 10px;
-      font-weight: 700;
-      color: $neo-black;
-      opacity: 0.5;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
+  .logo-text-short {
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+    font-size: 14px;
   }
 }
 
-// 导航菜单
-.header-menu {
-  flex: 1;
-  border: none;
-  background: transparent;
+.nav-pill {
+  padding: 0 4px;
   
-  :deep(.el-menu-item) {
+  .pill-menu.teacher-pill-menu {
+    border: none;
+    background: transparent;
     height: 48px;
-    line-height: 48px;
-    margin: 0 4px;
-    padding: 0 16px;
-    font-weight: 700;
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border: 2px solid transparent;
-    border-radius: 8px;
-    transition: all 150ms $bounce-curve;
+    display: flex;
+    align-items: center;
     
-    &:hover {
-      background: rgba($neo-green, 0.1);
-      border-color: $neo-black;
-      box-shadow: 3px 3px 0 0 $neo-black;
-      transform: translate(-2px, -2px);
-    }
-    
-    &.is-active {
-      background: $neo-green;
-      color: $neo-black;
-      border-color: $neo-black;
-      box-shadow: 3px 3px 0 0 $neo-black;
-    }
-    
-    .el-icon {
-      margin-right: 6px;
+    :deep(.el-menu-item) {
+      height: 40px;
+      line-height: 40px;
+      padding: 0 16px;
+      margin: 0 2px;
+      border-radius: 999px;
+      border: none;
+      color: $text-secondary;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.4);
+        color: $color-success;
+      }
+      
+      &.is-active {
+        background: $color-success;
+        color: white !important;
+        font-weight: $font-weight-semibold;
+      }
     }
   }
 }
 
-// 右侧操作区
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: $spacing-md;
-  
-  .action-btn {
-    width: 40px;
-    height: 40px;
-    background: $neo-yellow;
-    border: 3px solid $neo-black;
-    color: $neo-black;
-    box-shadow: 3px 3px 0 0 $neo-black;
-    transition: all 150ms $bounce-curve;
-    
-    &:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 5px 5px 0 0 $neo-black;
-    }
-  }
-}
-
-// 用户信息下拉
-.user-info {
-  display: flex;
-  align-items: center;
+.user-pill {
   gap: $spacing-sm;
-  cursor: pointer;
-  padding: 8px 16px;
-  background: $neo-green;
-  border: 3px solid $neo-black;
-  border-radius: 12px;
-  box-shadow: 4px 4px 0 0 $neo-black;
-  transition: all 150ms $bounce-curve;
+  padding: 0 8px;
   
-  &:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0 0 $neo-black;
+  .icon-pill-btn:hover {
+    color: $color-success;
   }
   
-  .user-avatar {
-    background: $neo-white;
-    color: $neo-green-dark;
-    font-weight: 900;
-    border: 2px solid $neo-black;
-  }
-  
-  .username {
-    font-size: 14px;
-    font-weight: 800;
-    color: $neo-black;
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  
-  .dropdown-icon {
-    color: $neo-black;
-    font-size: 14px;
-    transition: transform 150ms $bounce-curve;
-  }
-  
-  &:hover .dropdown-icon {
-    transform: rotate(180deg);
+  .mini-avatar.teacher-border {
+    border: 2px solid $color-success-bg;
   }
 }
 
-// ==================== 主内容区 ====================
+// ==================== Content ====================
 .layout-main {
   flex: 1;
-  background: transparent;
-  padding: 0;
-  position: relative;
-  z-index: 1;
 }
 
 .main-content {
-  max-width: 1600px;
+  max-width: 1200px;
   margin: 0 auto;
-  width: 100%;
-  min-height: calc(100vh - 140px);
   padding: $spacing-xl;
 }
 
-// 页面过渡动画
-.page-enter-active,
-.page-leave-active {
-  transition: all 300ms $bounce-curve;
+.content-sub-nav {
+  margin-bottom: $spacing-xl;
+  display: flex;
+  justify-content: center;
+  
+  .teacher-sub-nav {
+    background: rgba(255, 255, 255, 0.6);
+  }
+  
+  .tab-pill.teacher-active.active {
+    background: $color-success;
+    box-shadow: 0 4px 10px rgba($color-success, 0.3);
+  }
 }
 
-.page-enter-from {
-  opacity: 0;
-  transform: translateX(30px) rotate(1deg);
-}
-
-.page-leave-to {
-  opacity: 0;
-  transform: translateX(-30px) rotate(-1deg);
-}
-
-// ==================== 页脚 ====================
+// Floating Bubble
 .layout-footer {
-  background: $neo-black;
-  border-top: 4px solid $neo-black;
-  padding: $spacing-lg 0 0;
-  height: auto;
-  position: relative;
-  z-index: 1;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 8px;
-    background: linear-gradient(90deg, $neo-green 25%, $neo-yellow 25%, $neo-yellow 50%, $neo-blue 50%, $neo-blue 75%, $neo-pink 75%);
-  }
-}
-
-.footer-content {
-  max-width: 1600px;
-  margin: 0 auto;
   text-align: center;
-  color: $neo-white;
-  font-size: $font-size-sm;
-  padding-bottom: 20px;
-  
-  p {
-    margin: $spacing-xs 0;
-    font-weight: 600;
-  }
-  
-  .footer-links {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: $spacing-md;
-    margin-top: $spacing-sm;
-    
-    a {
-      color: rgba($neo-white, 0.7);
-      font-weight: 600;
-      transition: color 150ms;
-      
-      &:hover {
-        color: $neo-green;
-      }
-    }
-    
-    span {
-      color: rgba($neo-white, 0.3);
-    }
-  }
-}
-
-// ==================== 响应式设计 ====================
-@media (max-width: $breakpoint-lg) {
-  .header-content {
-    padding: 0 $spacing-md;
-  }
-  
-  .logo-text .logo-subtitle {
-    display: none;
-  }
-  
-  .header-menu {
-    :deep(.el-menu-item span) {
-      display: none;
-    }
-  }
-  
-  .main-content {
-    padding: $spacing-md;
-  }
-}
-
-@media (max-width: $breakpoint-md) {
-  .logo-section {
-    .logo-text {
-      display: none;
-    }
-  }
-  
-  .header-actions .action-btn {
-    display: none;
-  }
-  
-  .user-info .username {
-    display: none;
-  }
+  padding: $spacing-xl;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
 }
 </style>

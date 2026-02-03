@@ -1,5 +1,5 @@
 <template>
-  <div class="ai-assistant-container">
+  <div class="ai-assistant-container" :class="{ embedded }">
     <!-- 侧边栏 - 会话历史 -->
     <div class="sidebar" :class="{ collapsed: sidebarCollapsed }">
       <div class="sidebar-header">
@@ -292,6 +292,15 @@ import 'dayjs/locale/zh-cn'
 
 dayjs.extend(relativeTime)
 dayjs.locale('zh-cn')
+
+const props = defineProps({
+  embedded: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const embedded = props.embedded
 
 // 配置marked
 marked.setOptions({
@@ -713,20 +722,99 @@ const parseRecommendations = (jsonString) => {
 </script>
 
 <style scoped lang="scss">
+@import '@/assets/styles/variables.scss';
 .ai-assistant-container {
   display: flex;
-  height: calc(100vh - 60px); // 减去header高度
-  background: #f5f7fa;
+  height: calc(100vh - 140px); // 减去header与footer高度
+  background: $bg-glass;
+  border: 1px solid $glass-border;
+  border-radius: $radius-xl;
+  backdrop-filter: blur($blur-lg) saturate(160%);
+  -webkit-backdrop-filter: blur($blur-lg) saturate(160%);
+
+  &.embedded {
+    height: 100%;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    backdrop-filter: none;
+
+    .sidebar {
+      width: 220px;
+    }
+
+    .sidebar-header {
+      padding: 12px;
+      gap: 8px;
+
+      .title {
+        font-size: 14px;
+      }
+    }
+
+    .session-item {
+      padding: 8px 12px;
+    }
+
+    .chat-header {
+      padding: 8px 16px;
+
+      .ai-icon {
+        font-size: 20px;
+      }
+
+      .ai-title {
+        font-size: 16px;
+      }
+    }
+
+    .messages-content {
+      padding: 12px 16px;
+      max-width: 720px;
+    }
+
+    .welcome-message {
+      padding: 24px 16px;
+
+      h2 {
+        font-size: 18px;
+      }
+    }
+
+    .message-header {
+      font-size: 11px;
+    }
+
+    .message-body {
+      .user-text,
+      .ai-text {
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+    }
+
+    .input-area {
+      padding: 8px 16px;
+    }
+  }
 }
 
 // 侧边栏
 .sidebar {
   width: 280px;
-  background: white;
-  border-right: 1px solid #e4e7ed;
+  background: rgba(255, 255, 255, 0.35);
+  border-right: 1px solid $glass-border;
+  backdrop-filter: blur($blur-md) saturate(150%);
+  -webkit-backdrop-filter: blur($blur-md) saturate(150%);
   display: flex;
   flex-direction: column;
   transition: width 0.3s;
+
+  .ai-assistant-container.embedded & {
+    background: rgba(255, 255, 255, 0.08);
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur($blur-lg) saturate(170%);
+  }
 
   &.collapsed {
     width: 60px;
@@ -738,7 +826,7 @@ const parseRecommendations = (jsonString) => {
 
   .sidebar-header {
     padding: 16px;
-    border-bottom: 1px solid #e4e7ed;
+    border-bottom: 1px solid $glass-border;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -761,16 +849,16 @@ const parseRecommendations = (jsonString) => {
     align-items: flex-start;
     gap: 10px;
     cursor: pointer;
-    border-bottom: 1px solid #f2f3f5;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
     transition: background 0.2s;
 
     &:hover {
-      background: #f5f7fa;
+      background: rgba(255, 255, 255, 0.35);
     }
 
     &.active {
-      background: #ecf5ff;
-      border-left: 3px solid #409eff;
+      background: rgba($color-primary, 0.12);
+      border-left: 3px solid $color-primary;
     }
 
     .el-icon {
@@ -801,9 +889,11 @@ const parseRecommendations = (jsonString) => {
   // 右键菜单
   .context-menu {
     position: fixed;
-    background: white;
+    background: $glass-white-strong;
+    backdrop-filter: blur($blur-lg) saturate(160%);
+    -webkit-backdrop-filter: blur($blur-lg) saturate(160%);
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: $shadow-glass-md;
     padding: 4px 0;
     z-index: 9999;
     min-width: 140px;
@@ -824,8 +914,8 @@ const parseRecommendations = (jsonString) => {
       }
       
       &:hover {
-        background: #f5f7fa;
-        color: #409eff;
+        background: rgba($color-primary, 0.12);
+        color: $color-primary;
         
         .el-icon {
           color: #409eff;
@@ -834,8 +924,8 @@ const parseRecommendations = (jsonString) => {
       
       &.delete {
         &:hover {
-          background: #fef0f0;
-          color: #f56c6c;
+          background: rgba($color-danger, 0.12);
+          color: $color-danger;
           
           .el-icon {
             color: #f56c6c;
@@ -851,15 +941,30 @@ const parseRecommendations = (jsonString) => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: white;
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur($blur-md) saturate(150%);
+  -webkit-backdrop-filter: blur($blur-md) saturate(150%);
+
+  .ai-assistant-container.embedded & {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(18px) saturate(160%);
+  }
 }
 
 .chat-header {
   padding: 12px 24px;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid $glass-border;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur($blur-sm) saturate(160%);
+  -webkit-backdrop-filter: blur($blur-sm) saturate(160%);
+
+  .ai-assistant-container.embedded & {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+  }
 
   .header-left {
     display: flex;
@@ -887,7 +992,13 @@ const parseRecommendations = (jsonString) => {
 .messages-container {
   flex: 1;
   overflow: hidden;
-  background: #f5f7fa;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur($blur-sm) saturate(140%);
+  -webkit-backdrop-filter: blur($blur-sm) saturate(140%);
+
+  .ai-assistant-container.embedded & {
+    background: transparent;
+  }
 }
 
 .messages-content {
@@ -954,8 +1065,11 @@ const parseRecommendations = (jsonString) => {
       }
 
       .user-text {
-        background: #409eff;
-        color: white;
+        background: rgba($color-primary, 0.2);
+        border: 1px solid rgba($color-primary, 0.35);
+        color: $text-primary;
+        backdrop-filter: blur($blur-sm) saturate(160%);
+        -webkit-backdrop-filter: blur($blur-sm) saturate(160%);
         border-radius: 12px 12px 0 12px;
       }
     }
@@ -967,9 +1081,11 @@ const parseRecommendations = (jsonString) => {
     }
 
     .ai-text {
-      background: white;
+      background: $glass-white-light;
       border-radius: 12px 12px 12px 0;
-      border: 1px solid #e4e7ed;
+      border: 1px solid $glass-border;
+      backdrop-filter: blur($blur-sm) saturate(150%);
+      -webkit-backdrop-filter: blur($blur-sm) saturate(150%);
     }
   }
 
@@ -1018,7 +1134,7 @@ const parseRecommendations = (jsonString) => {
 // Markdown样式
 .markdown-body {
   :deep(pre) {
-    background: #282c34;
+    background: rgba(20, 24, 36, 0.82);
     padding: 16px;
     border-radius: 8px;
     overflow-x: auto;
@@ -1032,7 +1148,7 @@ const parseRecommendations = (jsonString) => {
   }
 
   :deep(code) {
-    background: #f2f3f5;
+    background: rgba(255, 255, 255, 0.4);
     padding: 2px 6px;
     border-radius: 4px;
     font-family: 'Consolas', 'Monaco', monospace;
@@ -1101,8 +1217,11 @@ const parseRecommendations = (jsonString) => {
 .recommendations {
   margin-top: 12px;
   padding: 12px;
-  background: #f5f7fa;
+  background: $glass-white-light;
   border-radius: 8px;
+  border: 1px solid $glass-border;
+  backdrop-filter: blur($blur-sm) saturate(140%);
+  -webkit-backdrop-filter: blur($blur-sm) saturate(140%);
 
   .recommendations-title {
     display: flex;
@@ -1122,9 +1241,11 @@ const parseRecommendations = (jsonString) => {
 
   .resource-item {
     padding: 10px;
-    background: white;
+    background: $glass-white;
     border-radius: 6px;
-    border: 1px solid #e4e7ed;
+    border: 1px solid $glass-border;
+    backdrop-filter: blur($blur-sm) saturate(140%);
+    -webkit-backdrop-filter: blur($blur-sm) saturate(140%);
 
     .resource-header {
       display: flex;
@@ -1153,8 +1274,16 @@ const parseRecommendations = (jsonString) => {
 // 输入区域
 .input-area {
   padding: 12px 24px;
-  border-top: 1px solid #e4e7ed;
-  background: white;
+  border-top: 1px solid $glass-border;
+  background: $glass-white-light;
+  backdrop-filter: blur($blur-sm) saturate(150%);
+  -webkit-backdrop-filter: blur($blur-sm) saturate(150%);
+
+  .ai-assistant-container.embedded & {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(18px) saturate(160%);
+  }
 
   .input-wrapper {
     max-width: 900px;
@@ -1185,8 +1314,11 @@ const parseRecommendations = (jsonString) => {
   .bookmark-item {
     padding: 16px;
     margin-bottom: 16px;
-    background: #f5f7fa;
+    background: $glass-white-light;
     border-radius: 8px;
+    border: 1px solid $glass-border;
+    backdrop-filter: blur($blur-sm) saturate(140%);
+    -webkit-backdrop-filter: blur($blur-sm) saturate(140%);
 
     .bookmark-header {
       display: flex;

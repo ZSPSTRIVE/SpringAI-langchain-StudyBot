@@ -2,27 +2,31 @@ export function attachDialogCornerResize(dialogEl, options = {}) {
   if (!dialogEl) return () => {}
 
   const minWidth = Number(options.minWidth ?? 520)
-  const minHeight = Number(options.minHeight ?? 200)
+  const minHeight = Number(options.minHeight ?? 220)
 
   dialogEl.style.position = 'relative'
 
   const corners = ['nw', 'ne', 'sw', 'se']
+  const edges = ['n', 'e', 's', 'w']
 
   const handles = new Map()
 
-  const ensureHandle = (corner) => {
-    let handle = dialogEl.querySelector(`.dialog-resize-handle[data-corner="${corner}"]`)
+  const ensureHandle = (type, id) => {
+    const attr = type === 'corner' ? 'data-corner' : 'data-edge'
+    let handle = dialogEl.querySelector(`.dialog-resize-handle[${attr}="${id}"]`)
     if (!handle) {
       handle = document.createElement('div')
       handle.className = 'dialog-resize-handle'
-      handle.dataset.corner = corner
+      if (type === 'corner') handle.dataset.corner = id
+      else handle.dataset.edge = id
       dialogEl.appendChild(handle)
     }
-    handles.set(corner, handle)
+    handles.set(`${type}:${id}`, handle)
     return handle
   }
 
-  corners.forEach(ensureHandle)
+  corners.forEach((c) => ensureHandle('corner', c))
+  edges.forEach((e) => ensureHandle('edge', e))
 
   const getTranslate = () => {
     const style = window.getComputedStyle(dialogEl)
@@ -47,18 +51,15 @@ export function attachDialogCornerResize(dialogEl, options = {}) {
     let newW = active.startW
     let newH = active.startH
 
-    if (active.corner === 'se') {
-      newW = active.startW + dx
-      newH = active.startH + dy
-    } else if (active.corner === 'sw') {
-      newW = active.startW - dx
-      newH = active.startH + dy
-    } else if (active.corner === 'ne') {
-      newW = active.startW + dx
-      newH = active.startH - dy
-    } else if (active.corner === 'nw') {
-      newW = active.startW - dx
-      newH = active.startH - dy
+    const handle = active.handle
+    const affectsWidth = handle.includes('e') || handle.includes('w')
+    const affectsHeight = handle.includes('n') || handle.includes('s')
+
+    if (affectsWidth) {
+      newW = handle.includes('e') ? active.startW + dx : active.startW - dx
+    }
+    if (affectsHeight) {
+      newH = handle.includes('s') ? active.startH + dy : active.startH - dy
     }
 
     newW = Math.max(minWidth, Math.round(newW))
@@ -67,10 +68,10 @@ export function attachDialogCornerResize(dialogEl, options = {}) {
     let deltaX = 0
     let deltaY = 0
 
-    if (active.corner === 'sw' || active.corner === 'nw') {
+    if (handle.includes('w')) {
       deltaX = active.startW - newW
     }
-    if (active.corner === 'ne' || active.corner === 'nw') {
+    if (handle.includes('n')) {
       deltaY = active.startH - newH
     }
 
@@ -87,7 +88,7 @@ export function attachDialogCornerResize(dialogEl, options = {}) {
     window.removeEventListener('pointercancel', stop)
   }
 
-  const onPointerDown = (corner, e) => {
+  const onPointerDown = (handle, e) => {
     if (e.button && e.button !== 0) return
     e.preventDefault()
     e.stopPropagation()
@@ -96,7 +97,7 @@ export function attachDialogCornerResize(dialogEl, options = {}) {
     const { x: tx, y: ty } = getTranslate()
 
     active = {
-      corner,
+      handle,
       startX: e.clientX,
       startY: e.clientY,
       startW: rect.width,
@@ -110,22 +111,27 @@ export function attachDialogCornerResize(dialogEl, options = {}) {
     window.addEventListener('pointercancel', stop)
   }
 
-  corners.forEach((corner) => {
-    const handle = handles.get(corner)
-    if (!handle) return
-    const listener = (e) => onPointerDown(corner, e)
-    handle.addEventListener('pointerdown', listener)
-    handle.__cornerResizeListener = listener
+  const allHandles = [
+    ...corners.map((c) => ({ type: 'corner', id: c })),
+    ...edges.map((e) => ({ type: 'edge', id: e }))
+  ]
+
+  allHandles.forEach(({ type, id }) => {
+    const el = handles.get(`${type}:${id}`)
+    if (!el) return
+    const listener = (e) => onPointerDown(id, e)
+    el.addEventListener('pointerdown', listener)
+    el.__cornerResizeListener = listener
   })
 
   return () => {
     stop()
-    corners.forEach((corner) => {
-      const handle = handles.get(corner)
-      if (!handle) return
-      const listener = handle.__cornerResizeListener
-      if (listener) handle.removeEventListener('pointerdown', listener)
-      handle.remove()
+    allHandles.forEach(({ type, id }) => {
+      const el = handles.get(`${type}:${id}`)
+      if (!el) return
+      const listener = el.__cornerResizeListener
+      if (listener) el.removeEventListener('pointerdown', listener)
+      el.remove()
     })
   }
 }

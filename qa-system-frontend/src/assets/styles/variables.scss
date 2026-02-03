@@ -1,279 +1,338 @@
-// ==================== GLASSMORPHISM 设计系统 ====================
-// 核心特征：毛玻璃、半透明、光晕、柔和阴影、大圆角
+// ==================== Design System v3.0 ====================
+// Apple Minimalist + Education Community Fusion
+// 设计原则：极简、专业、清晰的信息层级、教育问答社区交互模式
 
 // ==================== 核心色板 ====================
-$glass-white: rgba(255, 255, 255, 0.7);      // 强透明白
-$glass-white-light: rgba(255, 255, 255, 0.4); // 弱透明白
-$glass-white-strong: rgba(255, 255, 255, 0.9); // 几乎不透明
-$glass-border: rgba(255, 255, 255, 0.5);     // 玻璃边框
 
-$text-main: #1d1d1f;
-$text-secondary: #86868b;
+// 主色调 - Apple Blue (专业、信任)
+$color-primary: #007AFF;
+$color-primary-light: #5AC8FA;
+$color-primary-dark: #0051D5;
+$color-primary-bg: rgba(0, 122, 255, 0.06);
+$color-primary-hover: rgba(0, 122, 255, 0.10);
 
-// 苹果风格色板
-$ios-blue: #007aff;
-$ios-green: #34c759;
-$ios-red: #ff3b30;
-$ios-yellow: #ffcc00;
-$ios-orange: #ff9500;
-$ios-purple: #af52de;
-$ios-pink: #ff2d55;
-$ios-teal: #5ac8fa;
-$ios-indigo: #5856d6;
+// 语义色 - 问答状态
+$color-success: #34C759; // 已解决/已回答
+$color-success-bg: rgba(52, 199, 89, 0.1);
+$color-warning: #FF9500; // 待回答/进行中
+$color-warning-bg: rgba(255, 149, 0, 0.1);
+$color-danger: #FF3B30; // 错误/关闭
+$color-danger-bg: rgba(255, 59, 48, 0.1);
+$color-info: #5856D6; // 信息/精选
+$color-info-bg: rgba(88, 86, 214, 0.1);
 
-// ==================== 语义色映射 ====================
-$primary-color: $ios-blue;
-$primary-light: lighten($ios-blue, 10%);
-$primary-dark: darken($ios-blue, 10%);
-$primary-hover: darken($ios-blue, 5%);
+// 中性色 - Apple Gray Scale
+$color-gray-50: #FAFAFA;
+$color-gray-100: #F5F5F7;
+$color-gray-200: #E8E8ED;
+$color-gray-300: #D2D2D7;
+$color-gray-400: #AEAEB2;
+$color-gray-500: #8E8E93;
+$color-gray-600: #636366;
+$color-gray-700: #48484A;
+$color-gray-800: #3A3A3C;
+$color-gray-900: #1D1D1F;
 
-$success-color: $ios-green;
-$warning-color: $ios-orange;
-$danger-color: $ios-red;
-$info-color: $ios-blue;
+// 背景色
+$bg-primary: #FFFFFF;
+$bg-secondary: $color-gray-100;
+$bg-tertiary: $color-gray-50;
+$bg-elevated: #FFFFFF;
 
-// ==================== 文字颜色 ====================
-$text-primary: $text-main;
-$text-secondary: $text-secondary;
-$text-placeholder: rgba($text-main, 0.3);
-$text-disabled: rgba($text-main, 0.2);
+// 文字色
+$text-primary: $color-gray-900;
+$text-secondary: $color-gray-600;
+$text-tertiary: $color-gray-500;
+$text-placeholder: $color-gray-400;
+$text-disabled: $color-gray-400;
+$text-inverse: #FFFFFF;
 
-// ==================== 背景色 ====================
-$bg-primary: #f5f5f7;  // 浅灰底色
-$bg-glass: rgba(255, 255, 255, 0.65); // 标准毛玻璃
-$bg-glass-dark: rgba(0, 0, 0, 0.5);   // 深色毛玻璃
-$bg-hover: rgba(0, 0, 0, 0.05);
-$bg-active: rgba(0, 0, 0, 0.1);
+// 边框色
+$border-color: $color-gray-200;
+$border-color-light: $color-gray-100;
+$border-color-focus: $color-primary;
 
-// ==================== 边框 ====================
-$border-width: 1px;
-$border-color: rgba(0, 0, 0, 0.1);
-$border-glass: rgba(255, 255, 255, 0.4);
+// ==================== 字体系统 ====================
 
-// ==================== 阴影 - 柔和弥散 ====================
-$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-$shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
-$shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.12);
-$shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.16);
+$font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+  "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei",
+  "Noto Sans SC", "Source Han Sans CN", "Segoe UI", Roboto, Arial, sans-serif;
 
-// 玻璃光晕
-$shadow-glass: 
-  0 8px 32px 0 rgba(31, 38, 135, 0.15),
-  inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+$font-family-mono: "SF Mono", "Fira Code", "Consolas", "Monaco", monospace;
 
-// ==================== 圆角 ====================
-$radius-sm: 8px;
-$radius-md: 12px;
-$radius-lg: 20px;
-$radius-xl: 30px;
-$radius-2xl: 40px;
-$radius-full: 9999px;
-
-// ==================== 模糊度 ====================
-$blur-sm: 10px;
-$blur-md: 20px;
-$blur-lg: 30px;
-
-// ==================== 间距 ====================
-$spacing-xs: 4px;
-$spacing-sm: 8px;
-$spacing-md: 16px;
-$spacing-lg: 24px;
-$spacing-xl: 32px;
-$spacing-2xl: 48px;
-
-// ==================== 字体 ====================
-// 系统字体栈 - 优先使用系统原生字体，保证最佳渲染效果
-$font-family-system: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", 
-  "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", 
-  "Microsoft YaHei", "Source Han Sans CN", "Noto Sans SC", sans-serif;
-
-// 等宽字体 - 用于代码显示
-$font-family-mono: "SF Mono", "Fira Code", "Consolas", "Monaco", "Menlo", 
-  "Source Code Pro", monospace;
-
-// 默认字体
-$font-family: $font-family-system;
-
-// 字号 - 使用 rem 单位，基于 16px
-$font-size-xs: 0.75rem;   // 12px
-$font-size-sm: 0.8125rem; // 13px
-$font-size-md: 0.9375rem; // 15px
-$font-size-lg: 1.0625rem; // 17px
-$font-size-xl: 1.25rem;   // 20px
-$font-size-2xl: 1.75rem;  // 28px
-$font-size-3xl: 2.125rem; // 34px
+// 字号
+$font-size-xs: 15px;
+$font-size-sm: 17px;
+$font-size-base: 19px;
+$font-size-md: 21px;
+$font-size-lg: 24px;
+$font-size-xl: 28px;
+$font-size-2xl: 32px;
+$font-size-3xl: 38px;
+$font-size-4xl: 44px;
+$font-size-5xl: 52px;
 
 // 字重
-$font-weight-light: 300;
-$font-weight-normal: 400;
-$font-weight-medium: 500;
-$font-weight-semibold: 600;
-$font-weight-bold: 700;
+$font-weight-regular: 500;
+$font-weight-normal: $font-weight-regular;
+$font-weight-medium: 600;
+$font-weight-semibold: 700;
+$font-weight-bold: 800;
 
 // 行高
-$line-height-tight: 1.25;
+$line-height-tight: 1.2;
 $line-height-normal: 1.5;
 $line-height-relaxed: 1.75;
 
-// 字间距
-$letter-spacing-tight: -0.02em;
-$letter-spacing-normal: 0;
-$letter-spacing-wide: 0.02em;
+// ==================== 间距系统 ====================
 
-// ==================== 动画 ====================
-$transition-base: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-$transition-slow: 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+$spacing-1: 4px;
+$spacing-2: 8px;
+$spacing-3: 12px;
+$spacing-4: 16px;
+$spacing-5: 20px;
+$spacing-6: 24px;
+$spacing-8: 32px;
+$spacing-10: 40px;
+$spacing-12: 48px;
+$spacing-16: 64px;
 
-// ==================== 兼容性变量（保持旧代码正常工作）====================
-// Neo-Brutalism 旧变量映射到新的 Glassmorphism 变量
-$neo-black: #1d1d1f;
-$neo-white: #ffffff;
-$neo-cream: #f5f5f7;
-$neo-paper: #fafafa;
+// Spacing aliases for legacy styles
+$spacing-xs: $spacing-1;
+$spacing-sm: $spacing-2;
+$spacing-md: $spacing-3;
+$spacing-lg: $spacing-5;
+$spacing-xl: $spacing-8;
+$spacing-2xl: $spacing-12;
+$spacing-3xl: $spacing-16;
 
-$neo-yellow: $ios-yellow;
-$neo-yellow-light: lighten($ios-yellow, 20%);
-$neo-yellow-dark: darken($ios-yellow, 10%);
+// ==================== 圆角 ====================
 
-$neo-blue: $ios-blue;
-$neo-blue-light: lighten($ios-blue, 15%);
-$neo-blue-dark: darken($ios-blue, 10%);
+$radius-sm: 6px;
+$radius-md: 10px;
+$radius-lg: 14px;
+$radius-xl: 20px;
+$radius-2xl: 28px;
+$radius-full: 9999px;
 
-$neo-red: $ios-red;
-$neo-red-light: lighten($ios-red, 15%);
-$neo-red-dark: darken($ios-red, 10%);
+// Border + hover helpers
+$border-width: 1px;
+$bg-hover: rgba(0, 122, 255, 0.06);
+$bg-active: $color-primary-hover;
 
-$neo-green: $ios-green;
-$neo-green-light: lighten($ios-green, 15%);
-$neo-green-dark: darken($ios-green, 10%);
+// ==================== 阴影 - Apple 风格超柔和阴影 ====================
 
-$neo-orange: $ios-orange;
-$neo-orange-light: lighten($ios-orange, 15%);
-$neo-orange-dark: darken($ios-orange, 10%);
+$shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+$shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.10);
+$shadow-2xl: 0 24px 64px rgba(0, 0, 0, 0.12);
 
-$neo-purple: $ios-purple;
-$neo-purple-light: lighten($ios-purple, 15%);
-$neo-purple-dark: darken($ios-purple, 10%);
+// 卡片阴影 - 轻微上浮效果
+$shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
+$shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.08);
 
-$neo-pink: $ios-pink;
-$neo-pink-light: lighten($ios-pink, 15%);
-$neo-pink-dark: darken($ios-pink, 10%);
+// 按钮阴影 - 极简
+$shadow-btn: none;
+$shadow-btn-hover: 0 2px 8px rgba(0, 0, 0, 0.08);
+$shadow-btn-primary: 0 2px 8px rgba(0, 122, 255, 0.20);
+$shadow-btn-primary-hover: 0 4px 12px rgba(0, 122, 255, 0.25);
+$shadow-primary: 0 4px 12px rgba(0, 122, 255, 0.20);
+$shadow-success: 0 4px 12px rgba(52, 199, 89, 0.20);
+$shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.08);
 
-$neo-lime: #c8ff00;
-$neo-cyan: #00ffff;
-
-// 旧边框变量
-$border-width-thick: 2px;
-$border-width-mega: 3px;
-$border-light: rgba(0, 0, 0, 0.1);
-$border-dark: rgba(0, 0, 0, 0.2);
-
-// 旧阴影变量（改为柔和版本）
+// 兼容别名 (Neo -> Apple)
 $shadow-neo-sm: $shadow-sm;
 $shadow-neo-md: $shadow-md;
 $shadow-neo-lg: $shadow-lg;
 $shadow-neo-xl: $shadow-xl;
-$shadow-neo-2xl: $shadow-xl;
-$shadow-neo-hover: $shadow-md;
-$shadow-neo-active: $shadow-sm;
+$shadow-neo-active: $shadow-xs;
 
-$shadow-2xl: $shadow-xl;
-$shadow-primary: 0 4px 14px rgba($ios-blue, 0.3);
-$shadow-success: 0 4px 14px rgba($ios-green, 0.3);
-$shadow-warning: 0 4px 14px rgba($ios-orange, 0.3);
-$shadow-danger: 0 4px 14px rgba($ios-red, 0.3);
+// ==================== 动画 ====================
 
-$shadow-yellow: 0 4px 14px rgba($ios-yellow, 0.3);
-$shadow-blue: 0 4px 14px rgba($ios-blue, 0.3);
-$shadow-red: 0 4px 14px rgba($ios-red, 0.3);
-$shadow-green: 0 4px 14px rgba($ios-green, 0.3);
-$shadow-purple: 0 4px 14px rgba($ios-purple, 0.3);
-$shadow-pink: 0 4px 14px rgba($ios-pink, 0.3);
-$shadow-orange: 0 4px 14px rgba($ios-orange, 0.3);
+$transition-fast: 0.15s ease;
+$transition-base: 0.2s ease;
+$transition-slow: 0.3s ease;
+$transition-spring: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 
-// 旧圆角变量
-$radius-none: 0;
+// Typography helpers
+$letter-spacing-tight: -0.01em;
+$letter-spacing-wide: 0.04em;
 
-// 旧间距变量
-$spacing-3xl: 64px;
-$spacing-4xl: 96px;
+// ==================== 断点 ====================
 
-// 旧字体变量
-$font-family-display: $font-family;
-$font-family-mono: 'SF Mono', 'Monaco', monospace;
-
-$font-size-4xl: 40px;
-$font-size-5xl: 56px;
-$font-size-6xl: 72px;
-$font-size-7xl: 96px;
-
-$font-weight-black: 900;
-
-// 旧行高变量
-$line-height-tight: 1.1;
-$line-height-snug: 1.25;
-$line-height-normal: 1.5;
-$line-height-relaxed: 1.75;
-
-// 旧层级变量
-$z-index-bg: -1;
-$z-index-dropdown: 1000;
-$z-index-sticky: 1020;
-$z-index-fixed: 1030;
-$z-index-modal-backdrop: 1040;
-$z-index-modal: 1050;
-$z-index-popover: 1060;
-$z-index-tooltip: 1070;
-$z-index-max: 9999;
-
-// 旧动画变量
-$bounce-curve: cubic-bezier(0.25, 0.8, 0.25, 1);
-$elastic-curve: cubic-bezier(0.25, 0.8, 0.25, 1);
-$smooth-curve: cubic-bezier(0.25, 0.8, 0.25, 1);
-
-$transition-fast: 0.15s $smooth-curve;
-$transition-snap: 0.1s $smooth-curve;
-$transition-bounce: 0.3s $smooth-curve;
-$transition-slower: 0.5s $smooth-curve;
-
-// 旧断点变量
-$breakpoint-xs: 480px;
 $breakpoint-sm: 640px;
 $breakpoint-md: 768px;
 $breakpoint-lg: 1024px;
 $breakpoint-xl: 1280px;
 $breakpoint-2xl: 1536px;
 
-// 旧角色颜色
-$student-color: $ios-purple;
-$student-bg: #f3e8ff;
-$teacher-color: $ios-green;
-$teacher-bg: #d1fae5;
-$admin-color: $ios-orange;
-$admin-bg: #ffedd5;
+// ==================== 教育社区专用 ====================
 
-// 旧状态颜色
-$status-pending: $ios-yellow;
-$status-resolved: $ios-green;
-$status-closed: #888888;
-$status-active: $ios-blue;
+// 问题状态色
+$status-pending: $color-warning;
+$status-answered: $color-success;
+$status-closed: $color-gray-500;
+$status-featured: $color-info;
 
-// 旧波点背景变量
-$dot-size: 2px;
-$dot-spacing: 24px;
-$dot-color: rgba($neo-black, 0.1);
+// 角色色
+$role-student: #AF52DE; // 紫色 - 学生
+$role-student-bg: rgba(175, 82, 222, 0.1);
+$role-teacher: #34C759; // 绿色 - 教师
+$role-teacher-bg: rgba(52, 199, 89, 0.1);
+$role-admin: #FF9500; // 橙色 - 管理员
+$role-admin-bg: rgba(255, 149, 0, 0.1);
 
-// 背景兼容
-$bg-secondary: $neo-cream;
-$bg-tertiary: $neo-paper;
+// Role color aliases (for backward compatibility)
+$student-color: $role-student;
+$teacher-color: $role-teacher;
 
-// ==================== 导出变量 ====================
-:export {
-  primaryColor: $primary-color;
-  successColor: $success-color;
-  warningColor: $warning-color;
-  dangerColor: $danger-color;
-  infoColor: $info-color;
+// 科目标签色
+$tag-math: #FF6B6B;
+$tag-physics: #4ECDC4;
+$tag-chemistry: #45B7D1;
+$tag-biology: #96CEB4;
+$tag-english: #DDA0DD;
+$tag-chinese: #FFD93D;
+$tag-history: #C9B037;
+$tag-geography: #6BCB77;
+
+// ==================== 组件变量 ====================
+
+// 卡片
+$card-bg: $bg-primary;
+$card-border: $border-color;
+$card-radius: $radius-lg;
+$card-padding: $spacing-5;
+$card-shadow: $shadow-sm;
+
+// 按钮
+$btn-height-sm: 32px;
+$btn-height-md: 40px;
+$btn-height-lg: 48px;
+$btn-radius: $radius-md;
+$btn-font-weight: $font-weight-medium;
+
+// 输入框
+$input-height: 44px;
+$input-radius: $radius-md;
+$input-border: $border-color;
+$input-bg: $bg-primary;
+$input-focus-border: $color-primary;
+
+// 导航栏
+$navbar-height: 64px;
+$navbar-bg: rgba(255, 255, 255, 0.85);
+$navbar-blur: 20px;
+$navbar-border: $border-color-light;
+
+// z-index
+$z-dropdown: 1000;
+$z-sticky: 1020;
+$z-fixed: 1030;
+$z-modal-backdrop: 1040;
+$z-modal: 1050;
+$z-popover: 1060;
+$z-tooltip: 1070;
+
+// Legacy z-index aliases
+$z-index-fixed: $z-fixed;
+$z-index-sticky: $z-sticky;
+$z-index-modal: $z-modal;
+$z-index-tooltip: $z-tooltip;
+
+// ==================== 兼容旧变量（平滑过渡）====================
+
+$primary-color: $color-primary;
+$primary-light: $color-primary-light;
+$primary-dark: $color-primary-dark;
+$primary-hover: $color-primary-hover;
+$success-color: $color-success;
+$warning-color: $color-warning;
+$danger-color: $color-danger;
+$info-color: $color-info;
+
+// Neo-Brutalism 兼容
+$neo-black: $color-gray-900;
+$neo-white: #FFFFFF;
+$neo-cream: $color-gray-100;
+$neo-yellow: #FFE9B5;
+$neo-blue: $color-primary;
+$neo-pink: #F4A8B8;
+$neo-green: $color-success;
+$neo-purple: #B7A6E6;
+$neo-orange: $color-warning;
+$neo-red: $color-danger;
+$neo-blue-light: $color-primary-light;
+$neo-blue-dark: $color-primary-dark;
+$neo-green-dark: #1E9E52;
+$neo-yellow-dark: #DFA500;
+$neo-red-dark: #D62F25;
+$neo-cyan: #32ADE6;
+$neo-lime: #C1E899;
+$ios-yellow: #FFCC00;
+
+// Glass helpers
+$glass-white-light: rgba(255, 255, 255, 0.78);
+$glass-white: rgba(255, 255, 255, 0.85);
+$glass-white-strong: rgba(255, 255, 255, 0.92);
+$bg-glass: rgba(255, 255, 255, 0.70);
+$glass-border: rgba(255, 255, 255, 0.6);
+
+$bounce-curve: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+// ==================== Global Mixins ====================
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+// ==================== Glassmorphism System v2.0 ====================
+
+// 1. Glass Backgrounds (Layered Depth)
+$glass-surface: rgba(255, 255, 255, 0.6); // Base layer (Page backgrounds)
+$glass-card: rgba(255, 255, 255, 0.82); // Content cards
+$glass-floating: rgba(255, 255, 255, 0.75); // Sticky headers/navs
+$glass-popover: rgba(255, 255, 255, 0.75); // Dropdowns/Modals
+$glass-accent: rgba(255, 255, 255, 0.95); // Active states/High contrast
+
+// 2. Glass Borders (Subtle edges)
+$glass-border-light: rgba(255, 255, 255, 0.6);
+$glass-border-medium: rgba(255, 255, 255, 0.4);
+$glass-border-strong: rgba(255, 255, 255, 0.8);
+
+// 3. Glass Shadows (Glow + Depth)
+// Uses multiple layers: soft colored glow + clean shadow + inner highlight
+$shadow-glass-sm: 0 2px 8px rgba(0, 0, 0, 0.04),
+  inset 0 1px 1px rgba(255, 255, 255, 0.6);
+
+$shadow-glass-md: 0 8px 24px rgba(0, 0, 0, 0.06),
+  inset 0 1px 1px rgba(255, 255, 255, 0.8);
+
+$shadow-glass-lg: 0 16px 48px rgba(0, 0, 0, 0.1),
+  inset 0 1px 1px rgba(255, 255, 255, 0.9);
+
+$shadow-search-focused: 0 12px 40px rgba(0, 122, 255, 0.15),
+  inset 0 0 0 1px rgba(0, 122, 255, 0.4);
+
+// 4. Role-Specific Glass Tints (Subtle background tints)
+$glass-tint-student: linear-gradient(135deg, rgba(175, 82, 222, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
+$glass-tint-teacher: linear-gradient(135deg, rgba(52, 199, 89, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
+$glass-tint-admin: linear-gradient(135deg, rgba(255, 149, 0, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
+
+// 5. Reference Accent Colors (1:1 Replica)
+$re-purple: #8B80F9; // Main active purple
+$re-purple-light: rgba(139, 128, 249, 0.2);
+$re-orange: #F5A623; // Action orange
+$re-blue: #4A90E2; // Subtle blue
+$re-bg-dark: #12141D; // Background color underlying the blobs
+
+// 6. Blur Levels
+$blur-xs: 4px;
+$blur-sm: 8px;
+$blur-md: 16px;
+$blur-lg: 24px;
+$blur-xl: 40px;
+$blur-vxl: 60px;

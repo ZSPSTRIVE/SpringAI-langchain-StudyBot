@@ -11,10 +11,10 @@ const monacoPluginFactory =
   typeof monacoEditorPlugin === 'function'
     ? monacoEditorPlugin
     : (monacoEditorPlugin && typeof monacoEditorPlugin.default === 'function'
-        ? monacoEditorPlugin.default
-        : (monacoEditorPlugin && typeof monacoEditorPlugin.monacoEditorPlugin === 'function'
-            ? monacoEditorPlugin.monacoEditorPlugin
-            : null))
+      ? monacoEditorPlugin.default
+      : (monacoEditorPlugin && typeof monacoEditorPlugin.monacoEditorPlugin === 'function'
+        ? monacoEditorPlugin.monacoEditorPlugin
+        : null))
 
 export default defineConfig({
   plugins: [
@@ -30,12 +30,19 @@ export default defineConfig({
     }),
     ...(monacoPluginFactory
       ? [
-          monacoPluginFactory({
-            languageWorkers: ['editorWorkerService']
-          })
-        ]
+        monacoPluginFactory({
+          languageWorkers: ['editorWorkerService']
+        })
+      ]
       : []),
   ],
+  css: {
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@use "@/assets/styles/variables.scss" as *;`
+      }
+    }
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
