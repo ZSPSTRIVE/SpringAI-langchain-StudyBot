@@ -25,3 +25,6 @@ upload/
 .env
 .env.local
 .env.production
+
+# Interview prep (local notes)
+docs/interview-answer-playbook.md
