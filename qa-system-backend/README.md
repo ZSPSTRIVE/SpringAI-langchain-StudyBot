@@ -250,7 +250,9 @@ export REDIS_PASSWORD=
 export JWT_SECRET=your-very-long-and-secure-secret-key
 
 # AI服务配置 (硅基流动)
-export SILICONFLOW_API_KEY=sk-your-api-key
+export AI_SILICONFLOW_KEY=sk-your-api-key
+export AI_SILICONFLOW_BASE_URL=https://api.siliconflow.cn/v1
+export AI_SILICONFLOW_MODEL=deepseek-ai/DeepSeek-V3
 ```
 
 ### Docker 部署
@@ -266,7 +268,9 @@ docker run -d \
   -e DB_HOST=host.docker.internal \
   -e DB_PASSWORD=your_password \
   -e REDIS_HOST=host.docker.internal \
-  -e SILICONFLOW_API_KEY=sk-your-key \
+  -e AI_SILICONFLOW_KEY=sk-your-key \
+  -e AI_SILICONFLOW_BASE_URL=https://api.siliconflow.cn/v1 \
+  -e AI_SILICONFLOW_MODEL=deepseek-ai/DeepSeek-V3 \
   qa-system-backend:2.0.0
 ```
 
@@ -317,13 +321,15 @@ PUT    /api/v1/answers/{id}/accept  # 采纳回答
 ### AI助手接口
 
 ```http
-POST   /api/ai/chat                 # 发送对话消息 (SSE流式响应)
-GET    /api/ai/sessions             # 获取会话列表
-POST   /api/ai/sessions             # 创建新会话
-GET    /api/ai/sessions/{id}/history    # 获取会话历史
-DELETE /api/ai/sessions/{id}        # 删除会话
-POST   /api/ai/messages/{id}/bookmark   # 收藏消息
-POST   /api/ai/messages/{id}/feedback   # 消息反馈
+POST   /api/ai/chat                         # 普通对话（非流式）
+POST   /api/ai/chat/stream                  # SSE 流式对话
+GET    /api/ai/sessions                     # 获取会话列表
+GET    /api/ai/sessions/{sessionId}/history # 获取会话历史
+PUT    /api/ai/sessions/{sessionId}/rename  # 重命名会话
+DELETE /api/ai/sessions/{sessionId}         # 删除会话
+POST   /api/ai/bookmark/{conversationId}    # 收藏/取消收藏（query: isBookmarked）
+POST   /api/ai/feedback                     # 提交反馈
+GET    /api/ai/bookmarks                    # 获取收藏对话
 ```
 
 ### 文档工作台接口
@@ -395,7 +401,7 @@ jwt:
 # LangChain4j AI配置 (硅基流动)
 langchain4j:
   open-ai:
-    api-key: ${SILICONFLOW_API_KEY}
+    api-key: ${AI_SILICONFLOW_KEY}
     base-url: https://api.siliconflow.cn/v1
     model-name: Qwen/Qwen2.5-7B-Instruct
     temperature: 0.7
@@ -483,7 +489,7 @@ server {
     }
 
     # SSE代理 (AI对话)
-    location /api/ai/chat {
+    location /api/ai/chat/stream {
         proxy_pass http://qa-backend;
         proxy_http_version 1.1;
         proxy_set_header Connection "";

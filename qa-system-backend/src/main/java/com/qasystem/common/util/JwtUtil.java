@@ -6,6 +6,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 // Lombok的日志注解
 import lombok.extern.slf4j.Slf4j;
+import jakarta.annotation.PostConstruct;
 // 从配置文件读取属性值
 import org.springframework.beans.factory.annotation.Value;
 // 标记为Spring组件
@@ -75,6 +76,7 @@ import java.util.Map;
 // @Component：告诉Spring这是一个组件，会被Spring管理，其他地方可以注入使用
 @Component
 public class JwtUtil {
+    private static final int HS512_MIN_KEY_BYTES = 64;
 
     /**
      * 🔑 JWT的加密密钥 - 从配置文件读取
@@ -104,6 +106,8 @@ public class JwtUtil {
      */
     @Value("${jwt.secret}")
     private String secret;
+
+    private SecretKey secretKey;
 
     /**
      * ⏰ 访问Token的有效期（毫秒）
@@ -167,6 +171,25 @@ public class JwtUtil {
      */
     @Value("${jwt.refresh-expiration}")
     private Long refreshExpiration;
+
+    @PostConstruct
+    public void initSecretKey() {
+        String normalized = secret == null ? "" : secret.trim();
+        if (normalized.isEmpty()) {
+            throw new IllegalStateException("jwt.secret must not be empty.");
+        }
+
+        byte[] keyBytes = normalized.getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length < HS512_MIN_KEY_BYTES) {
+            throw new IllegalStateException(
+                    "jwt.secret is too short for HS512: " + (keyBytes.length * 8) + " bits. " +
+                    "Please set JWT_SECRET to at least 64 bytes (512 bits)."
+            );
+        }
+
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
+        log.info("JWT secret initialized. keyLength={} bits", keyBytes.length * 8);
+    }
 
     /**
      * 🎫 生成访问Token - 用户登录后调用此方法生成Token
@@ -659,9 +682,7 @@ public class JwtUtil {
      * - 生产环境应从安全的位置获取密钥，如环境变量或密钥管理系统
      */
     private SecretKey getSecretKey() {
-        // 使用HMAC-SHA算法要求的密钥格式
-        // 将字符串密钥转换为字节数组，使用UTF-8编码确保一致性
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        return secretKey;
     }
 }
 

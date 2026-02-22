@@ -34,5 +34,15 @@
         ORDER BY q.is_top DESC, q.is_featured DESC, q.create_time DESC
     </select>
 
+    <select id="selectQuestionPageByFulltext" resultMap="QuestionResultMap">
+        SELECT
+            q.*,
+            MATCH(q.title, q.content) AGAINST(#{keyword} IN NATURAL LANGUAGE MODE) AS relevance
+        FROM question q
+        WHERE q.deleted = 0
+          AND MATCH(q.title, q.content) AGAINST(#{keyword} IN NATURAL LANGUAGE MODE)
+        ORDER BY relevance DESC, q.is_top DESC, q.is_featured DESC, q.create_time DESC
+    </select>
+
 </mapper>
 

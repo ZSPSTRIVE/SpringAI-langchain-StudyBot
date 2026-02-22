@@ -1,22 +1,22 @@
 spring:
   application:
     name: qa-system-backend
-  
+
   profiles:
     active: dev
-  
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:qa_system_v2}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:123456}
+    password: ${DB_PASSWORD:}
     hikari:
       minimum-idle: 5
       maximum-pool-size: 20
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
-  
+
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -30,36 +30,59 @@ spring:
           max-idle: 8
           min-idle: 0
           max-wait: -1ms
-  
+
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 50MB
       enabled: true
 
-
-# MyBatis-Plus配置已移至MyBatisPlusConfig.java中手动配置
-# 避免Spring Boot 3自动配置冲突
-
-
 jwt:
-  secret: ${JWT_SECRET:qa-system-secret-key-2025-very-long-and-secure-key-for-jwt-token}
+  secret: ${JWT_SECRET:dev-jwt-secret-please-change-this-in-production-2026-at-least-64-bytes-long}
   expiration: 604800000
   refresh-expiration: 2592000000
 
-
-# LangChain4j AI配置
 langchain4j:
-  dashscope:
-    api-key: ${DASHSCOPE_API_KEY:}
-    model-name: qwen-turbo  # 更快的模型
-    temperature: 0.7
-    timeout: 60s
-    max-tokens: 2000
+  open-ai:
+    # 默认使用 SiliconFlow（OpenAI 兼容）
+    api-key: ${AI_SILICONFLOW_KEY:}
+    base-url: ${AI_SILICONFLOW_BASE_URL:https://api.siliconflow.cn/v1}
+    model-name: ${AI_SILICONFLOW_MODEL:deepseek-ai/DeepSeek-V3}
+    temperature: ${AI_TEMPERATURE:0.7}
+    max-tokens: ${AI_MAX_TOKENS:2000}
   chat-model:
     language: zh_cn
 
-
+qa:
+  ai:
+    fail-fast-on-missing-model: false
+    max-history-size: 10
+    max-request-retries: 2
+    retry-backoff-millis: 400
+    max-user-message-length: 2000
+    session-title-max-length: 30
+    recommendation-rules:
+      computer_science:
+        - title: 菜鸟教程
+          description: 覆盖主流编程语言与基础入门
+          url: https://www.runoob.com/
+          type: article
+        - title: MDN Web Docs
+          description: 权威 Web 技术文档与示例
+          url: https://developer.mozilla.org/zh-CN/
+          type: document
+      advanced_math:
+        - title: Khan Academy 微积分
+          description: 系统学习导数与积分
+          url: https://www.khanacademy.org/math/calculus-1
+          type: video
+  rag:
+    enabled: true
+    prefer-fulltext: true
+    top-k: 3
+    max-keywords: 5
+    max-context-length: 1500
+    snippet-length: 500
 
 cos:
   client:
@@ -69,7 +92,6 @@ cos:
     region: ${COS_REGION:ap-beijing}
     bucket: ${COS_BUCKET:}
     appId: ${COS_APP_ID:}
-
 
 management:
   endpoints:
@@ -84,7 +106,6 @@ management:
     export:
       prometheus:
         enabled: true
-
 
 logging:
   level:

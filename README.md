@@ -369,3 +369,36 @@ qa-system/
 <p align="center">
   Made with ❤️ by <a href="https://github.com/ZSPSTRIVE">ZSPSTRIVE</a>
 </p>
+
+---
+
+## AI Assistant API (Source of Truth)
+
+The backend controller is `qa-system-backend/src/main/java/com/qasystem/controller/AiAssistantController.java`.
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/api/ai/chat` | Normal chat |
+| POST | `/api/ai/chat/stream` | SSE streaming chat |
+| GET | `/api/ai/sessions` | Session list |
+| GET | `/api/ai/sessions/{sessionId}/history` | Session history |
+| POST | `/api/ai/feedback` | Submit feedback |
+| POST | `/api/ai/bookmark/{conversationId}` | Bookmark or unbookmark |
+| GET | `/api/ai/bookmarks` | Get bookmarks |
+| DELETE | `/api/ai/sessions/{sessionId}` | Delete session |
+| PUT | `/api/ai/sessions/{sessionId}/rename` | Rename session |
+
+## Secure Config Rules
+
+- Never commit real secrets in `application.yml`.
+- Use environment variables for all API keys and COS secrets.
+- AI config prefix is unified to `langchain4j.open-ai.*`.
+
+## Auto Review Command
+
+Run this after every code change:
+
+```bash
+cd qa-system-backend
+powershell -ExecutionPolicy Bypass -File scripts/auto-review.ps1
+```

@@ -179,5 +179,12 @@ public interface QuestionMapper extends BaseMapper<Question> {
                                        @Param("subjectId") Long subjectId,
                                        @Param("status") String status,
                                        @Param("keyword") String keyword);
+
+    /**
+     * 基于 MySQL FULLTEXT 的高性能检索。
+     * 注意：需要 question(title, content) 上存在 FULLTEXT 索引。
+     */
+    IPage<Question> selectQuestionPageByFulltext(Page<Question> page,
+                                                 @Param("keyword") String keyword);
 }
 

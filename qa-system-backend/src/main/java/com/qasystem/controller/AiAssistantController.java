@@ -311,10 +311,8 @@ public class AiAssistantController {
     @PostMapping("/feedback")  // 处理POST请求
     public Result<Void> submitFeedback(@Valid @RequestBody ConversationFeedbackRequest request,
                                        Authentication authentication) {
-        // 验证用户登录状态
-        getUserId(authentication);
-        // 调用服务层提交反馈
-        aiAssistantService.submitFeedback(request.getConversationId(), request.getFeedback());
+        Long userId = getUserId(authentication);
+        aiAssistantService.submitFeedback(userId, request.getConversationId(), request.getFeedback());
         // 返回成功响应
         return Result.success();
     }
@@ -351,10 +349,8 @@ public class AiAssistantController {
     public Result<Void> bookmarkConversation(@PathVariable Long conversationId,
                                             @RequestParam Boolean isBookmarked,
                                             Authentication authentication) {
-        // 验证用户登录状态
-        getUserId(authentication);
-        // 调用服务层执行收藏/取消收藏操作
-        aiAssistantService.bookmarkConversation(conversationId, isBookmarked);
+        Long userId = getUserId(authentication);
+        aiAssistantService.bookmarkConversation(userId, conversationId, isBookmarked);
         // 返回成功响应
         return Result.success();
     }
