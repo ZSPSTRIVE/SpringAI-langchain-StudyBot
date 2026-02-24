@@ -120,8 +120,7 @@
             <version>5.2.5</version>
         </dependency>
         
-        <!-- 腾讯云COS (可选，如需对象存储功能请启用) -->
-        <!--
+        <!-- 腾讯云COS -->
         <dependency>
             <groupId>com.qcloud</groupId>
             <artifactId>cos_api</artifactId>
@@ -131,9 +130,21 @@
                     <groupId>commons-logging</groupId>
                     <artifactId>commons-logging</artifactId>
                 </exclusion>
+                <!-- 排除旧版 okhttp/okio，避免与 LangChain4j 的 okhttp3/okio3 冲突 -->
+                <exclusion>
+                    <groupId>com.squareup.okhttp</groupId>
+                    <artifactId>okhttp</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.squareup.okio</groupId>
+                    <artifactId>okio</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.squareup.okhttp</groupId>
+                    <artifactId>logging-interceptor</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
-        -->
         
         <!-- Validation -->
         <dependency>

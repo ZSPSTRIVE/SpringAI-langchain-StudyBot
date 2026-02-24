@@ -12,6 +12,7 @@ import com.qasystem.mapper.DocRewriteVersionMapper;
 import com.qasystem.service.DocContentFilterService;
 import com.qasystem.service.DocOperationLogService;
 import com.qasystem.service.DocService;
+import com.qasystem.service.FileStorageService;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -49,6 +50,7 @@ public class DocServiceImpl implements DocService {
     private final DocOperationLogService docOperationLogService;
     private final DocContentFilterService docContentFilterService;
     private final ChatLanguageModel chatLanguageModel;
+    private final FileStorageService fileStorageService;
 
     /**
      * 上传目录（沿用 upload.path 配置约定，默认为 ./uploads）
@@ -70,7 +72,7 @@ public class DocServiceImpl implements DocService {
             // 1. 先解析Word段落（必须在 transferTo 之前，否则临时文件会被移走）
             List<String> paragraphs = parseWordParagraphs(file);
 
-            // 2. 保存原始文件到本地（后续可替换为COS存储）
+            // 2. 通过 FileStorageService 上传（COS 优先，本地回退）
             String fileUrl = saveFile(file);
             if (paragraphs.isEmpty()) {
                 throw new RuntimeException("未解析到有效段落");
@@ -265,23 +267,14 @@ public class DocServiceImpl implements DocService {
     }
 
     /**
-     * 保存上传文件到本地目录，并返回相对访问路径
+     * 通过 FileStorageService 保存上传文件（COS 优先，本地回退）
      */
     private String saveFile(MultipartFile file) throws IOException {
-        String baseDir = System.getProperty("user.dir");
-        Path uploadDir = Paths.get(baseDir, DEFAULT_UPLOAD_DIR);
-        if (!Files.exists(uploadDir)) {
-            Files.createDirectories(uploadDir);
-        }
-
         String originalFilename = Objects.requireNonNull(file.getOriginalFilename());
         String ext = originalFilename.contains(".") ? originalFilename.substring(originalFilename.lastIndexOf('.')) : "";
         String newFileName = UUID.randomUUID().toString().replace("-", "") + ext;
-        Path target = uploadDir.resolve(newFileName);
-        file.transferTo(target.toFile());
 
-        // 返回相对路径，前端可根据需要拼接访问地址
-        return "/" + DEFAULT_UPLOAD_DIR + "/" + newFileName;
+        return fileStorageService.uploadFile(file, "documents", newFileName);
     }
 
     /**
@@ -518,8 +511,12 @@ public class DocServiceImpl implements DocService {
         String fileUrl = document.getFileUrl();
         if (fileUrl != null && !fileUrl.isEmpty()) {
             try {
-                Path originalPath = Paths.get(System.getProperty("user.dir"), fileUrl.replace("/", "\\"));
-                if (Files.exists(originalPath)) {
+                // 判断是否为 COS URL（以 http 开头）——COS 文件无法直接用本地路径读取
+                if (fileUrl.startsWith("http")) {
+                    log.info("文档存储在 COS 上，无法直接读取原始文件，将创建新文档: {}", fileUrl);
+                } else {
+                    Path originalPath = Paths.get(System.getProperty("user.dir"), fileUrl.replace("/", "\\"));
+                    if (Files.exists(originalPath)) {
                     // 读取原始文档
                     try (InputStream inputStream = Files.newInputStream(originalPath);
                          XWPFDocument wordDoc = new XWPFDocument(inputStream)) {
@@ -559,6 +556,7 @@ public class DocServiceImpl implements DocService {
                         wordDoc.write(out);
                         return out.toByteArray();
                     }
+                }
                 }
             } catch (Exception e) {
                 log.warn("无法读取原始文件，将创建新文档: {}", e.getMessage());

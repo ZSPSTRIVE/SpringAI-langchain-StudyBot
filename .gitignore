@@ -26,6 +26,13 @@ upload/
 .env.local
 .env.production
 
+# Sensitive local config (COS credentials etc.)
+**/application-local.yml
+**/application-local.properties
+
+# Uploads
+uploads/
+
 # Interview prep (local notes)
 docs/
 .tmp_sources/

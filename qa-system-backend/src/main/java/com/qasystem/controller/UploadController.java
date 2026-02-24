@@ -1,17 +1,15 @@
 package com.qasystem.controller;
 
 import com.qasystem.common.ApiResponse;
+import com.qasystem.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -72,58 +70,15 @@ import java.util.UUID;
 @CrossOrigin(origins = "*")  // 允许所有源的跨域请求
 public class UploadController {
 
-    /**
-     * 📁 上传路径配置 - 文件存储的根目录
-     * 
-     * 从配置文件中读取上传路径，默认值为"uploads"。
-     * 可以是绝对路径或相对路径，相对路径将相对于
-     * 项目根目录解析。
-     */
-    @Value("${upload.path:uploads}")
-    private String uploadPath;
+    @Autowired
+    private FileStorageService fileStorageService;
 
     /**
      * 📏 文件大小限制配置 - 单个文件的最大大小
-     * 
-     * 从配置文件中读取文件大小限制，默认值为5MB（5242880字节）。
-     * 超过此大小的文件将被拒绝上传，以防止系统资源耗尽。
      */
     @Value("${upload.max-size:5242880}") // 5MB
     private long maxFileSize;
 
-    /**
-     * 📍 获取绝对上传路径
-     * 
-     * 📖 功能说明：
-     * 将配置的上传路径转换为绝对路径，确保文件存储位置明确。
-     * 如果配置的是相对路径，则将其转换为相对于项目根目录的绝对路径。
-     * 
-     * 🔧 技术实现：
-     * - 使用Paths.get()创建Path对象
-     * - 检查路径是否为绝对路径
-     * - 如果是相对路径，使用System.getProperty("user.dir")获取项目根目录
-     * - 返回绝对路径对象，用于后续文件操作
-     * 
-     * 🔄 返回结果：
-     * @return 绝对路径对象，表示文件存储的根目录
-     * 
-     * ⚠️ 注意事项：
-     * - 确保返回的路径有足够的磁盘空间
-     * - 确保应用程序有该路径的读写权限
-     * - 生产环境建议使用专用存储目录
-     */
-    private Path getAbsoluteUploadPath() {
-        // 创建路径对象
-        Path path = Paths.get(uploadPath);
-        
-        // 检查是否为绝对路径
-        if (!path.isAbsolute()) {
-            // 如果是相对路径，转换为项目根目录下的绝对路径
-            path = Paths.get(System.getProperty("user.dir"), uploadPath);
-        }
-        
-        return path;
-    }
 
     /**
      * 📸 上传图片
@@ -285,22 +240,12 @@ public class UploadController {
             // 生成新的文件名
             String newFileName = generateFileName(fileExtension);
             
-            // 创建上传目录（按日期分组）
+            // 构建子目录路径（按日期分组）
             String datePath = new SimpleDateFormat("yyyy/MM/dd").format(new Date());
-            Path uploadDir = getAbsoluteUploadPath().resolve("images").resolve(datePath);
-            
-            // 确保目录存在
-            if (!Files.exists(uploadDir)) {
-                Files.createDirectories(uploadDir);
-                log.info("📁 创建上传目录: {}", uploadDir.toAbsolutePath());
-            }
+            String subDir = "images/" + datePath;
 
-            // 保存文件
-            Path filePath = uploadDir.resolve(newFileName);
-            file.transferTo(filePath.toFile());
-
-            // 生成访问URL（实际项目中应该配置域名）
-            String fileUrl = "/uploads/images/" + datePath + "/" + newFileName;
+            // 通过 FileStorageService 上传（COS 优先，本地回退）
+            String fileUrl = fileStorageService.uploadFile(file, subDir, newFileName);
             
             // 构建返回数据
             Map<String, String> data = new HashMap<>();
@@ -432,22 +377,12 @@ public class UploadController {
             // 生成新的文件名
             String newFileName = generateFileName(fileExtension);
             
-            // 创建上传目录（按日期分组）
+            // 构建子目录路径（按日期分组）
             String datePath = new SimpleDateFormat("yyyy/MM/dd").format(new Date());
-            Path uploadDir = getAbsoluteUploadPath().resolve(subDir).resolve(datePath);
-            
-            // 确保目录存在
-            if (!Files.exists(uploadDir)) {
-                Files.createDirectories(uploadDir);
-                log.info("📁 创建上传目录: {}", uploadDir.toAbsolutePath());
-            }
+            String fullSubDir = subDir + "/" + datePath;
 
-            // 保存文件
-            Path filePath = uploadDir.resolve(newFileName);
-            file.transferTo(filePath.toFile());
-
-            // 生成访问URL
-            String fileUrl = "/uploads/" + subDir + "/" + datePath + "/" + newFileName;
+            // 通过 FileStorageService 上传（COS 优先，本地回退）
+            String fileUrl = fileStorageService.uploadFile(file, fullSubDir, newFileName);
             
             // 构建返回数据
             Map<String, String> data = new HashMap<>();
