@@ -284,16 +284,61 @@ async function loadSession(sessionId) { const safeSessionId = normalizeText(sess
 function buildChatPayload(message) { const payload = { message, sessionId: currentSessionId.value || undefined, needRecommendation: needRecommendation.value }; if (isAdmin.value && applyDebugToChat.value) { payload.knowledgeBaseId = resolveKnowledgeBaseId(); payload.knowledgePoint = normalizeText(selectedKnowledgePoint.value) || undefined; payload.messageType = normalizeText(selectedScene.value) || 'general' } return payload }
 function rollbackPendingConversation(userMessage, assistantMessage) { const assistantIndex = messages.value.indexOf(assistantMessage); if (assistantIndex >= 0) messages.value.splice(assistantIndex, 1); const lastMessage = messages.value[messages.value.length - 1]; if (lastMessage?.role === 'user' && lastMessage.content === userMessage) messages.value.pop(); loading.value = false }
 async function sendMessage() { if (!inputMessage.value.trim() || loading.value) return; const userMessage = inputMessage.value.trim(); messages.value.push({ role: 'user', content: userMessage, timestamp: new Date() }); inputMessage.value = ''; scrollToBottom(); loading.value = true; const assistantMessage = reactive({ role: 'assistant', content: '', timestamp: new Date(), typing: true, conversationId: null, category: null, recommendations: null, bookmarked: false, feedback: null, debugMeta: null }); messages.value.push(assistantMessage); scrollToBottom(); try { await aiApi.chatWithAiStream(buildChatPayload(userMessage), (token, sessionId) => { if (sessionId && !currentSessionId.value) currentSessionId.value = sessionId; assistantMessage.content = `${assistantMessage.content || ''}${token || ''}`; assistantMessage.typing = false; scrollToBottom() }, (data) => { if (data.sessionId) currentSessionId.value = data.sessionId; if (data.content && !assistantMessage.content) assistantMessage.content = data.content; assistantMessage.conversationId = data.conversationId; assistantMessage.category = data.category; assistantMessage.typing = false; if (isAdmin.value) { const debugMeta = buildDebugMeta(data); assistantMessage.debugMeta = debugMeta; lastRouteMeta.value = debugMeta } loading.value = false; loadSessions(); scrollToBottom() }, (error) => { ElMessage.error(error || 'AI 服务暂时不可用'); rollbackPendingConversation(userMessage, assistantMessage) }) } catch (error) { ElMessage.error(error.message || 'AI 服务暂时不可用'); rollbackPendingConversation(userMessage, assistantMessage) } }
-const renderMarkdown = (content) => !content ? '' : marked.parse(content)
+const normalizeMarkdownSource = (content) => {
+  if (!content) return ''
+
+  let text = String(content)
+    .replace(/\r\n?/g, '\n')
+    .replace(/\u00a0/g, ' ')
+
+  if (!text.includes('\n') && text.includes('\\n')) {
+    text = text.replace(/\\n/g, '\n')
+  }
+
+  const fencedBlocks = []
+  text = text.replace(/```[\s\S]*?```/g, (block) => {
+    const token = `@@CODE_BLOCK_${fencedBlocks.length}@@`
+    fencedBlocks.push(block)
+    return token
+  })
+
+  const codeLanguagePattern = '(?:java|javascript|typescript|js|ts|python|py|go|sql|html|css|json|xml|bash|shell|sh|c\\+\\+|cpp|c#|csharp|kotlin|swift|php|ruby|rust)'
+
+  text = text
+    .replace(/([。！？；：:])\s*(#{1,6})(?=\S)/g, '$1\n\n$2 ')
+    .replace(/([^\n])\s+(#{1,6})(?=\S)/g, '$1\n\n$2 ')
+    .replace(/(^|\n)(#{1,6})(?=\S)/g, '$1$2 ')
+    .replace(/([。！？；：:])\s*((?:[-*+])\s+)/g, '$1\n$2')
+    .replace(/([。！？；：:])\s*((?:\d+[.)])\s+)/g, '$1\n$2')
+    .replace(/([。！？；：:])\s*(>\s+)/g, '$1\n$2')
+    .replace(/([^\n])(```)/g, '$1\n\n$2')
+    .replace(/(```[A-Za-z0-9#+-]*)([^\n])/g, '$1\n$2')
+    .replace(new RegExp(`(#{1,6}\\s*[^\\n#]{1,24}?实现)\\s*(${codeLanguagePattern})(?=(?:public|class|def|function|const|let|var|package|import|SELECT|INSERT|UPDATE|DELETE|<))`, 'gi'), '$1\n\n```$2\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+
+  fencedBlocks.forEach((block, index) => {
+    text = text.replace(`@@CODE_BLOCK_${index}@@`, block)
+  })
+
+  const fenceCount = (text.match(/```/g) || []).length
+  if (fenceCount % 2 === 1) {
+    text = `${text}\n\`\`\``
+  }
+
+  return text
+}
+
+const renderMarkdown = (content) => !content ? '' : marked.parse(normalizeMarkdownSource(content))
 const escapeHtml = (content) => String(content).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;')
-const renderMessageHtml = (content) => { if (!content) return ''; try { const rendered = marked.parse(String(content)); if (typeof rendered === 'string' && rendered.trim()) return rendered } catch (error) { console.error('Render markdown failed', error) } return escapeHtml(content).replace(/\r?\n/g, '<br>') }
+const renderMessageHtml = (content) => { if (!content) return ''; const normalizedContent = normalizeMarkdownSource(content); try { const rendered = marked.parse(normalizedContent); if (typeof rendered === 'string' && rendered.trim()) return rendered } catch (error) { console.error('Render markdown failed', error) } return escapeHtml(normalizedContent).replace(/\r?\n/g, '<br>') }
 const formatTime = (time) => !time ? '' : dayjs(time).fromNow()
 const formatScore = (score) => Number.isFinite(Number(score)) ? Number(score).toFixed(3) : '-'
 const retrievalTagType = (mode) => mode === 'HYBRID' ? 'success' : mode === 'MILVUS_ONLY' ? 'warning' : mode === 'KEYWORD_ONLY' ? 'info' : 'danger'
 const syncTaskTagType = (status) => { const normalized = String(status || '').toUpperCase(); if (normalized.includes('FAIL') || normalized.includes('ERROR')) return 'danger'; if (normalized.includes('PARTIAL') || normalized.includes('RUNNING') || normalized.includes('PROCESS')) return 'warning'; if (normalized.includes('SUCCESS') || normalized.includes('DONE') || normalized.includes('COMPLETED')) return 'success'; return 'info' }
 const getSessionPreview = (session) => { const preview = session?.userMessage?.trim?.() || ''; if (!preview) return '新对话'; return preview.length > 30 ? `${preview.substring(0, 30)}...` : preview }
 const getSessionDisplayTitle = (session) => session?.sessionTitle?.trim?.() || getSessionPreview(session)
-async function copyMessage(content) { try { await navigator.clipboard.writeText(content); ElMessage.success('已复制到剪贴板') } catch { ElMessage.error('复制失败') } }
+async function copyMessage(content) { try { await navigator.clipboard.writeText(normalizeMarkdownSource(content)); ElMessage.success('已复制到剪贴板') } catch { ElMessage.error('复制失败') } }
 async function submitFeedback(conversationId, feedback) { try { await aiApi.submitFeedback({ conversationId, feedback }); const message = messages.value.find(item => item.conversationId === conversationId); if (message) message.feedback = feedback; ElMessage.success('感谢你的反馈') } catch { ElMessage.error('提交反馈失败') } }
 async function toggleBookmark(message) { try { const nextState = !message.bookmarked; await aiApi.bookmarkConversation(message.conversationId, nextState); message.bookmarked = nextState; ElMessage.success(nextState ? '已收藏' : '已取消收藏') } catch { ElMessage.error('操作失败') } }
 async function showBookmarks() { try { const res = await aiApi.getBookmarkedConversations(); bookmarkedConversations.value = res.data || []; bookmarksDialogVisible.value = true } catch { ElMessage.error('加载收藏失败') } }
@@ -963,6 +1008,43 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
   border-radius: 18px 18px 18px 6px;
 }
 
+.markdown-body {
+  color: #1f2937;
+  overflow-wrap: anywhere;
+}
+
+.markdown-body :deep(*:first-child) {
+  margin-top: 0;
+}
+
+.markdown-body :deep(*:last-child) {
+  margin-bottom: 0;
+}
+
+.markdown-body :deep(h1),
+.markdown-body :deep(h2),
+.markdown-body :deep(h3),
+.markdown-body :deep(h4),
+.markdown-body :deep(h5),
+.markdown-body :deep(h6) {
+  margin: 16px 0 10px;
+  font-weight: 800;
+  line-height: 1.45;
+  color: #0f172a;
+}
+
+.markdown-body :deep(h1) {
+  font-size: 20px;
+}
+
+.markdown-body :deep(h2) {
+  font-size: 18px;
+}
+
+.markdown-body :deep(h3) {
+  font-size: 16px;
+}
+
 .markdown-body :deep(pre) {
   margin: 12px 0;
   padding: 16px;
@@ -975,6 +1057,20 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
   font-family: $font-family-mono;
 }
 
+.markdown-body :deep(:not(pre) > code) {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(37, 99, 235, 0.08);
+  color: #1d4ed8;
+  font-size: 13px;
+}
+
+.markdown-body :deep(pre code) {
+  padding: 0;
+  color: inherit;
+  background: transparent;
+}
+
 .markdown-body :deep(p) {
   margin: 8px 0;
 }
@@ -983,6 +1079,48 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
 .markdown-body :deep(ol) {
   margin: 10px 0;
   padding-left: 24px;
+}
+
+.markdown-body :deep(li + li) {
+  margin-top: 6px;
+}
+
+.markdown-body :deep(blockquote) {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-left: 4px solid rgba(59, 130, 246, 0.35);
+  border-radius: 0 12px 12px 0;
+  background: rgba(239, 246, 255, 0.72);
+  color: #334155;
+}
+
+.markdown-body :deep(table) {
+  width: 100%;
+  margin: 12px 0;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.markdown-body :deep(th),
+.markdown-body :deep(td) {
+  padding: 8px 10px;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  text-align: left;
+}
+
+.markdown-body :deep(th) {
+  background: rgba(248, 250, 252, 0.96);
+  font-weight: 700;
+}
+
+.markdown-body :deep(a) {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.markdown-body :deep(a:hover) {
+  text-decoration: underline;
 }
 
 .typing-indicator {
