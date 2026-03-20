@@ -1,5 +1,5 @@
 <template>
-  <div class="layout-container">
+  <div class="layout-container" :class="{ 'page-ai': isAiPage }">
     <!-- 动态/纯色背景 (基于 ThemeStore) -->
     <div
       v-if="themeStore.backgroundMode === 'dynamic'"
@@ -170,6 +170,7 @@ const userStore = useUserStore()
 const themeStore = useThemeStore()
 
 const activeMenu = computed(() => route.path)
+const isAiPage = computed(() => route.path.includes('/ai-assistant'))
 
 const handleCommand = async (command) => {
   if (command === 'logout') {

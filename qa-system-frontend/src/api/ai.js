@@ -147,7 +147,7 @@ export function getUserSessions(limit = 20) {
 
 export function getSessionHistory(sessionId) {
   return request({
-    url: `/ai/sessions/${sessionId}/history`,
+    url: `/ai/sessions/${encodeURIComponent(sessionId)}/history`,
     method: 'get'
   })
 }

@@ -1,10 +1,15 @@
 <template>
   <router-view />
-  <AiFloatingWidget />
+  <AiFloatingWidget v-if="showAiFloatingWidget" />
 </template>
 
 <script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import AiFloatingWidget from '@/components/common/AiFloatingWidget.vue'
+
+const route = useRoute()
+const showAiFloatingWidget = computed(() => !route.path.includes('/ai-assistant'))
 </script>
 
 <style lang="scss">
@@ -14,6 +19,8 @@ import AiFloatingWidget from '@/components/common/AiFloatingWidget.vue'
 }
 
 html, body {
+  margin: 0;
+  padding: 0;
   font-family: $font-family;
   color: $text-primary;
   background: $bg-primary;
@@ -84,6 +91,35 @@ a {
     background: rgba(0, 0, 0, 0.25);
   }
 }
+
+.layout-container.page-ai {
+  height: 100dvh;
+  min-height: 0;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.layout-container.page-ai > .layout-main {
+  overflow: hidden;
+  padding: 0;
+  min-height: 0;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.layout-container.page-ai > .layout-main > .main-content {
+  flex: 1 1 0;
+  min-height: 0;
+  max-width: none;
+  padding: 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.layout-container.page-ai > .layout-footer {
+  display: none;
+}
+
 </style>
-
-

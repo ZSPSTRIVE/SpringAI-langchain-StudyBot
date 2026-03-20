@@ -269,18 +269,18 @@ const adminDebugVisible = ref(!embedded), applyDebugToChat = ref(true), knowledg
 const selectedSceneOption = computed(() => sceneOptions.value.find(item => item.code === selectedScene.value) || null)
 const closeContextMenu = () => { contextMenuVisible.value = false }
 onMounted(() => { loadSessions(); if (isAdmin.value) loadAdminDebugContext(); document.addEventListener('click', closeContextMenu) })
-onBeforeUnmount(() => document.removeEventListener('click', closeContextMenu))
+onBeforeUnmount(() => { document.removeEventListener('click', closeContextMenu) })
 const normalizeText = (value) => typeof value === 'string' ? value.trim() : ''
 const resolveKnowledgeBaseId = () => normalizeText(knowledgeBaseId.value) || defaultKnowledgeBaseId
 const resolveSceneLabel = (sceneCode) => sceneOptions.value.find(item => item.code === sceneCode)?.displayName || sceneCode || 'general'
 const buildDebugMeta = (data = {}) => ({ interviewScene: data.interviewScene || selectedScene.value || 'general', interviewSceneLabel: data.interviewSceneLabel || resolveSceneLabel(data.interviewScene || selectedScene.value), retrievalMode: data.retrievalMode || 'NONE', ragRecallCount: Number.isFinite(Number(data.ragRecallCount)) ? Number(data.ragRecallCount) : 0, routeReason: data.routeReason || '' })
 async function loadAdminDebugContext() { const [pointsResult, scenesResult] = await Promise.allSettled([aiApi.getKnowledgePoints(), aiApi.getInterviewScenes()]); if (pointsResult.status === 'fulfilled') knowledgePoints.value = pointsResult.value.data || []; if (scenesResult.status === 'fulfilled') sceneOptions.value = scenesResult.value.data || []; await refreshKnowledgeOverview() }
-async function loadSessions() { try { const res = await aiApi.getUserSessions(20); sessions.value = res.data || [] } catch (error) { console.error('Load sessions failed', error) } }
+async function loadSessions() { try { const res = await aiApi.getUserSessions(20); sessions.value = (res.data || []).filter(session => typeof session?.sessionId === 'string' && session.sessionId.trim()) } catch (error) { console.error('Load sessions failed', error) } }
 async function refreshKnowledgeOverview() { if (!isAdmin.value) return; overviewLoading.value = true; try { const res = await aiApi.getKnowledgeOverview(resolveKnowledgeBaseId()); knowledgeOverview.value = res.data || null } catch { knowledgeOverview.value = null; ElMessage.error('加载知识库概览失败') } finally { overviewLoading.value = false } }
 async function runKnowledgeSync() { if (!isAdmin.value) return; knowledgeSyncing.value = true; try { const res = await aiApi.syncKnowledgeBase({ knowledgeBaseId: resolveKnowledgeBaseId(), sourceTypes: syncSourceTypes.value.length ? syncSourceTypes.value : ['seed_internet'] }); await refreshKnowledgeOverview(); const summary = res.data || {}; const status = String(summary.status || '').toUpperCase(); const message = summary.message || `scanned ${summary?.sourceDocumentCount || 0} / indexed ${summary?.documentCount || 0} / chunks ${summary?.chunkCount || 0} / failed ${summary?.failedDocumentCount || 0}`; if (status.includes('FAIL')) ElMessage.error(message); else if (status.includes('PARTIAL') || status.includes('RUNNING') || status.includes('PROCESS')) ElMessage.warning(message); else ElMessage.success(message) } catch (error) { ElMessage.error(error?.response?.data?.message || '同步知识库失败') } finally { knowledgeSyncing.value = false } }
 async function runKnowledgeSearch() { if (!isAdmin.value) return; const query = normalizeText(knowledgeSearchQuery.value); if (!query) { ElMessage.warning('请先输入检索问题'); return } knowledgeSearchLoading.value = true; try { const res = await aiApi.searchKnowledge({ query, knowledgeBaseId: resolveKnowledgeBaseId(), knowledgePoint: normalizeText(selectedKnowledgePoint.value) || undefined, limit: 5 }); knowledgeSearchHits.value = res.data?.hits || []; if (!knowledgeSearchHits.value.length) ElMessage.info('未命中相关知识片段') } catch { knowledgeSearchHits.value = []; ElMessage.error('知识库检索失败') } finally { knowledgeSearchLoading.value = false } }
 function startNewConversation() { currentSessionId.value = ''; messages.value = []; inputMessage.value = ''; lastRouteMeta.value = null }
-async function loadSession(sessionId) { try { currentSessionId.value = sessionId; const res = await aiApi.getSessionHistory(sessionId); const history = res.data || []; messages.value = []; history.forEach(conv => { messages.value.push({ role: 'user', content: conv.userMessage, timestamp: conv.createdAt }); messages.value.push({ role: 'assistant', content: conv.aiResponse, timestamp: conv.createdAt, conversationId: conv.id, feedback: conv.feedback, bookmarked: conv.isBookmarked, category: conv.questionCategory, recommendations: parseRecommendations(conv.recommendedResources), debugMeta: null }) }); scrollToBottom() } catch { ElMessage.error('加载会话历史失败') } }
+async function loadSession(sessionId) { const safeSessionId = normalizeText(sessionId); if (!safeSessionId) { ElMessage.warning('当前会话缺少有效的会话 ID'); return } try { const res = await aiApi.getSessionHistory(safeSessionId); const history = res.data || []; currentSessionId.value = safeSessionId; messages.value = []; history.forEach(conv => { messages.value.push({ role: 'user', content: conv.userMessage, timestamp: conv.createdAt }); messages.value.push({ role: 'assistant', content: conv.aiResponse, timestamp: conv.createdAt, conversationId: conv.id, feedback: conv.feedback, bookmarked: conv.isBookmarked, category: conv.questionCategory, recommendations: parseRecommendations(conv.recommendedResources), debugMeta: null }) }); scrollToBottom() } catch (error) { console.error('Load session history failed', { sessionId: safeSessionId, error }); ElMessage.error('加载会话历史失败') } }
 function buildChatPayload(message) { const payload = { message, sessionId: currentSessionId.value || undefined, needRecommendation: needRecommendation.value }; if (isAdmin.value && applyDebugToChat.value) { payload.knowledgeBaseId = resolveKnowledgeBaseId(); payload.knowledgePoint = normalizeText(selectedKnowledgePoint.value) || undefined; payload.messageType = normalizeText(selectedScene.value) || 'general' } return payload }
 function rollbackPendingConversation(userMessage, assistantMessage) { const assistantIndex = messages.value.indexOf(assistantMessage); if (assistantIndex >= 0) messages.value.splice(assistantIndex, 1); const lastMessage = messages.value[messages.value.length - 1]; if (lastMessage?.role === 'user' && lastMessage.content === userMessage) messages.value.pop(); loading.value = false }
 async function sendMessage() { if (!inputMessage.value.trim() || loading.value) return; const userMessage = inputMessage.value.trim(); messages.value.push({ role: 'user', content: userMessage, timestamp: new Date() }); inputMessage.value = ''; scrollToBottom(); loading.value = true; const assistantMessage = reactive({ role: 'assistant', content: '', timestamp: new Date(), typing: true, conversationId: null, category: null, recommendations: null, bookmarked: false, feedback: null, debugMeta: null }); messages.value.push(assistantMessage); scrollToBottom(); try { await aiApi.chatWithAiStream(buildChatPayload(userMessage), (token, sessionId) => { if (sessionId && !currentSessionId.value) currentSessionId.value = sessionId; assistantMessage.content = `${assistantMessage.content || ''}${token || ''}`; assistantMessage.typing = false; scrollToBottom() }, (data) => { if (data.sessionId) currentSessionId.value = data.sessionId; if (data.content && !assistantMessage.content) assistantMessage.content = data.content; assistantMessage.conversationId = data.conversationId; assistantMessage.category = data.category; assistantMessage.typing = false; if (isAdmin.value) { const debugMeta = buildDebugMeta(data); assistantMessage.debugMeta = debugMeta; lastRouteMeta.value = debugMeta } loading.value = false; loadSessions(); scrollToBottom() }, (error) => { ElMessage.error(error || 'AI 服务暂时不可用'); rollbackPendingConversation(userMessage, assistantMessage) }) } catch (error) { ElMessage.error(error.message || 'AI 服务暂时不可用'); rollbackPendingConversation(userMessage, assistantMessage) } }
@@ -310,11 +310,10 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
 @import '@/assets/styles/variables.scss';
 
 .ai-assistant-container {
-  display: grid;
-  grid-template-columns: 304px minmax(0, 1fr);
+  display: flex;
   width: 100%;
   max-width: 1280px;
-  height: clamp(500px, calc(100dvh - 220px), 760px);
+  height: 100%;
   min-height: 0;
   margin: 0 auto;
   background: rgba(255, 255, 255, 0.44);
@@ -326,7 +325,8 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
 }
 
 .ai-assistant-container.embedded {
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   height: 100%;
   min-height: 0;
   background: transparent;
@@ -390,6 +390,8 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
 .sidebar {
   display: flex;
   flex-direction: column;
+  width: 304px;
+  flex: 0 0 304px;
   min-width: 0;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(246, 248, 255, 0.68));
   border-right: 1px solid rgba(255, 255, 255, 0.65);
@@ -399,6 +401,7 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
 
 .sidebar.collapsed {
   width: 76px;
+  flex-basis: 76px;
 }
 
 .sidebar-header {
@@ -536,6 +539,7 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
 }
 
 .chat-area {
+  flex: 1 1 auto;
   height: 100%;
   min-width: 0;
   min-height: 0;
@@ -722,9 +726,8 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
 }
 
 .messages-container {
-  display: block;
-  flex: 1 1 0;
-  height: 0;
+  display: flex;
+  flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
   position: relative;
@@ -732,8 +735,9 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
 
 .messages-scrollbar {
   display: block;
+  flex: 1 1 auto;
   width: 100%;
-  height: 100%;
+  height: auto;
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
@@ -946,7 +950,7 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
 
 .user-text,
 .ai-text {
-  padding: 14px 16px;
+  padding: 9px 16px;
   font-size: 14px;
   line-height: 1.7;
   word-break: break-word;
@@ -1134,8 +1138,9 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
 }
 
 @media (max-width: 1280px) {
-  .ai-assistant-container {
-    grid-template-columns: 272px minmax(0, 1fr);
+  .sidebar {
+    width: 272px;
+    flex-basis: 272px;
   }
 
   .debug-grid {
@@ -1145,12 +1150,14 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
 
 @media (max-width: 1024px) {
   .ai-assistant-container {
-    grid-template-columns: 1fr;
+    flex-direction: column;
     height: calc(100dvh - 170px);
     min-height: 0;
   }
 
   .sidebar {
+    width: 100%;
+    flex-basis: auto;
     border-right: none;
     border-bottom: 1px solid rgba(226, 232, 240, 0.9);
   }
