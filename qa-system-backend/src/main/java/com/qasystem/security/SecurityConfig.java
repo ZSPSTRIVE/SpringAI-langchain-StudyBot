@@ -80,6 +80,8 @@ public class SecurityConfig {
                         
                         // SSE 流式接口（异步请求需要特殊处理）
                         .requestMatchers("/api/ai/chat/stream").authenticated()
+                        .requestMatchers("/api/ai/knowledge/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/ai/interview/scenes").hasRole("ADMIN")
                         
                         // 科目相关（查询公开，管理需要管理员）
                         .requestMatchers(HttpMethod.GET, "/api/v1/subjects/**").permitAll()

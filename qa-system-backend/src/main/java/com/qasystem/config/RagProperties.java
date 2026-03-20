@@ -4,41 +4,59 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-/**
- * RAG 运行参数配置。
- */
 @Data
 @Component
 @ConfigurationProperties(prefix = "qa.rag")
 public class RagProperties {
 
-    /**
-     * 是否启用 RAG。
-     */
     private boolean enabled = true;
+    private String defaultKnowledgeBase = "intern-rag-playbook";
+    private boolean bootstrapSchemaOnStartup = true;
+    private boolean seedOnStartup = true;
+    private boolean fullSyncOnStartup = false;
 
-    /**
-     * 召回条数上限。
-     */
-    private int topK = 3;
+    private int topK = 4;
+    private int denseTopK = 6;
+    private int keywordTopK = 6;
+    private int maxKeywords = 8;
+    private int maxContextLength = 2200;
+    private int snippetLength = 320;
+    private int chunkSize = 480;
+    private int chunkOverlap = 80;
+    private int minChunkLength = 40;
+    private int embeddingBatchSize = 16;
+    private double minVectorScore = 0.55D;
 
-    /**
-     * 是否优先使用 MySQL FULLTEXT 检索，失败时自动回退 LIKE。
-     */
-    private boolean preferFulltext = true;
+    private final SourceProperties sources = new SourceProperties();
+    private final MilvusProperties milvus = new MilvusProperties();
+    private final EmbeddingProperties embedding = new EmbeddingProperties();
 
-    /**
-     * query 提取关键词上限。
-     */
-    private int maxKeywords = 5;
+    @Data
+    public static class SourceProperties {
+        private boolean seedMarkdownEnabled = true;
+        private boolean questionAnswerEnabled = true;
+        private boolean docParagraphEnabled = true;
+        private int questionLimit = 300;
+        private int documentLimit = 200;
+    }
 
-    /**
-     * 拼装给大模型的上下文最大字符数。
-     */
-    private int maxContextLength = 1500;
+    @Data
+    public static class MilvusProperties {
+        private String uri = "http://127.0.0.1:19530";
+        private String collectionName = "qa_rag_chunk_store";
+        private String databaseName = "default";
+        private String metricType = "COSINE";
+        private String indexType = "IVF_FLAT";
+        private boolean autoFlushOnInsert = true;
+        private boolean retrieveEmbeddingsOnSearch = false;
+    }
 
-    /**
-     * 单个候选答案片段最大字符数。
-     */
-    private int snippetLength = 500;
+    @Data
+    public static class EmbeddingProperties {
+        private String provider = "local";
+        private String openAiApiKey = "";
+        private String openAiBaseUrl = "https://api.siliconflow.cn/v1";
+        private String openAiModelName = "BAAI/bge-m3";
+        private Integer dimension;
+    }
 }

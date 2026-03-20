@@ -1,0 +1,43 @@
+{
+  "generatedAt": "2026-03-19T04:43:42.791419+00:00",
+  "source": "en.wikipedia.org",
+  "domains": {
+    "algorithms": {
+      "count": 320,
+      "file": "algorithms.jsonl"
+    },
+    "computer_architecture": {
+      "count": 280,
+      "file": "computer_architecture.jsonl"
+    },
+    "computer_networks": {
+      "count": 360,
+      "file": "computer_networks.jsonl"
+    },
+    "data_structures": {
+      "count": 320,
+      "file": "data_structures.jsonl"
+    },
+    "databases": {
+      "count": 320,
+      "file": "databases.jsonl"
+    },
+    "digital_signal_processing": {
+      "count": 280,
+      "file": "digital_signal_processing.jsonl"
+    },
+    "java_backend": {
+      "count": 320,
+      "file": "java_backend.jsonl"
+    },
+    "operating_systems": {
+      "count": 320,
+      "file": "operating_systems.jsonl"
+    },
+    "signals_and_systems": {
+      "count": 150,
+      "file": "signals_and_systems.jsonl"
+    }
+  },
+  "totalEntries": 2670
+}

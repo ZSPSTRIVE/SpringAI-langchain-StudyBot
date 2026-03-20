@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qasystem.ai.QuestionCategory;
+import com.qasystem.ai.rag.InterviewSceneRouter;
 import com.qasystem.ai.rag.RagContextResult;
 import com.qasystem.ai.rag.RagPipelineService;
 import com.qasystem.config.AiAssistantProperties;
@@ -69,6 +70,7 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
     private final AiAssistantProperties aiAssistantProperties;
     private final MeterRegistry meterRegistry;
     private final ObjectMapper objectMapper;
+    private final InterviewSceneRouter interviewSceneRouter;
 
     private final Map<QuestionCategory, List<AiAssistantProperties.RecommendationItem>> fallbackRecommendationRules =
             buildFallbackRecommendationRules();
@@ -78,13 +80,18 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
         String message = normalizeMessage(request.getMessage());
         String sessionId = resolveSessionId(request.getSessionId());
         QuestionCategory category = QuestionCategory.detect(message);
-        RagContextResult ragContext = ragPipelineService.buildContext(message);
+        RagContextResult ragContext = ragPipelineService.buildContext(
+                message,
+                request.getKnowledgeBaseId(),
+                request.getKnowledgePoint(),
+                request.getMessageType()
+        );
 
         int tokensUsed = 0;
         String aiResponse;
 
         try {
-            List<ChatMessage> messages = buildConversationHistory(userId, sessionId, message, ragContext.context());
+            List<ChatMessage> messages = buildConversationHistory(userId, sessionId, message, ragContext);
             Response<AiMessage> response = generateWithRetry(messages);
             aiResponse = safeModelResponse(response);
             tokensUsed = extractTokenUsage(response);
@@ -105,6 +112,7 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
                 sessionId,
                 message,
                 aiResponse,
+                ragContext.sceneCode(),
                 category.getDisplayName(),
                 recommendations,
                 tokensUsed
@@ -119,6 +127,11 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
                 .category(category.getDisplayName())
                 .recommendations(recommendations)
                 .tokensUsed(tokensUsed)
+                .interviewScene(ragContext.sceneCode())
+                .interviewSceneLabel(ragContext.sceneLabel())
+                .retrievalMode(ragContext.retrievalMode().name())
+                .ragRecallCount(ragContext.recallCount())
+                .routeReason(ragContext.routeReason())
                 .conversationId(conversation.getId())
                 .build();
     }
@@ -128,13 +141,18 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
         String message = normalizeMessage(request.getMessage());
         String sessionId = resolveSessionId(request.getSessionId());
         QuestionCategory category = QuestionCategory.detect(message);
-        RagContextResult ragContext = ragPipelineService.buildContext(message);
+        RagContextResult ragContext = ragPipelineService.buildContext(
+                message,
+                request.getKnowledgeBaseId(),
+                request.getKnowledgePoint(),
+                request.getMessageType()
+        );
 
         SseEmitter emitter = new SseEmitter(300000L);
         StringBuilder fullResponse = new StringBuilder();
 
         try {
-            List<ChatMessage> messages = buildConversationHistory(userId, sessionId, message, ragContext.context());
+            List<ChatMessage> messages = buildConversationHistory(userId, sessionId, message, ragContext);
             emitter.send(SseEmitter.event().name("session").data(Map.of("sessionId", sessionId)));
 
             streamingChatLanguageModel.generate(messages, new StreamingResponseHandler<>() {
@@ -160,6 +178,7 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
                                 sessionId,
                                 message,
                                 finalResponse,
+                                ragContext.sceneCode(),
                                 category.getDisplayName(),
                                 null,
                                 tokensUsed
@@ -169,7 +188,13 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
 
                         emitter.send(SseEmitter.event().name("done").data(Map.of(
                                 "conversationId", conversation.getId(),
-                                "category", category.getDisplayName()
+                                "category", category.getDisplayName(),
+                                "content", finalResponse,
+                                "interviewScene", ragContext.sceneCode(),
+                                "interviewSceneLabel", ragContext.sceneLabel(),
+                                "retrievalMode", ragContext.retrievalMode().name(),
+                                "ragRecallCount", ragContext.recallCount(),
+                                "routeReason", StringUtils.hasText(ragContext.routeReason()) ? ragContext.routeReason() : ""
                         )));
                         emitter.complete();
                     } catch (Exception ex) {
@@ -287,12 +312,17 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
         removeConversationCache(userId, sessionId);
     }
 
-    private List<ChatMessage> buildConversationHistory(Long userId, String sessionId, String currentMessage, String ragContext) {
+    private List<ChatMessage> buildConversationHistory(Long userId,
+                                                       String sessionId,
+                                                       String currentMessage,
+                                                       RagContextResult ragContext) {
         List<ChatMessage> messages = new ArrayList<>();
         messages.add(new SystemMessage(buildSystemPrompt()));
+        messages.add(new SystemMessage(buildInterviewPrompt(ragContext)));
 
-        if (StringUtils.hasText(ragContext)) {
-            messages.add(new SystemMessage("【参考知识片段】\n" + ragContext + "\n\n请优先依据这些信息回答，并明确区分已知事实与推断。"));
+        if (ragContext != null && StringUtils.hasText(ragContext.context())) {
+            messages.add(new SystemMessage("【参考知识片段】\n" + ragContext.context()
+                    + "\n\n请优先依据这些信息回答，并明确区分已知事实与推断。"));
         }
 
         List<AiConversation> history = loadConversationHistory(userId, sessionId);
@@ -359,12 +389,36 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
 
     private String buildSystemPrompt() {
         return """
-                你是高校课程答疑助手，请遵守以下规则：
-                1. 回答必须准确、可解释、步骤清晰；
+                你是高强度实习面试辅导助手。
+                1. 回答必须准确、结构化、可追问；
                 2. 对不确定内容要显式说明“这是推断”；
                 3. 遇到明显越权或危险请求时拒绝并给出合规替代建议；
-                4. 输出默认使用中文，必要时补充英文术语。
+                4. 输出默认使用中文，必要时补充英文术语；
+                5. 回答时优先贴近真实技术面试表达，而不是教材式平铺直叙。
                 """;
+    }
+
+    private String buildInterviewPrompt(RagContextResult ragContext) {
+        if (ragContext == null) {
+            return "按真实技术面试风格回答，先给结论，再展开推导。";
+        }
+
+        String directive = interviewSceneRouter.buildAnswerDirective(ragContext.interviewScene());
+        String retrievalHint = switch (ragContext.retrievalMode()) {
+            case NONE -> "当前问题不使用知识库检索。";
+            case KEYWORD_ONLY -> "当前问题使用关键词检索，优先围绕术语、复杂度和边界条件作答。";
+            case MILVUS_ONLY -> "当前问题使用 Milvus 语义检索，优先结合语义相近片段组织答案。";
+            case HYBRID -> "当前问题使用混合检索，综合关键词命中和 Milvus 语义召回作答。";
+        };
+        String routeReason = StringUtils.hasText(ragContext.routeReason()) ? ragContext.routeReason() : "按通用面试模式处理";
+
+        return "当前面试场景: " + ragContext.sceneLabel()
+                + "。"
+                + directive
+                + " "
+                + retrievalHint
+                + " 路由原因: "
+                + routeReason;
     }
 
     private String safeModelResponse(Response<AiMessage> response) {
@@ -469,6 +523,7 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
                                             String sessionId,
                                             String userMessage,
                                             String aiResponse,
+                                            String messageType,
                                             String category,
                                             List<AiChatResponse.ResourceRecommendation> recommendations,
                                             int tokensUsed) {
@@ -478,7 +533,7 @@ public class AiAssistantService extends ServiceImpl<AiConversationMapper, AiConv
         conversation.setSessionTitle(resolveSessionTitle(userId, sessionId, userMessage));
         conversation.setUserMessage(userMessage);
         conversation.setAiResponse(aiResponse);
-        conversation.setMessageType("text");
+        conversation.setMessageType(messageType);
         conversation.setQuestionCategory(category);
         conversation.setIsBookmarked(false);
         conversation.setTokensUsed(Math.max(tokensUsed, 0));

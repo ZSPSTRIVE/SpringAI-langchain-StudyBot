@@ -9,14 +9,16 @@ import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerIntercept
 import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.mybatis.spring.SqlSessionFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 /**
  * 🗃️ MyBatis-Plus配置类 - 数据库访问层框架配置
@@ -81,6 +83,7 @@ public class MyBatisPlusConfig {
     @Bean
     @Primary  // 设置为主要Bean，优先级高于Spring Boot自动配置
     public SqlSessionFactory sqlSessionFactory(DataSource dataSource) throws Exception {
+        DbType dbType = resolveDbType(dataSource);
         // 使用MybatisSqlSessionFactoryBean替代默认的SqlSessionFactoryBean
         // 这是解决Spring Boot 3兼容性问题的关键
         MybatisSqlSessionFactoryBean sqlSessionFactoryBean = new MybatisSqlSessionFactoryBean();
@@ -99,7 +102,8 @@ public class MyBatisPlusConfig {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
         
         // 分页插件配置
-        PaginationInnerInterceptor paginationInnerInterceptor = new PaginationInnerInterceptor(DbType.MYSQL);
+        PaginationInnerInterceptor paginationInnerInterceptor =
+                dbType == DbType.OTHER ? new PaginationInnerInterceptor() : new PaginationInnerInterceptor(dbType);
         paginationInnerInterceptor.setOverflow(false);  // 禁用分页溢出处理（查询第100页只有10页数据时，不返回最后一页数据）
         paginationInnerInterceptor.setMaxLimit(500L);  // 限制最大单次查询条数为500，防止大查询影响性能
         interceptor.addInnerInterceptor(paginationInnerInterceptor);
@@ -111,6 +115,7 @@ public class MyBatisPlusConfig {
         
         // 数据库配置
         GlobalConfig.DbConfig dbConfig = new GlobalConfig.DbConfig();
+        applyIdentifierFormat(dbConfig, dbType);
         dbConfig.setIdType(com.baomidou.mybatisplus.annotation.IdType.AUTO);  // 设置ID自增策略为数据库自增
         dbConfig.setLogicDeleteField("deleted");  // 设置逻辑删除字段名
         dbConfig.setLogicDeleteValue("1");  // 设置已删除值
@@ -129,6 +134,34 @@ public class MyBatisPlusConfig {
         
         // 返回配置好的SqlSessionFactory
         return sqlSessionFactoryBean.getObject();
+    }
+
+    private DbType resolveDbType(DataSource dataSource) {
+        try (Connection connection = dataSource.getConnection()) {
+            String productName = connection.getMetaData().getDatabaseProductName();
+            String normalized = productName == null ? "" : productName.toLowerCase(Locale.ROOT);
+            if (normalized.contains("postgresql")) {
+                return DbType.POSTGRE_SQL;
+            }
+            if (normalized.contains("mysql")) {
+                return DbType.MYSQL;
+            }
+            return DbType.OTHER;
+        } catch (SQLException ex) {
+            throw new IllegalStateException("Failed to detect database dialect for MyBatis-Plus", ex);
+        }
+    }
+
+    private void applyIdentifierFormat(GlobalConfig.DbConfig dbConfig, DbType dbType) {
+        if (dbType == DbType.POSTGRE_SQL) {
+            dbConfig.setTableFormat("\"%s\"");
+            dbConfig.setColumnFormat("\"%s\"");
+            return;
+        }
+        if (dbType == DbType.MYSQL) {
+            dbConfig.setTableFormat("`%s`");
+            dbConfig.setColumnFormat("`%s`");
+        }
     }
 
     /**

@@ -6,9 +6,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-/**
- * 问题分类统一枚举，避免业务逻辑中出现字符串漂移。
- */
 public enum QuestionCategory {
 
     COMPUTER_SCIENCE(

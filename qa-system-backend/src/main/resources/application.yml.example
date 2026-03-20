@@ -5,6 +5,7 @@ spring:
   profiles:
     active: dev
 
+  # Main business database: MySQL
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:qa_system_v2}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
@@ -44,7 +45,6 @@ jwt:
 
 langchain4j:
   open-ai:
-    # 默认使用 SiliconFlow（OpenAI 兼容）
     api-key: ${AI_SILICONFLOW_KEY:}
     base-url: ${AI_SILICONFLOW_BASE_URL:https://api.siliconflow.cn/v1}
     model-name: ${AI_SILICONFLOW_MODEL:deepseek-ai/DeepSeek-V3}
@@ -52,6 +52,19 @@ langchain4j:
     max-tokens: ${AI_MAX_TOKENS:2000}
   chat-model:
     language: zh_cn
+
+ai:
+  enable: false
+  providers:
+    - name: siliconflow
+      priority: 1
+      enabled: true
+      api-key: ${LOCAL_AI_API_KEY:}
+      base-url: https://api.siliconflow.cn/v1
+      model: deepseek-ai/DeepSeek-V3
+      temperature: 0.7
+      max-tokens: 2000
+      timeout: 60
 
 qa:
   ai:
@@ -78,11 +91,54 @@ qa:
           type: video
   rag:
     enabled: true
-    prefer-fulltext: true
-    top-k: 3
-    max-keywords: 5
-    max-context-length: 1500
-    snippet-length: 500
+    default-knowledge-base: ${RAG_KB_ID:intern-rag-playbook}
+    bootstrap-schema-on-startup: true
+    seed-on-startup: true
+    full-sync-on-startup: false
+    top-k: 4
+    dense-top-k: 6
+    keyword-top-k: 6
+    max-keywords: 8
+    max-context-length: 2200
+    snippet-length: 320
+    chunk-size: 480
+    chunk-overlap: 80
+    min-chunk-length: 40
+    embedding-batch-size: 16
+    min-vector-score: 0.55
+    sources:
+      seed-markdown-enabled: true
+      question-answer-enabled: true
+      doc-paragraph-enabled: true
+      question-limit: 300
+      document-limit: 200
+    milvus:
+      uri: ${RAG_MILVUS_URI:http://127.0.0.1:19530}
+      collection-name: ${RAG_MILVUS_COLLECTION:qa_rag_chunk_store}
+      database-name: ${RAG_MILVUS_DB:default}
+      metric-type: ${RAG_MILVUS_METRIC:COSINE}
+      index-type: ${RAG_MILVUS_INDEX:IVF_FLAT}
+      auto-flush-on-insert: true
+      retrieve-embeddings-on-search: false
+    embedding:
+      provider: ${RAG_EMBEDDING_PROVIDER:local}
+      open-ai-api-key: ${RAG_EMBEDDING_API_KEY:${AI_SILICONFLOW_KEY:}}
+      open-ai-base-url: ${RAG_EMBEDDING_BASE_URL:${AI_SILICONFLOW_BASE_URL:https://api.siliconflow.cn/v1}}
+      open-ai-model-name: ${RAG_EMBEDDING_MODEL:BAAI/bge-m3}
+      dimension: ${RAG_EMBEDDING_DIMENSION:}
+    # AI metadata database: PostgreSQL
+    metadata:
+      datasource:
+        url: ${RAG_META_DB_URL:jdbc:postgresql://127.0.0.1:5432/rag_meta}
+        username: ${RAG_META_DB_USERNAME:postgres}
+        password: ${RAG_META_DB_PASSWORD:AiInfra@123}
+        driver-class-name: org.postgresql.Driver
+        hikari:
+          maximum-pool-size: 5
+          minimum-idle: 1
+          connection-timeout: 30000
+          idle-timeout: 600000
+          max-lifetime: 1800000
 
 cos:
   client:

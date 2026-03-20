@@ -1,348 +1,218 @@
-<template>
-  <div
-    class="ai-assistant-container"
-    :class="{ embedded }"
-  >
-    <!-- 侧边栏 - 会话历史 -->
-    <div
-      class="sidebar"
-      :class="{ collapsed: sidebarCollapsed }"
-    >
+﻿<template>
+  <div class="ai-assistant-container" :class="{ embedded }">
+    <aside v-if="!embedded" class="sidebar" :class="{ collapsed: sidebarCollapsed }">
       <div class="sidebar-header">
-        <el-button 
-          :icon="sidebarCollapsed ? 'Expand' : 'Fold'" 
-          circle 
-          @click="sidebarCollapsed = !sidebarCollapsed"
-        />
-        <span
-          v-if="!sidebarCollapsed"
-          class="title"
-        >对话历史</span>
-        <el-button 
-          v-if="!sidebarCollapsed"
-          type="primary" 
-          :icon="'Plus'" 
-          @click="startNewConversation"
-        >
-          新对话
-        </el-button>
+        <el-button class="sidebar-toggle" :icon="sidebarCollapsed ? Expand : Fold" circle @click="sidebarCollapsed = !sidebarCollapsed" />
+        <div v-if="!sidebarCollapsed" class="sidebar-heading">
+          <span class="sidebar-eyebrow">Sessions</span>
+          <span class="sidebar-title">对话历史</span>
+        </div>
+        <el-button v-if="!sidebarCollapsed" class="new-chat-btn" type="primary" :icon="Plus" @click="startNewConversation">新对话</el-button>
       </div>
-
-      <div
-        v-if="!sidebarCollapsed"
-        class="sidebar-content"
-      >
-        <el-scrollbar>
-          <div 
-            v-for="session in sessions" 
-            :key="session.sessionId"
-            class="session-item"
-            :class="{ active: currentSessionId === session.sessionId }"
-            @click="loadSession(session.sessionId)"
-            @contextmenu.prevent="showContextMenu($event, session)"
-          >
+      <div v-if="!sidebarCollapsed" class="sidebar-content">
+        <el-scrollbar class="session-scrollbar">
+          <div v-for="session in sessions" :key="session.sessionId" class="session-item"
+               :class="{ active: currentSessionId === session.sessionId }"
+               @click="loadSession(session.sessionId)" @contextmenu.prevent="showContextMenu($event, session)">
             <el-icon><ChatDotRound /></el-icon>
-            <div class="session-info">
-              <div class="session-preview">
-                {{ session.title || getSessionPreview(session) }}
-              </div>
-              <div class="session-time">
-                {{ formatTime(session.createdAt) }}
-              </div>
+            <div class="session-meta">
+              <div class="session-name">{{ getSessionDisplayTitle(session) }}</div>
+              <div class="session-time">{{ formatTime(session.createdAt) }}</div>
             </div>
           </div>
         </el-scrollbar>
       </div>
-      
-      <!-- 右键菜单 -->
-      <div 
-        v-show="contextMenuVisible" 
-        :style="{ left: contextMenuX + 'px', top: contextMenuY + 'px' }"
-        class="context-menu"
-        role="menu"
-        aria-label="会话操作菜单"
-        @keydown.escape="contextMenuVisible = false"
-      >
-        <div 
-          class="context-menu-item" 
-          role="menuitem"
-          tabindex="0"
-          @click="handleRename"
-          @keydown.enter="handleRename"
-          @keydown.space.prevent="handleRename"
-        >
-          <el-icon :icon="'Edit'" />
-          <span>重命名</span>
-        </div>
-        <div 
-          class="context-menu-item delete" 
-          role="menuitem"
-          tabindex="0"
-          @click="handleDelete"
-          @keydown.enter="handleDelete"
-          @keydown.space.prevent="handleDelete"
-        >
-          <el-icon :icon="'Delete'" />
-          <span>删除</span>
-        </div>
+      <div v-show="contextMenuVisible" class="context-menu" :style="{ left: `${contextMenuX}px`, top: `${contextMenuY}px` }">
+        <button type="button" class="context-menu-item" @click="handleRename">重命名</button>
+        <button type="button" class="context-menu-item delete" @click="handleDelete">删除</button>
       </div>
-    </div>
+    </aside>
 
-    <!-- 主聊天区域 -->
-    <div class="chat-area">
-      <!-- 顶部工具栏 -->
+    <section class="chat-area">
       <div class="chat-header">
         <div class="header-left">
-          <el-icon class="ai-icon">
-            <Opportunity />
-          </el-icon>
-          <span class="ai-title">AI学习助手</span>
+          <el-icon class="ai-icon"><Opportunity /></el-icon>
+          <div>
+            <div class="ai-title">AI 学习助手</div>
+            <div class="ai-subtitle">支持知识库问答和面试场景模拟</div>
+          </div>
         </div>
         <div class="header-right">
-          <el-tooltip content="收藏的对话">
-            <el-button
-              :icon="'Star'"
-              circle
-              @click="showBookmarks"
-            />
-          </el-tooltip>
-          <el-tooltip content="清空对话">
-            <el-button
-              :icon="'Delete'"
-              circle
-              @click="clearConversation"
-            />
-          </el-tooltip>
+          <el-button v-if="isAdmin" text class="debug-toggle-btn" @click="adminDebugVisible = !adminDebugVisible">
+            {{ adminDebugVisible ? '隐藏调试' : '知识库调试' }}
+          </el-button>
+          <el-tooltip content="收藏的对话"><el-button :icon="Star" circle @click="showBookmarks" /></el-tooltip>
+          <el-tooltip content="清空当前对话"><el-button :icon="Delete" circle @click="clearConversation" /></el-tooltip>
         </div>
       </div>
 
-      <!-- 消息列表 -->
-      <div class="messages-container">
-        <el-scrollbar ref="scrollbarRef">
-          <div class="messages-content">
-            <!-- 欢迎消息 -->
-            <div
-              v-if="messages.length === 0"
-              class="welcome-message"
-            >
-              <el-icon class="welcome-icon">
-                <Opportunity />
-              </el-icon>
-              <h2>你好！我是AI学习助手</h2>
-              <p>我可以帮助你：</p>
-              <ul>
-                <li>📚 解答学习问题</li>
-                <li>💡 提供学习建议</li>
-                <li>🔍 推荐学习资源</li>
-                <li>🎯 理解复杂概念</li>
-              </ul>
-              <p class="tip">
-                有什么问题可以随时问我哦！
-              </p>
+      <div v-if="isAdmin && adminDebugVisible" class="admin-debug-panel">
+        <div class="debug-toolbar">
+          <div>
+            <div class="debug-title">知识库调试面板</div>
+            <div class="debug-subtitle">仅管理员可见，可直接验证同步、检索、路由与聊天透传。</div>
+          </div>
+          <div class="debug-switch">
+            <el-switch v-model="applyDebugToChat" inline-prompt active-text="ON" inactive-text="OFF" />
+            <span>附带到聊天请求</span>
+          </div>
+        </div>
+        <div class="debug-grid">
+          <el-input v-model="knowledgeBaseId" placeholder="知识库 ID" clearable />
+          <el-select v-model="selectedKnowledgePoint" placeholder="知识点" clearable>
+            <el-option label="全部知识点" value="" />
+            <el-option v-for="item in knowledgePoints" :key="item.code" :label="item.displayName" :value="item.code" />
+          </el-select>
+          <el-select v-model="selectedScene" placeholder="面试场景">
+            <el-option v-for="item in sceneOptions" :key="item.code" :label="item.displayName" :value="item.code" />
+          </el-select>
+          <el-select v-model="syncSourceTypes" multiple collapse-tags collapse-tags-tooltip placeholder="同步来源">
+            <el-option v-for="item in sourceTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </div>
+        <div class="debug-tags">
+          <el-tag v-if="selectedSceneOption" size="small" effect="plain">Route {{ selectedSceneOption.retrievalMode }}</el-tag>
+          <el-tag v-if="selectedSceneOption?.useMilvus" size="small" type="success" effect="plain">Milvus</el-tag>
+          <el-tag v-if="selectedSceneOption?.useKeyword" size="small" type="warning" effect="plain">Keyword</el-tag>
+        </div>
+        <div class="debug-actions">
+          <el-button :loading="overviewLoading" @click="refreshKnowledgeOverview">刷新概览</el-button>
+          <el-button type="primary" :loading="knowledgeSyncing" @click="runKnowledgeSync">同步知识库</el-button>
+        </div>
+        <div class="debug-metrics">
+          <div class="metric-card"><span>Source Docs</span><strong>{{ knowledgeOverview ? knowledgeOverview.sourceDocumentCount : 0 }}</strong></div>
+          <div class="metric-card"><span>Indexed Docs</span><strong>{{ knowledgeOverview ? knowledgeOverview.indexedDocumentCount : 0 }}</strong></div>
+          <div class="metric-card"><span>Chunks</span><strong>{{ knowledgeOverview ? knowledgeOverview.chunkCount : 0 }}</strong></div>
+          <div class="metric-card"><span>Tasks</span><strong>{{ knowledgeOverview?.recentTasks?.length || 0 }}</strong></div>
+        </div>
+        <div class="debug-search">
+          <el-input v-model="knowledgeSearchQuery" placeholder="输入问题验证检索结果" clearable @keyup.enter="runKnowledgeSearch" />
+          <el-button :loading="knowledgeSearchLoading" @click="runKnowledgeSearch">检索验证</el-button>
+        </div>
+        <div v-if="lastRouteMeta" class="debug-block">
+          <div class="debug-tags">
+            <el-tag size="small">{{ lastRouteMeta.interviewSceneLabel || lastRouteMeta.interviewScene }}</el-tag>
+            <el-tag size="small" :type="retrievalTagType(lastRouteMeta.retrievalMode)">{{ lastRouteMeta.retrievalMode }}</el-tag>
+            <el-tag size="small" effect="plain">Recall {{ lastRouteMeta.ragRecallCount }}</el-tag>
+          </div>
+          <div class="debug-note">{{ lastRouteMeta.routeReason || '本次未返回路由原因。' }}</div>
+        </div>
+        <div v-if="knowledgeOverview?.recentTasks?.length" class="debug-block">
+          <div class="debug-block-title">最近同步任务</div>
+          <div v-for="task in knowledgeOverview.recentTasks.slice(0, 3)" :key="task.taskId" class="debug-item">
+            <div class="debug-item-top">
+              <span>{{ task.taskType }}</span>
+              <el-tag size="small" :type="syncTaskTagType(task.status)">{{ task.status }}</el-tag>
             </div>
+            <div class="debug-note">scanned {{ task.sourceDocumentCount || 0 }} / indexed {{ task.documentCount || 0 }} / chunks {{ task.chunkCount || 0 }} / failed {{ task.failedDocumentCount || 0 }}</div>
+            <div v-if="task.message" class="debug-note">{{ task.message }}</div>
+          </div>
+        </div>
+        <div v-if="knowledgeSearchHits.length" class="debug-block">
+          <div class="debug-block-title">检索命中</div>
+          <div v-for="hit in knowledgeSearchHits" :key="hit.chunkId" class="debug-item">
+            <div class="debug-item-top">
+              <strong>{{ hit.title }}</strong>
+              <el-tag size="small" effect="plain">{{ hit.knowledgePointLabel || hit.knowledgePoint || 'General' }}</el-tag>
+            </div>
+            <div class="debug-note">{{ hit.snippet }}</div>
+            <div class="debug-note">score {{ formatScore(hit.score) }} | {{ hit.sourceType }} | {{ hit.sourceRef }}</div>
+          </div>
+        </div>
+      </div>
 
-            <!-- 消息列表 -->
-            <div 
-              v-for="(message, index) in messages" 
-              :key="index"
-              class="message-wrapper"
-              :class="message.role"
-            >
+      <div class="messages-container">
+        <div ref="scrollbarRef" class="messages-scrollbar native-scroll" tabindex="0">
+          <div class="messages-content">
+            <div v-if="messages.length === 0" class="welcome-message">
+              <el-icon class="welcome-icon"><Opportunity /></el-icon>
+              <h2>你好，我是 AI 学习助手</h2>
+              <p>可以直接提问课程问题、算法题、八股题，或模拟真实面试追问。</p>
+              <ul>
+                <li>解释知识点和经典面试题</li>
+                <li>按场景切换检索模式</li>
+                <li>输出结构化回答</li>
+                <li>管理员可验证知识库效果</li>
+              </ul>
+            </div>
+            <div v-for="(message, index) in messages" :key="index" class="message-wrapper" :class="message.role">
               <div class="message-avatar">
-                <el-avatar
-                  v-if="message.role === 'user'"
-                  :icon="'User'"
-                />
-                <el-avatar
-                  v-else
-                  class="ai-avatar"
-                >
-                  <el-icon><Opportunity /></el-icon>
-                </el-avatar>
+                <el-avatar v-if="message.role === 'user'" :icon="User" />
+                <el-avatar v-else class="ai-avatar"><el-icon><Opportunity /></el-icon></el-avatar>
               </div>
-              
               <div class="message-content">
                 <div class="message-header">
-                  <span class="sender-name">
-                    {{ message.role === 'user' ? '你' : 'AI助手' }}
-                  </span>
+                  <span class="sender-name">{{ message.role === 'user' ? '你' : 'AI 助手' }}</span>
                   <span class="message-time">{{ formatTime(message.timestamp) }}</span>
                 </div>
-                
                 <div class="message-body">
-                  <!-- 用户消息 -->
-                  <div
-                    v-if="message.role === 'user'"
-                    class="user-text"
-                  >
-                    {{ message.content }}
-                  </div>
-                  
-                  <!-- AI消息 - 支持Markdown -->
-                  <div
-                    v-else
-                    class="ai-text"
-                  >
-                    <div
-                      v-if="message.typing"
-                      class="typing-indicator"
-                    >
-                      <span /><span /><span />
-                    </div>
-                    <div
-                      v-else
-                      class="markdown-body"
-                      v-html="renderMarkdown(message.content)"
-                    />
-                    
-                    <!-- 推荐资源 -->
-                    <div
-                      v-if="message.recommendations && message.recommendations.length > 0"
-                      class="recommendations"
-                    >
-                      <div class="recommendations-title">
-                        <el-icon><Reading /></el-icon>
-                        推荐学习资源
-                      </div>
+                  <div v-if="message.role === 'user'" class="user-text">{{ message.content }}</div>
+                  <div v-else class="ai-text">
+                    <div v-if="message.typing" class="typing-indicator"><span /><span /><span /></div>
+                    <div v-else class="markdown-body" v-html="renderMessageHtml(message.content)" />
+                    <div v-if="message.recommendations?.length" class="recommendations">
+                      <div class="recommendations-title"><el-icon><Reading /></el-icon>推荐学习资源</div>
                       <div class="resource-list">
-                        <div 
-                          v-for="(resource, rIndex) in message.recommendations" 
-                          :key="rIndex"
-                          class="resource-item"
-                        >
+                        <div v-for="(resource, resourceIndex) in message.recommendations" :key="resourceIndex" class="resource-item">
                           <div class="resource-header">
-                            <el-icon>
-                              <Document v-if="resource.type === 'article'" />
-                              <VideoPlay v-else-if="resource.type === 'video'" />
-                              <Reading v-else />
-                            </el-icon>
+                            <el-icon><Document v-if="resource.type === 'article'" /><VideoPlay v-else-if="resource.type === 'video'" /><Reading v-else /></el-icon>
                             <span class="resource-title">{{ resource.title }}</span>
                           </div>
-                          <p class="resource-desc">
-                            {{ resource.description }}
-                          </p>
-                          <el-link
-                            :href="resource.url"
-                            target="_blank"
-                            type="primary"
-                          >
-                            查看资源 <el-icon><TopRight /></el-icon>
-                          </el-link>
+                          <p class="resource-desc">{{ resource.description }}</p>
+                          <el-link :href="resource.url" target="_blank" type="primary">查看资源 <el-icon><TopRight /></el-icon></el-link>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-
-                <!-- AI消息操作按钮 -->
-                <div
-                  v-if="message.role === 'assistant' && !message.typing"
-                  class="message-actions"
-                >
-                  <el-button 
-                    text 
-                    :icon="'CopyDocument'" 
-                    size="small"
-                    @click="copyMessage(message.content)"
-                  >
-                    复制
-                  </el-button>
-                  <el-button 
-                    text 
-                    :icon="message.feedback === 'helpful' ? 'Star' : 'StarFilled'" 
-                    size="small"
-                    :type="message.feedback === 'helpful' ? 'success' : ''"
-                    @click="submitFeedback(message.conversationId, 'helpful')"
-                  >
-                    有帮助
-                  </el-button>
-                  <el-button 
-                    text 
-                    :icon="'Collection'" 
-                    size="small"
-                    :type="message.bookmarked ? 'warning' : ''"
-                    @click="toggleBookmark(message)"
-                  >
-                    {{ message.bookmarked ? '已收藏' : '收藏' }}
-                  </el-button>
+                <div v-if="message.role === 'assistant' && !message.typing" class="message-actions">
+                  <el-button text :icon="CopyDocument" size="small" @click="copyMessage(message.content)">复制</el-button>
+                  <el-button text :icon="message.feedback === 'helpful' ? StarFilled : Star" size="small"
+                             :type="message.feedback === 'helpful' ? 'success' : ''"
+                             @click="submitFeedback(message.conversationId, 'helpful')">有帮助</el-button>
+                  <el-button text :icon="Collection" size="small" :type="message.bookmarked ? 'warning' : ''"
+                             @click="toggleBookmark(message)">{{ message.bookmarked ? '已收藏' : '收藏' }}</el-button>
+                </div>
+                <div v-if="isAdmin && message.debugMeta" class="message-debug-meta">
+                  <el-tag size="small">{{ message.debugMeta.interviewSceneLabel || message.debugMeta.interviewScene }}</el-tag>
+                  <el-tag size="small" :type="retrievalTagType(message.debugMeta.retrievalMode)">{{ message.debugMeta.retrievalMode }}</el-tag>
+                  <span class="debug-note">Recall {{ message.debugMeta.ragRecallCount }}</span>
                 </div>
               </div>
             </div>
           </div>
-        </el-scrollbar>
+        </div>
       </div>
 
-      <!-- 输入区域 -->
       <div class="input-area">
         <div class="input-wrapper">
-          <el-input
-            v-model="inputMessage"
-            type="textarea"
-            :rows="2"
-            :autosize="{ minRows: 2, maxRows: 6 }"
-            placeholder="输入你的问题... (Ctrl+Enter发送)"
-            @keydown.enter.ctrl="sendMessage"
-            @keydown.enter.meta="sendMessage"
-          />
+          <el-input v-model="inputMessage" type="textarea" :rows="2" :autosize="{ minRows: 2, maxRows: 6 }"
+                    placeholder="输入你的问题... (Ctrl+Enter 发送)" @keydown.enter.ctrl="sendMessage" @keydown.enter.meta="sendMessage" />
           <div class="input-actions">
-            <el-checkbox v-model="needRecommendation">
-              需要学习资源推荐
-            </el-checkbox>
+            <el-checkbox v-model="needRecommendation">需要推荐学习资源</el-checkbox>
             <div class="action-buttons">
-              <el-button
-                :disabled="loading"
-                @click="inputMessage = ''"
-              >
-                清空
-              </el-button>
-              <el-button 
-                type="primary" 
-                :loading="loading"
-                :disabled="!inputMessage.trim()"
-                @click="sendMessage"
-              >
+              <el-button :disabled="loading" @click="inputMessage = ''">清空</el-button>
+              <el-button type="primary" :loading="loading" :disabled="!inputMessage.trim()" @click="sendMessage">
                 发送 <span class="shortcut">Ctrl+Enter</span>
               </el-button>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- 收藏对话对话框 -->
-    <el-dialog 
-      v-model="bookmarksDialogVisible" 
-      title="收藏的对话" 
-      width="800px"
-    >
+    <el-dialog v-model="bookmarksDialogVisible" title="收藏的对话" width="800px">
       <el-scrollbar max-height="500px">
-        <div
-          v-if="bookmarkedConversations.length === 0"
-          class="empty-state"
-        >
-          <el-empty description="暂无收藏的对话" />
-        </div>
-        <div
-          v-else
-          class="bookmarks-list"
-        >
-          <div 
-            v-for="conv in bookmarkedConversations" 
-            :key="conv.id"
-            class="bookmark-item"
-          >
+        <div v-if="bookmarkedConversations.length === 0" class="empty-state"><el-empty description="暂无收藏的对话" /></div>
+        <div v-else class="bookmarks-list">
+          <div v-for="conv in bookmarkedConversations" :key="conv.id" class="bookmark-item">
             <div class="bookmark-header">
               <span class="bookmark-category">{{ conv.questionCategory }}</span>
               <span class="bookmark-time">{{ formatTime(conv.createdAt) }}</span>
             </div>
             <div class="bookmark-content">
-              <div class="bookmark-question">
-                <strong>问：</strong>{{ conv.userMessage }}
-              </div>
-              <div class="bookmark-answer">
-                <strong>答：</strong>
-                <div v-html="renderMarkdown(conv.aiResponse)" />
-              </div>
+              <div class="bookmark-question"><strong>问：</strong>{{ conv.userMessage }}</div>
+              <div class="bookmark-answer"><strong>答：</strong><div v-html="renderMarkdown(conv.aiResponse)" /></div>
             </div>
           </div>
         </div>
@@ -352,1084 +222,982 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
-import { ElMessage, ElMessageBox, ElLoading } from 'element-plus'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { ElLoading, ElMessage, ElMessageBox } from 'element-plus'
+import {
+  ChatDotRound,
+  Collection,
+  CopyDocument,
+  Delete,
+  Document,
+  Expand,
+  Fold,
+  Opportunity,
+  Plus,
+  Reading,
+  Star,
+  StarFilled,
+  TopRight,
+  User,
+  VideoPlay
+} from '@element-plus/icons-vue'
 import { marked } from 'marked'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github-dark.css'
 import * as aiApi from '@/api/ai'
+import { useUserStore } from '@/stores/user'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-cn'
 
 dayjs.extend(relativeTime)
 dayjs.locale('zh-cn')
-
-const props = defineProps({
-  embedded: {
-    type: Boolean,
-    default: false
-  }
-})
-
+const props = defineProps({ embedded: { type: Boolean, default: false } })
 const embedded = props.embedded
+const userStore = useUserStore()
+const defaultKnowledgeBaseId = 'intern-rag-playbook'
+const sourceTypeOptions = [
+  { label: 'Seed Internet', value: 'seed_internet' },
+  { label: 'Question Answer', value: 'question_answer' },
+  { label: 'Doc Paragraph', value: 'doc_paragraph' }
+]
+marked.setOptions({ highlight(code, lang) { const language = hljs.getLanguage(lang) ? lang : 'plaintext'; return hljs.highlight(code, { language }).value }, breaks: true, gfm: true })
+const isAdmin = computed(() => userStore.userInfo?.role === 'ADMIN')
+const sidebarCollapsed = ref(false), currentSessionId = ref(''), sessions = ref([]), messages = ref([]), inputMessage = ref(''), needRecommendation = ref(false), loading = ref(false), scrollbarRef = ref(null), bookmarksDialogVisible = ref(false), bookmarkedConversations = ref([])
+const contextMenuVisible = ref(false), contextMenuX = ref(0), contextMenuY = ref(0), selectedSession = ref(null)
+const adminDebugVisible = ref(!embedded), applyDebugToChat = ref(true), knowledgeBaseId = ref(defaultKnowledgeBaseId), selectedKnowledgePoint = ref(''), selectedScene = ref('general'), knowledgePoints = ref([]), sceneOptions = ref([]), knowledgeOverview = ref(null), knowledgeSearchQuery = ref(''), knowledgeSearchHits = ref([]), lastRouteMeta = ref(null), overviewLoading = ref(false), knowledgeSearchLoading = ref(false), knowledgeSyncing = ref(false), syncSourceTypes = ref(['seed_internet'])
+const selectedSceneOption = computed(() => sceneOptions.value.find(item => item.code === selectedScene.value) || null)
+const closeContextMenu = () => { contextMenuVisible.value = false }
+onMounted(() => { loadSessions(); if (isAdmin.value) loadAdminDebugContext(); document.addEventListener('click', closeContextMenu) })
+onBeforeUnmount(() => document.removeEventListener('click', closeContextMenu))
+const normalizeText = (value) => typeof value === 'string' ? value.trim() : ''
+const resolveKnowledgeBaseId = () => normalizeText(knowledgeBaseId.value) || defaultKnowledgeBaseId
+const resolveSceneLabel = (sceneCode) => sceneOptions.value.find(item => item.code === sceneCode)?.displayName || sceneCode || 'general'
+const buildDebugMeta = (data = {}) => ({ interviewScene: data.interviewScene || selectedScene.value || 'general', interviewSceneLabel: data.interviewSceneLabel || resolveSceneLabel(data.interviewScene || selectedScene.value), retrievalMode: data.retrievalMode || 'NONE', ragRecallCount: Number.isFinite(Number(data.ragRecallCount)) ? Number(data.ragRecallCount) : 0, routeReason: data.routeReason || '' })
+async function loadAdminDebugContext() { const [pointsResult, scenesResult] = await Promise.allSettled([aiApi.getKnowledgePoints(), aiApi.getInterviewScenes()]); if (pointsResult.status === 'fulfilled') knowledgePoints.value = pointsResult.value.data || []; if (scenesResult.status === 'fulfilled') sceneOptions.value = scenesResult.value.data || []; await refreshKnowledgeOverview() }
+async function loadSessions() { try { const res = await aiApi.getUserSessions(20); sessions.value = res.data || [] } catch (error) { console.error('Load sessions failed', error) } }
+async function refreshKnowledgeOverview() { if (!isAdmin.value) return; overviewLoading.value = true; try { const res = await aiApi.getKnowledgeOverview(resolveKnowledgeBaseId()); knowledgeOverview.value = res.data || null } catch { knowledgeOverview.value = null; ElMessage.error('加载知识库概览失败') } finally { overviewLoading.value = false } }
+async function runKnowledgeSync() { if (!isAdmin.value) return; knowledgeSyncing.value = true; try { const res = await aiApi.syncKnowledgeBase({ knowledgeBaseId: resolveKnowledgeBaseId(), sourceTypes: syncSourceTypes.value.length ? syncSourceTypes.value : ['seed_internet'] }); await refreshKnowledgeOverview(); const summary = res.data || {}; const status = String(summary.status || '').toUpperCase(); const message = summary.message || `scanned ${summary?.sourceDocumentCount || 0} / indexed ${summary?.documentCount || 0} / chunks ${summary?.chunkCount || 0} / failed ${summary?.failedDocumentCount || 0}`; if (status.includes('FAIL')) ElMessage.error(message); else if (status.includes('PARTIAL') || status.includes('RUNNING') || status.includes('PROCESS')) ElMessage.warning(message); else ElMessage.success(message) } catch (error) { ElMessage.error(error?.response?.data?.message || '同步知识库失败') } finally { knowledgeSyncing.value = false } }
+async function runKnowledgeSearch() { if (!isAdmin.value) return; const query = normalizeText(knowledgeSearchQuery.value); if (!query) { ElMessage.warning('请先输入检索问题'); return } knowledgeSearchLoading.value = true; try { const res = await aiApi.searchKnowledge({ query, knowledgeBaseId: resolveKnowledgeBaseId(), knowledgePoint: normalizeText(selectedKnowledgePoint.value) || undefined, limit: 5 }); knowledgeSearchHits.value = res.data?.hits || []; if (!knowledgeSearchHits.value.length) ElMessage.info('未命中相关知识片段') } catch { knowledgeSearchHits.value = []; ElMessage.error('知识库检索失败') } finally { knowledgeSearchLoading.value = false } }
+function startNewConversation() { currentSessionId.value = ''; messages.value = []; inputMessage.value = ''; lastRouteMeta.value = null }
+async function loadSession(sessionId) { try { currentSessionId.value = sessionId; const res = await aiApi.getSessionHistory(sessionId); const history = res.data || []; messages.value = []; history.forEach(conv => { messages.value.push({ role: 'user', content: conv.userMessage, timestamp: conv.createdAt }); messages.value.push({ role: 'assistant', content: conv.aiResponse, timestamp: conv.createdAt, conversationId: conv.id, feedback: conv.feedback, bookmarked: conv.isBookmarked, category: conv.questionCategory, recommendations: parseRecommendations(conv.recommendedResources), debugMeta: null }) }); scrollToBottom() } catch { ElMessage.error('加载会话历史失败') } }
+function buildChatPayload(message) { const payload = { message, sessionId: currentSessionId.value || undefined, needRecommendation: needRecommendation.value }; if (isAdmin.value && applyDebugToChat.value) { payload.knowledgeBaseId = resolveKnowledgeBaseId(); payload.knowledgePoint = normalizeText(selectedKnowledgePoint.value) || undefined; payload.messageType = normalizeText(selectedScene.value) || 'general' } return payload }
+function rollbackPendingConversation(userMessage, assistantMessage) { const assistantIndex = messages.value.indexOf(assistantMessage); if (assistantIndex >= 0) messages.value.splice(assistantIndex, 1); const lastMessage = messages.value[messages.value.length - 1]; if (lastMessage?.role === 'user' && lastMessage.content === userMessage) messages.value.pop(); loading.value = false }
+async function sendMessage() { if (!inputMessage.value.trim() || loading.value) return; const userMessage = inputMessage.value.trim(); messages.value.push({ role: 'user', content: userMessage, timestamp: new Date() }); inputMessage.value = ''; scrollToBottom(); loading.value = true; const assistantMessage = reactive({ role: 'assistant', content: '', timestamp: new Date(), typing: true, conversationId: null, category: null, recommendations: null, bookmarked: false, feedback: null, debugMeta: null }); messages.value.push(assistantMessage); scrollToBottom(); try { await aiApi.chatWithAiStream(buildChatPayload(userMessage), (token, sessionId) => { if (sessionId && !currentSessionId.value) currentSessionId.value = sessionId; assistantMessage.content = `${assistantMessage.content || ''}${token || ''}`; assistantMessage.typing = false; scrollToBottom() }, (data) => { if (data.sessionId) currentSessionId.value = data.sessionId; if (data.content && !assistantMessage.content) assistantMessage.content = data.content; assistantMessage.conversationId = data.conversationId; assistantMessage.category = data.category; assistantMessage.typing = false; if (isAdmin.value) { const debugMeta = buildDebugMeta(data); assistantMessage.debugMeta = debugMeta; lastRouteMeta.value = debugMeta } loading.value = false; loadSessions(); scrollToBottom() }, (error) => { ElMessage.error(error || 'AI 服务暂时不可用'); rollbackPendingConversation(userMessage, assistantMessage) }) } catch (error) { ElMessage.error(error.message || 'AI 服务暂时不可用'); rollbackPendingConversation(userMessage, assistantMessage) } }
+const renderMarkdown = (content) => !content ? '' : marked.parse(content)
+const escapeHtml = (content) => String(content).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;')
+const renderMessageHtml = (content) => { if (!content) return ''; try { const rendered = marked.parse(String(content)); if (typeof rendered === 'string' && rendered.trim()) return rendered } catch (error) { console.error('Render markdown failed', error) } return escapeHtml(content).replace(/\r?\n/g, '<br>') }
+const formatTime = (time) => !time ? '' : dayjs(time).fromNow()
+const formatScore = (score) => Number.isFinite(Number(score)) ? Number(score).toFixed(3) : '-'
+const retrievalTagType = (mode) => mode === 'HYBRID' ? 'success' : mode === 'MILVUS_ONLY' ? 'warning' : mode === 'KEYWORD_ONLY' ? 'info' : 'danger'
+const syncTaskTagType = (status) => { const normalized = String(status || '').toUpperCase(); if (normalized.includes('FAIL') || normalized.includes('ERROR')) return 'danger'; if (normalized.includes('PARTIAL') || normalized.includes('RUNNING') || normalized.includes('PROCESS')) return 'warning'; if (normalized.includes('SUCCESS') || normalized.includes('DONE') || normalized.includes('COMPLETED')) return 'success'; return 'info' }
+const getSessionPreview = (session) => { const preview = session?.userMessage?.trim?.() || ''; if (!preview) return '新对话'; return preview.length > 30 ? `${preview.substring(0, 30)}...` : preview }
+const getSessionDisplayTitle = (session) => session?.sessionTitle?.trim?.() || getSessionPreview(session)
+async function copyMessage(content) { try { await navigator.clipboard.writeText(content); ElMessage.success('已复制到剪贴板') } catch { ElMessage.error('复制失败') } }
+async function submitFeedback(conversationId, feedback) { try { await aiApi.submitFeedback({ conversationId, feedback }); const message = messages.value.find(item => item.conversationId === conversationId); if (message) message.feedback = feedback; ElMessage.success('感谢你的反馈') } catch { ElMessage.error('提交反馈失败') } }
+async function toggleBookmark(message) { try { const nextState = !message.bookmarked; await aiApi.bookmarkConversation(message.conversationId, nextState); message.bookmarked = nextState; ElMessage.success(nextState ? '已收藏' : '已取消收藏') } catch { ElMessage.error('操作失败') } }
+async function showBookmarks() { try { const res = await aiApi.getBookmarkedConversations(); bookmarkedConversations.value = res.data || []; bookmarksDialogVisible.value = true } catch { ElMessage.error('加载收藏失败') } }
+async function clearConversation() { try { await ElMessageBox.confirm('确定要清空当前对话吗？', '提示', { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }); startNewConversation() } catch {} }
+function showContextMenu(event, session) { event.stopPropagation(); selectedSession.value = session; contextMenuX.value = event.clientX; contextMenuY.value = event.clientY; contextMenuVisible.value = true }
+async function handleRename() { contextMenuVisible.value = false; if (!selectedSession.value) { ElMessage.warning('请选择要重命名的会话'); return } const oldTitle = getSessionDisplayTitle(selectedSession.value); try { const { value: newTitle } = await ElMessageBox.prompt('请输入新的对话标题', '重命名', { confirmButtonText: '确定', cancelButtonText: '取消', inputValue: oldTitle, inputPattern: /^.{1,100}$/, inputErrorMessage: '标题长度必须在 1-100 个字符之间' }); if (newTitle && newTitle.trim() !== oldTitle) { const loadingInstance = ElLoading.service({ lock: true, text: '正在重命名...', background: 'rgba(0, 0, 0, 0.7)' }); try { await aiApi.renameSession(selectedSession.value.sessionId, newTitle.trim()); const session = sessions.value.find(item => item.sessionId === selectedSession.value.sessionId); if (session) session.sessionTitle = newTitle.trim(); loadingInstance.close(); ElMessage.success(`已重命名为 ${newTitle.trim()}`) } catch (err) { loadingInstance.close(); throw err } } else if (newTitle && newTitle.trim() === oldTitle) { ElMessage.info('标题未变化') } } catch (error) { if (error !== 'cancel') { console.error('Rename session failed', error); ElMessage.error(error.response?.data?.message || '重命名失败，请稍后重试') } } }
+async function handleDelete() { contextMenuVisible.value = false; if (!selectedSession.value) { ElMessage.warning('请选择要删除的会话'); return } const sessionTitle = getSessionDisplayTitle(selectedSession.value); const isCurrentSession = currentSessionId.value === selectedSession.value.sessionId; try { await ElMessageBox.confirm(`确定要删除会话「${sessionTitle}」吗？`, '警告', { confirmButtonText: '确定删除', cancelButtonText: '取消', type: 'warning' }); const loadingInstance = ElLoading.service({ lock: true, text: '正在删除...', background: 'rgba(0, 0, 0, 0.7)' }); try { await aiApi.deleteSession(selectedSession.value.sessionId); sessions.value = sessions.value.filter(item => item.sessionId !== selectedSession.value.sessionId); if (isCurrentSession) startNewConversation(); loadingInstance.close(); ElMessage.success(`已删除会话 ${sessionTitle}`) } catch (err) { loadingInstance.close(); throw err } } catch (error) { if (error !== 'cancel') { console.error('Delete session failed', error); ElMessage.error(error.response?.data?.message || '删除失败，请稍后重试') } } }
+function getScrollElement() { if (!scrollbarRef.value) return null; if (scrollbarRef.value instanceof HTMLElement) return scrollbarRef.value; return scrollbarRef.value.$el?.querySelector('.el-scrollbar__wrap') || null }
+function scrollToBottom() { nextTick(() => { const scrollElement = getScrollElement(); if (scrollElement) scrollElement.scrollTop = scrollElement.scrollHeight }) }
 
-// 配置marked
-marked.setOptions({
-  highlight: function(code, lang) {
-    const language = hljs.getLanguage(lang) ? lang : 'plaintext'
-    return hljs.highlight(code, { language }).value
-  },
-  breaks: true,
-  gfm: true
-})
-
-// 数据
-const sidebarCollapsed = ref(false)
-const currentSessionId = ref('')
-const sessions = ref([])
-const messages = ref([])
-const inputMessage = ref('')
-const needRecommendation = ref(false)
-const loading = ref(false)
-const scrollbarRef = ref(null)
-const bookmarksDialogVisible = ref(false)
-const bookmarkedConversations = ref([])
-
-// 右键菜单
-const contextMenuVisible = ref(false)
-const contextMenuX = ref(0)
-const contextMenuY = ref(0)
-const selectedSession = ref(null)
-
-// 生命周期
-onMounted(() => {
-  loadSessions()
-  
-  // 监听点击关闭右键菜单
-  document.addEventListener('click', () => {
-    contextMenuVisible.value = false
-  })
-})
-
-// 方法
-const loadSessions = async () => {
-  try {
-    const res = await aiApi.getUserSessions(20)
-    sessions.value = res.data || []
-  } catch (error) {
-    console.error('加载会话列表失败', error)
-  }
-}
-
-const startNewConversation = () => {
-  currentSessionId.value = ''
-  messages.value = []
-  inputMessage.value = ''
-}
-
-const loadSession = async (sessionId) => {
-  try {
-    currentSessionId.value = sessionId
-    const res = await aiApi.getSessionHistory(sessionId)
-    const history = res.data || []
-    
-    messages.value = []
-    history.forEach(conv => {
-      messages.value.push({
-        role: 'user',
-        content: conv.userMessage,
-        timestamp: conv.createdAt
-      })
-      messages.value.push({
-        role: 'assistant',
-        content: conv.aiResponse,
-        timestamp: conv.createdAt,
-        conversationId: conv.id,
-        feedback: conv.feedback,
-        bookmarked: conv.isBookmarked,
-        category: conv.questionCategory,
-        recommendations: parseRecommendations(conv.recommendedResources)
-      })
-    })
-    
-    scrollToBottom()
-  } catch (error) {
-    ElMessage.error('加载会话历史失败')
-  }
-}
-
-const sendMessage = async () => {
-  if (!inputMessage.value.trim() || loading.value) return
-
-  const userMessage = inputMessage.value.trim()
-  
-  // 添加用户消息
-  messages.value.push({
-    role: 'user',
-    content: userMessage,
-    timestamp: new Date()
-  })
-
-  // 清空输入
-  inputMessage.value = ''
-  scrollToBottom()
-
-  // 显示加载状态
-  loading.value = true
-  
-  // 添加AI回复占位（用于流式显示）
-  const aiMessageIndex = messages.value.length
-  messages.value.push({
-    role: 'assistant',
-    content: '',
-    timestamp: new Date(),
-    typing: true,  // 显示打字指示器
-    conversationId: null,
-    category: null,
-    recommendations: null,
-    bookmarked: false,
-    feedback: null
-  })
-  scrollToBottom()
-
-  try {
-    await aiApi.chatWithAiStream(
-      {
-        message: userMessage,
-        sessionId: currentSessionId.value || undefined,
-        needRecommendation: needRecommendation.value
-      },
-      // onMessage - 每收到一个token就更新显示
-      (token, sessionId) => {
-        if (sessionId && !currentSessionId.value) {
-          currentSessionId.value = sessionId
-        }
-        messages.value[aiMessageIndex].content += token
-        messages.value[aiMessageIndex].typing = false
-        scrollToBottom()
-      },
-      // onDone - 完成时更新元数据
-      (data) => {
-        if (data.sessionId) {
-          currentSessionId.value = data.sessionId
-        }
-        messages.value[aiMessageIndex].conversationId = data.conversationId
-        messages.value[aiMessageIndex].category = data.category
-        messages.value[aiMessageIndex].typing = false
-        loading.value = false
-        
-        // 重新加载会话列表
-        loadSessions()
-        scrollToBottom()
-      },
-      // onError - 错误处理
-      (error) => {
-        ElMessage.error(error || 'AI服务暂时不可用')
-        // 移除AI回复占位
-        messages.value.splice(aiMessageIndex, 1)
-        // 移除用户消息
-        messages.value.pop()
-        loading.value = false
-      }
-    )
-  } catch (error) {
-    ElMessage.error(error.message || 'AI服务暂时不可用')
-    // 移除AI回复占位
-    messages.value.splice(aiMessageIndex, 1)
-    // 移除用户消息
-    messages.value.pop()
-    loading.value = false
-  }
-}
-
-const renderMarkdown = (content) => {
-  if (!content) return ''
-  return marked.parse(content)
-}
-
-const formatTime = (time) => {
-  if (!time) return ''
-  return dayjs(time).fromNow()
-}
-
-const getSessionPreview = (session) => {
-  return session.userMessage?.substring(0, 30) + '...' || '新对话'
-}
-
-const copyMessage = async (content) => {
-  try {
-    await navigator.clipboard.writeText(content)
-    ElMessage.success('已复制到剪贴板')
-  } catch (error) {
-    ElMessage.error('复制失败')
-  }
-}
-
-const submitFeedback = async (conversationId, feedback) => {
-  try {
-    await aiApi.submitFeedback({
-      conversationId,
-      feedback
-    })
-    
-    // 更新本地状态
-    const message = messages.value.find(m => m.conversationId === conversationId)
-    if (message) {
-      message.feedback = feedback
-    }
-    
-    ElMessage.success('感谢你的反馈！')
-  } catch (error) {
-    ElMessage.error('提交反馈失败')
-  }
-}
-
-const toggleBookmark = async (message) => {
-  try {
-    const newBookmarkState = !message.bookmarked
-    await aiApi.bookmarkConversation(message.conversationId, newBookmarkState)
-    message.bookmarked = newBookmarkState
-    ElMessage.success(newBookmarkState ? '已收藏' : '已取消收藏')
-  } catch (error) {
-    ElMessage.error('操作失败')
-  }
-}
-
-const showBookmarks = async () => {
-  try {
-    const res = await aiApi.getBookmarkedConversations()
-    bookmarkedConversations.value = res.data || []
-    bookmarksDialogVisible.value = true
-  } catch (error) {
-    ElMessage.error('加载收藏失败')
-  }
-}
-
-const clearConversation = async () => {
-  try {
-    await ElMessageBox.confirm('确定要清空当前对话吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    startNewConversation()
-  } catch {
-    // 取消
-  }
-}
-
-// 显示右键菜单
-const showContextMenu = (event, session) => {
-  event.stopPropagation()
-  selectedSession.value = session
-  contextMenuX.value = event.clientX
-  contextMenuY.value = event.clientY
-  contextMenuVisible.value = true
-}
-
-// 处理重命名
-const handleRename = async () => {
-  contextMenuVisible.value = false
-  
-  if (!selectedSession.value) {
-    ElMessage.warning('请选择要重命名的会话')
-    return
-  }
-  
-  const oldTitle = selectedSession.value.title || getSessionPreview(selectedSession.value)
-  
-  try {
-    const { value: newTitle } = await ElMessageBox.prompt('请输入新的对话标题', '重命名', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      inputValue: oldTitle,
-      inputPattern: /^.{1,100}$/,
-      inputErrorMessage: '标题长度必须在 1-100 个字符之间',
-      inputValidator: (value) => {
-        if (!value || value.trim().length === 0) {
-          return '标题不能为空'
-        }
-        if (value.trim().length > 100) {
-          return '标题太长，最多 100 个字符'
-        }
-        return true
-      }
-    })
-    
-    if (newTitle && newTitle.trim() !== oldTitle) {
-      const loading = ElLoading.service({
-        lock: true,
-        text: '正在重命名...',
-        background: 'rgba(0, 0, 0, 0.7)'
-      })
-      
-      try {
-        await aiApi.renameSession(selectedSession.value.sessionId, newTitle.trim())
-        
-        // 更新本地列表
-        const session = sessions.value.find(s => s.sessionId === selectedSession.value.sessionId)
-        if (session) {
-          session.title = newTitle.trim()
-        }
-        
-        loading.close()
-        ElMessage.success({
-          message: `已将会话重命名为「${newTitle.trim()}」`,
-          duration: 2000
-        })
-      } catch (err) {
-        loading.close()
-        throw err
-      }
-    } else if (newTitle && newTitle.trim() === oldTitle) {
-      ElMessage.info('标题未改变')
-    }
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('重命名失败:', error)
-      ElMessage.error({
-        message: error.response?.data?.message || '重命名失败，请稍后重试',
-        duration: 3000
-      })
-    }
-  }
-}
-
-// 处理删除
-const handleDelete = async () => {
-  contextMenuVisible.value = false
-  
-  if (!selectedSession.value) {
-    ElMessage.warning('请选择要删除的会话')
-    return
-  }
-  
-  const sessionTitle = selectedSession.value.title || getSessionPreview(selectedSession.value)
-  const isCurrentSession = currentSessionId.value === selectedSession.value.sessionId
-  
-  try {
-    await ElMessageBox.confirm(
-      `确定要删除会话「${sessionTitle}」吗？`,
-      '警告',
-      {
-        confirmButtonText: '确定删除',
-        cancelButtonText: '取消',
-        type: 'warning',
-        buttonSize: 'default',
-        dangerouslyUseHTMLString: true,
-        message: `
-          <div style="margin-bottom: 12px;">
-            <strong>会话：</strong>${sessionTitle}
-          </div>
-          <div style="color: #f56c6c;">
-            <i class="el-icon-warning"></i>
-            此操作不可恢复，所有对话记录将被永久删除。
-          </div>
-          ${isCurrentSession ? '<div style="color: #e6a23c; margin-top: 8px;">⚠️ 这是当前打开的会话</div>' : ''}
-        `
-      }
-    )
-    
-    const loading = ElLoading.service({
-      lock: true,
-      text: '正在删除...',
-      background: 'rgba(0, 0, 0, 0.7)'
-    })
-    
-    try {
-      await aiApi.deleteSession(selectedSession.value.sessionId)
-      
-      // 从列表中移除
-      sessions.value = sessions.value.filter(s => s.sessionId !== selectedSession.value.sessionId)
-      
-      // 如果删除的是当前对话，清空消息
-      if (isCurrentSession) {
-        startNewConversation()
-      }
-      
-      loading.close()
-      ElMessage.success({
-        message: `已删除会话「${sessionTitle}」`,
-        duration: 2000
-      })
-    } catch (err) {
-      loading.close()
-      throw err
-    }
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除失败:', error)
-      ElMessage.error({
-        message: error.response?.data?.message || '删除失败，请稍后重试',
-        duration: 3000
-      })
-    }
-  }
-}
-
-const scrollToBottom = () => {
-  nextTick(() => {
-    if (scrollbarRef.value) {
-      const scrollElement = scrollbarRef.value.$el.querySelector('.el-scrollbar__wrap')
-      if (scrollElement) {
-        scrollElement.scrollTop = scrollElement.scrollHeight
-      }
-    }
-  })
-}
-
-const parseRecommendations = (jsonString) => {
-  if (!jsonString) return []
-  try {
-    // 简单解析格式：title|url;title|url
-    return jsonString.split(';').map(item => {
-      const [title, url] = item.split('|')
-      return { title, url, type: 'article', description: '' }
-    })
-  } catch {
-    return []
-  }
-}
+function parseRecommendations(jsonString) { if (!jsonString) return []; try { const parsed = JSON.parse(jsonString); if (Array.isArray(parsed)) return parsed } catch {} try { return jsonString.split(';').map(item => { const [title, url] = item.split('|'); return { title, url, type: 'article', description: '' } }).filter(item => item.title || item.url) } catch { return [] } }
 </script>
-
 <style scoped lang="scss">
 @import '@/assets/styles/variables.scss';
+
 .ai-assistant-container {
-  display: flex;
-  height: calc(100vh - 140px); // 减去header与footer高度
-  background: $bg-glass;
-  border: 1px solid $glass-border;
+  display: grid;
+  grid-template-columns: 304px minmax(0, 1fr);
+  width: 100%;
+  max-width: 1280px;
+  height: clamp(500px, calc(100dvh - 220px), 760px);
+  min-height: 0;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.44);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: $radius-xl;
-  backdrop-filter: blur($blur-lg) saturate(160%);
-  -webkit-backdrop-filter: blur($blur-lg) saturate(160%);
-
-  &.embedded {
-    height: 100%;
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    backdrop-filter: none;
-
-    .sidebar {
-      width: 220px;
-    }
-
-    .sidebar-header {
-      padding: 12px;
-      gap: 8px;
-
-      .title {
-        font-size: 14px;
-      }
-    }
-
-    .session-item {
-      padding: 8px 12px;
-    }
-
-    .chat-header {
-      padding: 8px 16px;
-
-      .ai-icon {
-        font-size: 20px;
-      }
-
-      .ai-title {
-        font-size: 16px;
-      }
-    }
-
-    .messages-content {
-      padding: 12px 16px;
-      max-width: 720px;
-    }
-
-    .welcome-message {
-      padding: 24px 16px;
-
-      h2 {
-        font-size: 18px;
-      }
-    }
-
-    .message-header {
-      font-size: 11px;
-    }
-
-    .message-body {
-      .user-text,
-      .ai-text {
-        padding: 8px 12px;
-        font-size: 13px;
-      }
-    }
-
-    .input-area {
-      padding: 8px 16px;
-    }
-  }
+  box-shadow: $shadow-lg;
+  backdrop-filter: blur(22px) saturate(150%);
+  overflow: hidden;
 }
 
-// 侧边栏
+.ai-assistant-container.embedded {
+  grid-template-columns: 1fr;
+  height: 100%;
+  min-height: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  backdrop-filter: none;
+  container-type: size;
+  container-name: ai-assistant-embedded;
+}
+
+.ai-assistant-container.embedded .chat-area {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.ai-assistant-container.embedded .chat-header,
+.ai-assistant-container.embedded .admin-debug-panel {
+  display: none;
+}
+
+.ai-assistant-container.embedded .messages-content {
+  max-width: 100%;
+  padding: 18px 18px 12px;
+}
+
+.ai-assistant-container.embedded .welcome-message {
+  width: 100%;
+  max-width: none;
+  padding: clamp(18px, 5cqh, 32px) clamp(18px, 5cqw, 30px);
+  border-radius: 20px;
+}
+
+.ai-assistant-container.embedded .message-wrapper {
+  margin-bottom: 16px;
+}
+
+.ai-assistant-container.embedded .message-content {
+  max-width: min(88%, 640px);
+}
+
+.ai-assistant-container.embedded .input-area {
+  padding: 12px 16px 16px;
+}
+
+.ai-assistant-container.embedded .input-wrapper {
+  max-width: 100%;
+}
+
+.ai-assistant-container.embedded .input-wrapper :deep(.el-textarea__inner) {
+  min-height: 72px !important;
+  padding: 12px 14px;
+}
+
+.ai-assistant-container.embedded .input-actions {
+  margin-top: 10px;
+}
+
 .sidebar {
-  width: 280px;
-  background: rgba(255, 255, 255, 0.35);
-  border-right: 1px solid $glass-border;
-  backdrop-filter: blur($blur-md) saturate(150%);
-  -webkit-backdrop-filter: blur($blur-md) saturate(150%);
   display: flex;
   flex-direction: column;
-  transition: width 0.3s;
-
-  .ai-assistant-container.embedded & {
-    background: rgba(255, 255, 255, 0.08);
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur($blur-lg) saturate(170%);
-  }
-
-  &.collapsed {
-    width: 60px;
-
-    .sidebar-header {
-      justify-content: center;
-    }
-  }
-
-  .sidebar-header {
-    padding: 16px;
-    border-bottom: 1px solid $glass-border;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    .title {
-      flex: 1;
-      font-weight: 600;
-      font-size: 16px;
-    }
-  }
-
-  .sidebar-content {
-    flex: 1;
-    overflow: hidden;
-  }
-
-  .session-item {
-    padding: 12px 16px;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-    transition: background 0.2s;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.35);
-    }
-
-    &.active {
-      background: rgba($color-primary, 0.12);
-      border-left: 3px solid $color-primary;
-    }
-
-    .el-icon {
-      margin-top: 2px;
-      color: #909399;
-    }
-
-    .session-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .session-preview {
-      font-size: 14px;
-      color: #303133;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      margin-bottom: 4px;
-    }
-
-    .session-time {
-      font-size: 12px;
-      color: #909399;
-    }
-  }
-  
-  // 右键菜单
-  .context-menu {
-    position: fixed;
-    background: $glass-white-strong;
-    backdrop-filter: blur($blur-lg) saturate(160%);
-    -webkit-backdrop-filter: blur($blur-lg) saturate(160%);
-    border-radius: 8px;
-    box-shadow: $shadow-glass-md;
-    padding: 4px 0;
-    z-index: 9999;
-    min-width: 140px;
-    
-    .context-menu-item {
-      padding: 10px 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      color: #303133;
-      transition: all 0.2s;
-      
-      .el-icon {
-        font-size: 16px;
-        color: #909399;
-      }
-      
-      &:hover {
-        background: rgba($color-primary, 0.12);
-        color: $color-primary;
-        
-        .el-icon {
-          color: #409eff;
-        }
-      }
-      
-      &.delete {
-        &:hover {
-          background: rgba($color-danger, 0.12);
-          color: $color-danger;
-          
-          .el-icon {
-            color: #f56c6c;
-          }
-        }
-      }
-    }
-  }
+  min-width: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(246, 248, 255, 0.68));
+  border-right: 1px solid rgba(255, 255, 255, 0.65);
+  transition: width $transition-slow;
+  position: relative;
 }
 
-// 聊天区域
-.chat-area {
-  flex: 1;
+.sidebar.collapsed {
+  width: 76px;
+}
+
+.sidebar-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.sidebar-toggle,
+.new-chat-btn {
+  flex-shrink: 0;
+}
+
+.sidebar-heading {
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur($blur-md) saturate(150%);
-  -webkit-backdrop-filter: blur($blur-md) saturate(150%);
+  gap: 2px;
+}
 
-  .ai-assistant-container.embedded & {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(18px) saturate(160%);
-  }
+.sidebar-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.sidebar-title {
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.new-chat-btn {
+  min-width: 118px;
+}
+
+.sidebar-content {
+  flex: 1;
+  min-height: 0;
+}
+
+.session-scrollbar {
+  height: 100%;
+}
+
+.session-scrollbar :deep(.el-scrollbar__view) {
+  padding: 12px;
+}
+
+.session-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  transition: background $transition-base, border-color $transition-base, transform $transition-base;
+}
+
+.session-item:hover {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(191, 219, 254, 0.9);
+  transform: translateY(-1px);
+}
+
+.session-item.active {
+  background: rgba(0, 122, 255, 0.1);
+  border-color: rgba(0, 122, 255, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(0, 122, 255, 0.08);
+}
+
+.session-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.session-name {
+  font-size: 14px;
+  line-height: 1.45;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.session-time,
+.ai-subtitle,
+.debug-note,
+.message-time,
+.bookmark-time {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.context-menu {
+  position: fixed;
+  z-index: 9999;
+  min-width: 132px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: $shadow-md;
+}
+
+.context-menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.context-menu-item:hover {
+  background: rgba(0, 122, 255, 0.08);
+}
+
+.context-menu-item.delete:hover {
+  background: rgba(255, 59, 48, 0.1);
+  color: $color-danger;
+}
+
+.chat-area {
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(248, 250, 255, 0.52));
+  overflow: hidden;
+}
+
+.chat-header,
+.header-left,
+.header-right,
+.debug-tags,
+.debug-actions,
+.message-actions,
+.message-debug-meta,
+.recommendations-title,
+.resource-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .chat-header {
-  padding: 12px 24px;
-  border-bottom: 1px solid $glass-border;
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur($blur-sm) saturate(160%);
-  -webkit-backdrop-filter: blur($blur-sm) saturate(160%);
-
-  .ai-assistant-container.embedded & {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.06);
-  }
-
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    .ai-icon {
-      font-size: 24px;
-      color: #409eff;
-    }
-
-    .ai-title {
-      font-size: 18px;
-      font-weight: 600;
-    }
-  }
-
-  .header-right {
-    display: flex;
-    gap: 8px;
-  }
+  padding: 22px 28px 18px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+  background: rgba(255, 255, 255, 0.52);
+  flex: 0 0 auto;
 }
 
-// 消息容器
-.messages-container {
-  flex: 1;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur($blur-sm) saturate(140%);
-  -webkit-backdrop-filter: blur($blur-sm) saturate(140%);
+.header-left {
+  min-width: 0;
+}
 
-  .ai-assistant-container.embedded & {
-    background: transparent;
-  }
+.header-left > div {
+  min-width: 0;
+}
+
+.header-right {
+  justify-content: flex-end;
+}
+
+.ai-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  font-size: 20px;
+  color: $color-primary;
+  background: rgba(0, 122, 255, 0.1);
+}
+
+.ai-title {
+  font-size: 17px;
+  line-height: 1.25;
+  font-weight: 700;
+  color: #111827;
+}
+
+.ai-subtitle {
+  margin-top: 4px;
+}
+
+.debug-toggle-btn {
+  font-weight: 600;
+}
+
+.admin-debug-panel {
+  display: grid;
+  gap: 16px;
+  padding: 18px 28px 22px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(244, 247, 255, 0.76));
+  flex: 0 0 auto;
+}
+
+.debug-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.debug-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.debug-subtitle {
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #475569;
+}
+
+.debug-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #334155;
+}
+
+.debug-grid,
+.debug-metrics {
+  display: grid;
+  gap: 12px;
+}
+
+.debug-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.debug-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.debug-actions {
+  justify-content: flex-start;
+}
+
+.metric-card,
+.debug-block {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metric-card span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metric-card strong {
+  font-size: 18px;
+  line-height: 1;
+  color: #111827;
+}
+
+.debug-search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+}
+
+.debug-block-title {
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.debug-item {
+  padding: 10px 0;
+  border-top: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.debug-item:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.debug-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.messages-container {
+  display: block;
+  flex: 1 1 0;
+  height: 0;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.messages-scrollbar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  touch-action: pan-y;
+}
+
+.messages-scrollbar.native-scroll {
+  -webkit-overflow-scrolling: touch;
 }
 
 .messages-content {
-  padding: 16px 24px;
-  max-width: 900px;
+  min-height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 960px;
   margin: 0 auto;
+  padding: 26px 28px 20px;
+  display: flex;
+  flex-direction: column;
 }
 
-// 欢迎消息
 .welcome-message {
+  width: min(100%, 620px);
+  margin: auto;
+  padding: 34px 30px;
   text-align: center;
-  padding: 40px 20px;
-  color: #606266;
+  color: #475569;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  border-radius: 24px;
+  box-shadow: $shadow-sm;
+}
 
-  .welcome-icon {
-    font-size: 48px;
-    color: #409eff;
-    margin-bottom: 16px;
+.welcome-icon {
+  font-size: 46px;
+  color: $color-primary;
+  margin-bottom: 14px;
+}
+
+.welcome-message h2 {
+  margin: 0 0 12px;
+  font-size: 22px;
+  line-height: 1.2;
+  color: #1f2937;
+}
+
+.welcome-message p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.welcome-message ul {
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.welcome-message li {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+@container ai-assistant-embedded (max-height: 760px) {
+  .ai-assistant-container.embedded .messages-content {
+    padding: 12px 14px 8px;
   }
 
-  h2 {
-    font-size: 20px;
-    margin-bottom: 12px;
-    color: #303133;
+  .ai-assistant-container.embedded .welcome-message {
+    padding: 18px 16px;
   }
 
-  p {
-    font-size: 14px;
+  .ai-assistant-container.embedded .welcome-icon {
+    font-size: 34px;
+    margin-bottom: 10px;
+  }
+
+  .ai-assistant-container.embedded .welcome-message h2 {
     margin-bottom: 8px;
+    font-size: 18px;
   }
 
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 16px 0;
-    font-size: 14px;
-
-    li {
-      margin: 8px 0;
-    }
-  }
-
-  .tip {
-    color: #909399;
+  .ai-assistant-container.embedded .welcome-message p,
+  .ai-assistant-container.embedded .welcome-message li {
     font-size: 13px;
-    margin-top: 16px;
+    line-height: 1.6;
+  }
+
+  .ai-assistant-container.embedded .welcome-message ul {
+    margin-top: 12px;
+  }
+
+  .ai-assistant-container.embedded .input-area {
+    padding: 10px 12px 12px;
+  }
+
+  .ai-assistant-container.embedded .input-wrapper :deep(.el-textarea__inner) {
+    min-height: 60px !important;
+    font-size: 14px;
+  }
+
+  .ai-assistant-container.embedded .input-actions {
+    margin-top: 8px;
+    gap: 10px;
   }
 }
 
-// 消息项
+@container ai-assistant-embedded (max-width: 720px) {
+  .ai-assistant-container.embedded .messages-content {
+    padding: 12px;
+  }
+
+  .ai-assistant-container.embedded .welcome-message {
+    padding: 18px 14px;
+  }
+
+  .ai-assistant-container.embedded .message-content {
+    max-width: 100%;
+  }
+
+  .ai-assistant-container.embedded .input-area {
+    padding: 10px 12px 12px;
+  }
+
+  .ai-assistant-container.embedded .input-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ai-assistant-container.embedded .action-buttons {
+    justify-content: flex-end;
+  }
+}
+
+@container ai-assistant-embedded (max-width: 560px) {
+  .ai-assistant-container.embedded .welcome-message {
+    border-radius: 16px;
+  }
+
+  .ai-assistant-container.embedded .shortcut {
+    display: none;
+  }
+
+  .ai-assistant-container.embedded .action-buttons {
+    width: 100%;
+  }
+
+  .ai-assistant-container.embedded .action-buttons :deep(.el-button) {
+    flex: 1;
+  }
+}
+
 .message-wrapper {
   display: flex;
   gap: 12px;
-  margin-bottom: 16px;
-
-  &.user {
-    flex-direction: row-reverse;
-
-    .message-content {
-      align-items: flex-end;
-
-      .message-header {
-        justify-content: flex-end;
-      }
-
-      .user-text {
-        background: rgba($color-primary, 0.2);
-        border: 1px solid rgba($color-primary, 0.35);
-        color: $text-primary;
-        backdrop-filter: blur($blur-sm) saturate(160%);
-        -webkit-backdrop-filter: blur($blur-sm) saturate(160%);
-        border-radius: 12px 12px 0 12px;
-      }
-    }
-  }
-
-  &.assistant {
-    .ai-avatar {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    .ai-text {
-      background: $glass-white-light;
-      border-radius: 12px 12px 12px 0;
-      border: 1px solid $glass-border;
-      backdrop-filter: blur($blur-sm) saturate(150%);
-      -webkit-backdrop-filter: blur($blur-sm) saturate(150%);
-    }
-  }
-
-  .message-avatar {
-    flex-shrink: 0;
-  }
-
-  .message-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-width: 70%;
-  }
-
-  .message-header {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    font-size: 12px;
-    color: #909399;
-  }
-
-  .sender-name {
-    font-weight: 500;
-    color: #606266;
-  }
-
-  .message-body {
-    .user-text,
-    .ai-text {
-      padding: 10px 14px;
-      line-height: 1.5;
-      word-wrap: break-word;
-      font-size: 14px;
-    }
-  }
-
-  .message-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 4px;
-  }
+  margin-bottom: 20px;
 }
 
-// Markdown样式
-.markdown-body {
-  :deep(pre) {
-    background: rgba(20, 24, 36, 0.82);
-    padding: 16px;
-    border-radius: 8px;
-    overflow-x: auto;
-    margin: 12px 0;
-
-    code {
-      color: #abb2bf;
-      font-family: 'Consolas', 'Monaco', monospace;
-      font-size: 14px;
-    }
-  }
-
-  :deep(code) {
-    background: rgba(255, 255, 255, 0.4);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 13px;
-  }
-
-  :deep(p) {
-    margin: 8px 0;
-  }
-
-  :deep(ul), :deep(ol) {
-    margin: 12px 0;
-    padding-left: 24px;
-  }
-
-  :deep(h1), :deep(h2), :deep(h3) {
-    margin: 16px 0 8px;
-    font-weight: 600;
-  }
-
-  :deep(a) {
-    color: #409eff;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
+.message-wrapper.user {
+  flex-direction: row-reverse;
 }
 
-// 打字指示器
+.message-wrapper.user .message-content {
+  align-items: flex-end;
+}
+
+.message-wrapper.user .message-header,
+.message-wrapper.user .message-debug-meta {
+  justify-content: flex-end;
+}
+
+.message-wrapper.user .user-text {
+  background: rgba(0, 122, 255, 0.12);
+  border: 1px solid rgba(0, 122, 255, 0.18);
+  border-radius: 18px 18px 6px 18px;
+}
+
+.message-avatar {
+  flex-shrink: 0;
+}
+
+.ai-avatar {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
+}
+
+.message-content {
+  max-width: min(76%, 760px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.message-header {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.sender-name {
+  font-weight: 700;
+  color: #475569;
+}
+
+.message-body {
+  min-width: 0;
+}
+
+.user-text,
+.ai-text {
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.7;
+  word-break: break-word;
+  border-radius: 18px;
+}
+
+.ai-text {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  border-radius: 18px 18px 18px 6px;
+}
+
+.markdown-body :deep(pre) {
+  margin: 12px 0;
+  padding: 16px;
+  border-radius: 12px;
+  overflow-x: auto;
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.markdown-body :deep(code) {
+  font-family: $font-family-mono;
+}
+
+.markdown-body :deep(p) {
+  margin: 8px 0;
+}
+
+.markdown-body :deep(ul),
+.markdown-body :deep(ol) {
+  margin: 10px 0;
+  padding-left: 24px;
+}
+
 .typing-indicator {
   display: flex;
   gap: 4px;
-  padding: 12px 16px;
+  padding: 4px 2px;
+}
 
-  span {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #909399;
-    animation: typing 1.4s infinite;
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #94a3b8;
+  animation: typing 1.4s infinite;
+}
 
-    &:nth-child(2) {
-      animation-delay: 0.2s;
-    }
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
 
-    &:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-  }
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.recommendations {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(148, 163, 184, 0.4);
+}
+
+.resource-list {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.resource-item {
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+}
+
+.resource-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.resource-desc {
+  margin: 8px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+.message-debug-meta {
+  font-size: 12px;
+}
+
+.input-area {
+  padding: 18px 24px 24px;
+  border-top: 1px solid rgba(226, 232, 240, 0.9);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 -12px 30px rgba(15, 23, 42, 0.08);
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+}
+
+.input-wrapper {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.input-wrapper :deep(.el-textarea__inner) {
+  min-height: 112px !important;
+  padding: 16px 18px;
+  font-size: 15px;
+  line-height: 1.7;
+  border-radius: 18px;
+  box-shadow: none;
+}
+
+.input-actions {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.shortcut {
+  margin-left: 6px;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.empty-state {
+  padding: 20px 0;
+}
+
+.bookmark-item {
+  padding: 16px 0;
+  border-top: 1px solid rgba(226, 232, 240, 0.92);
+}
+
+.bookmark-item:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.bookmark-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.bookmark-category {
+  font-weight: 700;
+  color: $color-primary;
+}
+
+.bookmark-question,
+.bookmark-answer {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.7;
 }
 
 @keyframes typing {
-  0%, 60%, 100% {
+  0%,
+  60%,
+  100% {
     transform: translateY(0);
     opacity: 0.4;
   }
+
   30% {
-    transform: translateY(-10px);
+    transform: translateY(-6px);
     opacity: 1;
   }
 }
 
-// 推荐资源
-.recommendations {
-  margin-top: 12px;
-  padding: 12px;
-  background: $glass-white-light;
-  border-radius: 8px;
-  border: 1px solid $glass-border;
-  backdrop-filter: blur($blur-sm) saturate(140%);
-  -webkit-backdrop-filter: blur($blur-sm) saturate(140%);
-
-  .recommendations-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    margin-bottom: 10px;
-    color: #409eff;
-    font-size: 14px;
+@media (max-width: 1280px) {
+  .ai-assistant-container {
+    grid-template-columns: 272px minmax(0, 1fr);
   }
 
-  .resource-list {
-    display: flex;
+  .debug-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .ai-assistant-container {
+    grid-template-columns: 1fr;
+    height: calc(100dvh - 170px);
+    min-height: 0;
+  }
+
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  }
+
+  .debug-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .chat-header,
+  .admin-debug-panel,
+  .input-area {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .sidebar-header,
+  .debug-toolbar,
+  .input-actions,
+  .chat-header {
+    grid-template-columns: 1fr;
     flex-direction: column;
-    gap: 10px;
+    align-items: stretch;
   }
 
-  .resource-item {
-    padding: 10px;
-    background: $glass-white;
-    border-radius: 6px;
-    border: 1px solid $glass-border;
-    backdrop-filter: blur($blur-sm) saturate(140%);
-    -webkit-backdrop-filter: blur($blur-sm) saturate(140%);
-
-    .resource-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-
-      .el-icon {
-        color: #409eff;
-      }
-
-      .resource-title {
-        font-weight: 500;
-        color: #303133;
-      }
-    }
-
-    .resource-desc {
-      font-size: 13px;
-      color: #606266;
-      margin-bottom: 8px;
-    }
-  }
-}
-
-// 输入区域
-.input-area {
-  padding: 12px 24px;
-  border-top: 1px solid $glass-border;
-  background: $glass-white-light;
-  backdrop-filter: blur($blur-sm) saturate(150%);
-  -webkit-backdrop-filter: blur($blur-sm) saturate(150%);
-
-  .ai-assistant-container.embedded & {
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(18px) saturate(160%);
+  .header-right {
+    justify-content: flex-start;
   }
 
-  .input-wrapper {
-    max-width: 900px;
-    margin: 0 auto;
+  .debug-grid,
+  .debug-metrics,
+  .debug-search {
+    grid-template-columns: 1fr;
   }
 
-  .input-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-
-    .action-buttons {
-      display: flex;
-      gap: 12px;
-
-      .shortcut {
-        font-size: 12px;
-        opacity: 0.7;
-        margin-left: 4px;
-      }
-    }
+  .messages-content {
+    padding-left: 18px;
+    padding-right: 18px;
   }
-}
 
-// 收藏对话
-.bookmarks-list {
-  .bookmark-item {
-    padding: 16px;
-    margin-bottom: 16px;
-    background: $glass-white-light;
-    border-radius: 8px;
-    border: 1px solid $glass-border;
-    backdrop-filter: blur($blur-sm) saturate(140%);
-    -webkit-backdrop-filter: blur($blur-sm) saturate(140%);
-
-    .bookmark-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 12px;
-      font-size: 12px;
-
-      .bookmark-category {
-        color: #409eff;
-        font-weight: 500;
-      }
-
-      .bookmark-time {
-        color: #909399;
-      }
-    }
-
-    .bookmark-content {
-      .bookmark-question,
-      .bookmark-answer {
-        margin-bottom: 12px;
-        line-height: 1.6;
-
-        strong {
-          color: #303133;
-          margin-right: 8px;
-        }
-      }
-
-      .bookmark-answer {
-        color: #606266;
-      }
-    }
+  .message-content {
+    max-width: 100%;
   }
-}
 
-.empty-state {
-  padding: 40px;
-  text-align: center;
+  .welcome-message {
+    padding: 28px 22px;
+  }
 }
 </style>
-

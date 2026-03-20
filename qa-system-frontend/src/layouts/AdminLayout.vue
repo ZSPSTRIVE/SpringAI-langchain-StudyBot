@@ -70,6 +70,12 @@
             文档
           </template>
         </el-menu-item>
+        <el-menu-item index="/admin/ai-assistant">
+          <el-icon><Opportunity /></el-icon>
+          <template #title>
+            AI Test
+          </template>
+        </el-menu-item>
       </el-menu>
       
       <!-- Collapse Trigger -->
@@ -176,7 +182,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import {
   Setting, DataAnalysis, User, UserFilled, ChatDotRound,
-  Expand, Fold, Document, Monitor, MagicStick
+  Expand, Fold, Document, Monitor, MagicStick, Opportunity
 } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore } from '@/stores/theme'
@@ -197,7 +203,8 @@ const currentPageName = computed(() => {
     '/admin/students': '学生',
     '/admin/teachers': '教师',
     '/admin/questions': '问题',
-    '/admin/documents': '文档'
+    '/admin/documents': '文档',
+    '/admin/ai-assistant': 'AI Test'
   }
   return pathMap[route.path] || '管理'
 })

@@ -1,12 +1,13 @@
 package com.qasystem.ai.rag;
 
-/**
- * RAG 候选知识片段。
- */
 public record RagCandidate(
-        Long questionId,
+        String chunkId,
+        String documentId,
         String title,
         String snippet,
+        String knowledgePoint,
+        String sourceType,
+        String sourceRef,
         double score
 ) {
 }

@@ -6,44 +6,60 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 负责把召回候选拼装成可喂给 LLM 的上下文。
- */
 @Component
 public class RagContextAssembler {
 
-    public RagContextResult assemble(List<RagCandidate> candidates, int maxContextLength) {
-        if (candidates == null || candidates.isEmpty() || maxContextLength <= 0) {
-            return RagContextResult.empty();
+    public RagContextResult assemble(RagQuery query, List<RagCandidate> candidates, int maxContextLength) {
+        if (query == null || candidates == null || candidates.isEmpty() || maxContextLength <= 0) {
+            return RagContextResult.empty(query);
         }
 
         StringBuilder contextBuilder = new StringBuilder();
         List<String> citations = new ArrayList<>();
-        int used = 0;
+        int usedLength = 0;
 
         for (int i = 0; i < candidates.size(); i++) {
             RagCandidate candidate = candidates.get(i);
-            if (!StringUtils.hasText(candidate.snippet())) {
+            if (candidate == null || !StringUtils.hasText(candidate.snippet())) {
                 continue;
             }
 
-            String citation = "[" + (i + 1) + "] #" + candidate.questionId() + " " + candidate.title();
-            String block = "参考片段 " + citation + "\n"
-                    + "标题: " + candidate.title() + "\n"
-                    + "内容: " + candidate.snippet() + "\n\n";
+            String knowledgePointLabel = InterviewKnowledgePoint.fromCode(candidate.knowledgePoint()).getDisplayName();
+            String citation = "[" + (i + 1) + "] "
+                    + candidate.title()
+                    + " | " + knowledgePointLabel
+                    + " | " + safe(candidate.sourceType())
+                    + ":" + safe(candidate.sourceRef());
 
-            if (used + block.length() > maxContextLength) {
+            String block = "参考片段 " + citation + "\n"
+                    + "标题: " + safe(candidate.title()) + "\n"
+                    + "知识点: " + knowledgePointLabel + "\n"
+                    + "内容: " + candidate.snippet().trim() + "\n\n";
+
+            if (usedLength + block.length() > maxContextLength) {
                 break;
             }
 
             contextBuilder.append(block);
             citations.add(citation);
-            used += block.length();
+            usedLength += block.length();
         }
 
         if (contextBuilder.length() == 0) {
-            return RagContextResult.empty();
+            return RagContextResult.empty(query);
         }
-        return new RagContextResult(contextBuilder.toString().trim(), citations, citations.size());
+
+        return new RagContextResult(
+                contextBuilder.toString().trim(),
+                citations,
+                citations.size(),
+                query.interviewScene(),
+                query.retrievalMode(),
+                query.routeReason()
+        );
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
     }
 }

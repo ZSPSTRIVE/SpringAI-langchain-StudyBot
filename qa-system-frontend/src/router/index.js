@@ -182,6 +182,11 @@ const router = createRouter({
           component: () => import('@/views/admin/DocDocuments.vue')
         },
         {
+          path: 'ai-assistant',
+          name: 'AdminAiAssistant',
+          component: () => import('@/views/common/AiAssistant.vue')
+        },
+        {
           path: 'doc-config',
           name: 'AdminDocConfig',
           component: () => import('@/views/admin/DocConfig.vue')
