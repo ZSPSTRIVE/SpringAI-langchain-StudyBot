@@ -256,12 +256,61 @@ const props = defineProps({ embedded: { type: Boolean, default: false } })
 const embedded = props.embedded
 const userStore = useUserStore()
 const defaultKnowledgeBaseId = 'intern-rag-playbook'
+const escapeHtml = (content) => String(content).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;')
+const resolveCodeLanguageLabel = (language) => {
+  const normalized = String(language || '').trim().toLowerCase()
+  const labels = {
+    js: 'JavaScript',
+    javascript: 'JavaScript',
+    ts: 'TypeScript',
+    typescript: 'TypeScript',
+    py: 'Python',
+    python: 'Python',
+    java: 'Java',
+    c: 'C',
+    cpp: 'C++',
+    'c++': 'C++',
+    cs: 'C#',
+    csharp: 'C#',
+    'c#': 'C#',
+    go: 'Go',
+    html: 'HTML',
+    css: 'CSS',
+    scss: 'SCSS',
+    sql: 'SQL',
+    json: 'JSON',
+    xml: 'XML',
+    bash: 'Bash',
+    shell: 'Shell',
+    sh: 'Shell',
+    php: 'PHP',
+    ruby: 'Ruby',
+    rust: 'Rust',
+    kotlin: 'Kotlin',
+    swift: 'Swift'
+  }
+  return labels[normalized] || (normalized ? normalized.toUpperCase() : '代码')
+}
+const markdownRenderer = new marked.Renderer()
+markdownRenderer.code = (code, infostring, escaped) => {
+  const language = String((infostring || '').match(/^\S*/)?.[0] || '').trim()
+  const languageClass = language ? ` language-${language}` : ''
+  const languageLabel = resolveCodeLanguageLabel(language)
+  const renderedCode = (escaped ? code : escapeHtml(code)).replace(/\n?$/, '\n')
+
+  return `<div class="code-block">
+    <div class="code-block-header">
+      <span class="code-block-language">${escapeHtml(languageLabel)}</span>
+    </div>
+    <pre><code class="hljs${languageClass}">${renderedCode}</code></pre>
+  </div>\n`
+}
 const sourceTypeOptions = [
   { label: 'Seed Internet', value: 'seed_internet' },
   { label: 'Question Answer', value: 'question_answer' },
   { label: 'Doc Paragraph', value: 'doc_paragraph' }
 ]
-marked.setOptions({ highlight(code, lang) { const language = hljs.getLanguage(lang) ? lang : 'plaintext'; return hljs.highlight(code, { language }).value }, breaks: true, gfm: true })
+marked.setOptions({ renderer: markdownRenderer, highlight(code, lang) { const language = hljs.getLanguage(lang) ? lang : 'plaintext'; return hljs.highlight(code, { language }).value }, breaks: true, gfm: true })
 const isAdmin = computed(() => userStore.userInfo?.role === 'ADMIN')
 const sidebarCollapsed = ref(false), currentSessionId = ref(''), sessions = ref([]), messages = ref([]), inputMessage = ref(''), needRecommendation = ref(false), loading = ref(false), scrollbarRef = ref(null), bookmarksDialogVisible = ref(false), bookmarkedConversations = ref([])
 const contextMenuVisible = ref(false), contextMenuX = ref(0), contextMenuY = ref(0), selectedSession = ref(null)
@@ -271,6 +320,50 @@ const closeContextMenu = () => { contextMenuVisible.value = false }
 onMounted(() => { loadSessions(); if (isAdmin.value) loadAdminDebugContext(); document.addEventListener('click', closeContextMenu) })
 onBeforeUnmount(() => { document.removeEventListener('click', closeContextMenu) })
 const normalizeText = (value) => typeof value === 'string' ? value.trim() : ''
+const autoSegmentParagraphs = (text) => text
+  .split(/\n{2,}/)
+  .map(block => {
+    const trimmed = block.trim()
+    if (!trimmed) return ''
+    if (trimmed.split('\n').some(line => /^(#{1,6}\s|[-*+]\s|>\s|\d+[.)]\s|```|---+$|\|)/.test(line.trim()))) {
+      return trimmed
+    }
+
+    const normalizedBlock = trimmed
+      .replace(/\s*\n\s*/g, ' ')
+      .replace(/[ \t]{2,}/g, ' ')
+      .trim()
+
+    if (normalizedBlock.length < 88) {
+      return normalizedBlock
+    }
+
+    const sentences = normalizedBlock.split(/(?<=[。！？；!?;])\s*/).map(item => item.trim()).filter(Boolean)
+    if (sentences.length < 2) {
+      return normalizedBlock
+    }
+
+    const paragraphs = []
+    let current = ''
+
+    sentences.forEach(sentence => {
+      const candidate = `${current}${sentence}`
+      if (current && candidate.length > 92) {
+        paragraphs.push(current.trim())
+        current = sentence
+        return
+      }
+      current = candidate
+    })
+
+    if (current.trim()) {
+      paragraphs.push(current.trim())
+    }
+
+    return paragraphs.join('\n\n')
+  })
+  .filter(Boolean)
+  .join('\n\n')
 const resolveKnowledgeBaseId = () => normalizeText(knowledgeBaseId.value) || defaultKnowledgeBaseId
 const resolveSceneLabel = (sceneCode) => sceneOptions.value.find(item => item.code === sceneCode)?.displayName || sceneCode || 'general'
 const buildDebugMeta = (data = {}) => ({ interviewScene: data.interviewScene || selectedScene.value || 'general', interviewSceneLabel: data.interviewSceneLabel || resolveSceneLabel(data.interviewScene || selectedScene.value), retrievalMode: data.retrievalMode || 'NONE', ragRecallCount: Number.isFinite(Number(data.ragRecallCount)) ? Number(data.ragRecallCount) : 0, routeReason: data.routeReason || '' })
@@ -306,16 +399,21 @@ const normalizeMarkdownSource = (content) => {
 
   text = text
     .replace(/([。！？；：:])\s*(#{1,6})(?=\S)/g, '$1\n\n$2 ')
-    .replace(/([^\n])\s+(#{1,6})(?=\S)/g, '$1\n\n$2 ')
+    .replace(/([^\n])\s*(#{1,6})(?=\S)/g, '$1\n\n$2 ')
     .replace(/(^|\n)(#{1,6})(?=\S)/g, '$1$2 ')
+    .replace(/(#{1,6}\s*[^#\n]{2,18}?(?:题意|思路|分析|条件|总结|示例|实现|步骤|方法|原理|法))(?!\n)(?=\S)/g, '$1\n\n')
     .replace(/([。！？；：:])\s*((?:[-*+])\s+)/g, '$1\n$2')
     .replace(/([。！？；：:])\s*((?:\d+[.)])\s+)/g, '$1\n$2')
     .replace(/([。！？；：:])\s*(>\s+)/g, '$1\n$2')
+    .replace(/(^|\n)([-*+>])(?=\S)/g, '$1$2 ')
+    .replace(/(^|\n)(\d+[.)])(?=\S)/g, '$1$2 ')
     .replace(/([^\n])(```)/g, '$1\n\n$2')
     .replace(/(```[A-Za-z0-9#+-]*)([^\n])/g, '$1\n$2')
     .replace(new RegExp(`(#{1,6}\\s*[^\\n#]{1,24}?实现)\\s*(${codeLanguagePattern})(?=(?:public|class|def|function|const|let|var|package|import|SELECT|INSERT|UPDATE|DELETE|<))`, 'gi'), '$1\n\n```$2\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
+
+  text = autoSegmentParagraphs(text)
 
   fencedBlocks.forEach((block, index) => {
     text = text.replace(`@@CODE_BLOCK_${index}@@`, block)
@@ -330,7 +428,6 @@ const normalizeMarkdownSource = (content) => {
 }
 
 const renderMarkdown = (content) => !content ? '' : marked.parse(normalizeMarkdownSource(content))
-const escapeHtml = (content) => String(content).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#39;')
 const renderMessageHtml = (content) => { if (!content) return ''; const normalizedContent = normalizeMarkdownSource(content); try { const rendered = marked.parse(normalizedContent); if (typeof rendered === 'string' && rendered.trim()) return rendered } catch (error) { console.error('Render markdown failed', error) } return escapeHtml(normalizedContent).replace(/\r?\n/g, '<br>') }
 const formatTime = (time) => !time ? '' : dayjs(time).fromNow()
 const formatScore = (score) => Number.isFinite(Number(score)) ? Number(score).toFixed(3) : '-'
@@ -1009,6 +1106,9 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
 }
 
 .markdown-body {
+  font-size: 14px;
+  line-height: 1.85;
+  letter-spacing: 0.01em;
   color: #1f2937;
   overflow-wrap: anywhere;
 }
@@ -1027,7 +1127,7 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
 .markdown-body :deep(h4),
 .markdown-body :deep(h5),
 .markdown-body :deep(h6) {
-  margin: 16px 0 10px;
+  margin: 18px 0 10px;
   font-weight: 800;
   line-height: 1.45;
   color: #0f172a;
@@ -1045,16 +1145,47 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
   font-size: 16px;
 }
 
-.markdown-body :deep(pre) {
-  margin: 12px 0;
-  padding: 16px;
-  border-radius: 12px;
-  overflow-x: auto;
-  background: rgba(15, 23, 42, 0.9);
-}
-
 .markdown-body :deep(code) {
   font-family: $font-family-mono;
+}
+
+.markdown-body :deep(.code-block) {
+  margin: 14px 0;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.9);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(2, 6, 23, 0.98) 100%);
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.16);
+}
+
+.markdown-body :deep(.code-block-header) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(30, 41, 59, 0.92);
+}
+
+.markdown-body :deep(.code-block-language) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.16);
+  color: #bfdbfe;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.markdown-body :deep(.code-block pre) {
+  margin: 0;
+  padding: 16px 18px;
+  overflow-x: auto;
+  background: transparent;
 }
 
 .markdown-body :deep(:not(pre) > code) {
@@ -1065,19 +1196,28 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
   font-size: 13px;
 }
 
-.markdown-body :deep(pre code) {
+.markdown-body :deep(.code-block pre code) {
   padding: 0;
   color: inherit;
   background: transparent;
+  display: block;
+  font-size: 13px;
+  line-height: 1.75;
+  tab-size: 2;
+  white-space: pre;
 }
 
 .markdown-body :deep(p) {
-  margin: 8px 0;
+  margin: 10px 0;
+}
+
+.markdown-body :deep(p + p) {
+  margin-top: 14px;
 }
 
 .markdown-body :deep(ul),
 .markdown-body :deep(ol) {
-  margin: 10px 0;
+  margin: 12px 0;
   padding-left: 24px;
 }
 
@@ -1085,21 +1225,42 @@ function parseRecommendations(jsonString) { if (!jsonString) return []; try { co
   margin-top: 6px;
 }
 
+.markdown-body :deep(ol li::marker),
+.markdown-body :deep(ul li::marker) {
+  color: #3b82f6;
+}
+
 .markdown-body :deep(blockquote) {
-  margin: 12px 0;
-  padding: 10px 14px;
+  margin: 14px 0;
+  padding: 12px 14px;
   border-left: 4px solid rgba(59, 130, 246, 0.35);
   border-radius: 0 12px 12px 0;
   background: rgba(239, 246, 255, 0.72);
   color: #334155;
 }
 
+.markdown-body :deep(blockquote p) {
+  margin: 0;
+}
+
+.markdown-body :deep(strong) {
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.markdown-body :deep(hr) {
+  margin: 18px 0;
+  border: 0;
+  border-top: 1px solid rgba(203, 213, 225, 0.9);
+}
+
 .markdown-body :deep(table) {
   width: 100%;
-  margin: 12px 0;
+  margin: 14px 0;
   border-collapse: collapse;
   overflow: hidden;
   border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
 .markdown-body :deep(th),
