@@ -2,10 +2,10 @@
   <img src="pictures/logo.svg" alt="师生答疑系统" width="120" />
 </p>
 
-<h1 align="center">🎓 师生答疑系统 (Student-Teacher Q&A System)</h1>
+<h1 align="center">师生答疑系统 </h1>
 
 <p align="center">
-  <strong>一站式智能教学交互平台 | AI驱动的现代化答疑解决方案</strong>
+  <strong>一站式智能教学交互平台 | AI驱动的现代化答疑</strong>
 </p>
 
 <p align="center">
